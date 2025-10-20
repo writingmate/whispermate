@@ -24,7 +24,10 @@
       "Bash(xcrun notarytool:*)",
       "Bash(chmod:*)",
       "Bash(security find-certificate:*)",
-      "Bash(open -a \"Keychain Access\")"
+      "Bash(open -a \"Keychain Access\")",
+      "Bash(prompt parameter to improve the quality of the transcription by giving)",
+      "Bash(the model additional context similarly to how you would prompt other)",
+      "Bash(GPT-4o models.\"\n\nChanges:\n- Re-enabled prompt parameter in OpenAIClient.swift\n- Removed GPT-4o-mini post-processing (unnecessary)\n- Simplified ContentView back to single API call\n- Updated UI description to reflect direct prompting\n- Updated default rules to follow OpenAI examples\n\nHow it works now:\n- User adds rules: \"Hello, welcome to my lecture.\"\n- Whisper uses this to guide punctuation/style\n- Single API call, faster response, lower cost\n\nThis is the CORRECT implementation per OpenAI documentation.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []

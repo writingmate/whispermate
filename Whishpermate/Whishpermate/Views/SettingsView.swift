@@ -150,15 +150,15 @@ struct SettingsView: View {
                     Divider()
                         .padding(.horizontal, max(24, geometry.size.width * 0.06))
 
-                    // Prompt Rules Section (OpenAI only - uses GPT-4o-mini for post-processing)
-                    // Rules are applied after transcription to format the text
+                    // Prompt Rules Section (OpenAI only)
+                    // gpt-4o-transcribe supports instruction-style prompts directly
                     if apiProviderManager.selectedProvider == .openai {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Transcription Prompt Rules")
                                 .font(.system(size: 15, weight: .semibold))
                                 .foregroundStyle(.primary)
 
-                            Text("Add rules to format transcriptions using GPT-4o-mini post-processing")
+                            Text("Add context and formatting instructions for gpt-4o-transcribe")
                                 .font(.system(size: 12))
                                 .foregroundStyle(.secondary)
 

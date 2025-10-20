@@ -28,10 +28,10 @@ class PromptRulesManager: ObservableObject {
             rules = decoded
             print("[PromptRulesManager LOG] Loaded \(rules.count) prompt rules")
         } else {
-            // Add default rules
+            // Add default rules (examples from OpenAI docs)
             rules = [
-                PromptRule(text: "Use proper punctuation and capitalization"),
-                PromptRule(text: "Format numbers as digits (1, 2, 3) not words")
+                PromptRule(text: "Hello, welcome to my lecture."),
+                PromptRule(text: "Format numbers as digits (1, 2, 3) not words.")
             ]
             saveRules()
             print("[PromptRulesManager LOG] Created default prompt rules")

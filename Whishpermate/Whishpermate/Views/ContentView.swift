@@ -315,20 +315,13 @@ struct ContentView: View {
                 print("[LOG] Using language: \(languageCode ?? "auto-detect")")
                 print("[LOG] Using prompt: \(prompt.isEmpty ? "none" : prompt)")
 
-                var result: String
+                let result: String
                 switch provider {
                 case .groq:
                     result = try await GroqAPIClient.transcribe(audioURL: audioURL, apiKey: apiKey, languageCode: languageCode)
                 case .openai:
-                    // Step 1: Get raw transcription
-                    result = try await OpenAIClient.transcribe(audioURL: audioURL, apiKey: apiKey, languageCode: languageCode, prompt: nil)
-
-                    // Step 2: Apply formatting rules if enabled
-                    if !prompt.isEmpty {
-                        print("[LOG] Applying formatting rules to transcription...")
-                        result = try await OpenAIClient.applyFormattingRules(transcription: result, rules: prompt, apiKey: apiKey)
-                        print("[LOG] Formatting complete")
-                    }
+                    // gpt-4o-transcribe supports instruction-style prompts directly
+                    result = try await OpenAIClient.transcribe(audioURL: audioURL, apiKey: apiKey, languageCode: languageCode, prompt: prompt.isEmpty ? nil : prompt)
                 }
 
                 print("[LOG] Transcription received: \(result)")
