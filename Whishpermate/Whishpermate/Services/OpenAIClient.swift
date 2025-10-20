@@ -5,6 +5,7 @@ enum OpenAIError: Error {
     case invalidResponse
     case networkError(Error)
     case apiError(String)
+    case encodingError
 }
 
 struct OpenAIClient {
@@ -110,6 +111,90 @@ struct OpenAIClient {
             print("[OpenAIClient LOG] Transcription successful")
             print("[OpenAIClient LOG] ========================================")
             return text.trimmingCharacters(in: .whitespacesAndNewlines)
+        } catch let error as OpenAIError {
+            throw error
+        } catch {
+            print("[OpenAIClient LOG] Network error: \(error)")
+            throw OpenAIError.networkError(error)
+        }
+    }
+
+    /// Apply formatting rules to transcription using GPT-4o-mini
+    /// This is a post-processing step that takes raw transcription and applies user-defined rules
+    static func applyFormattingRules(transcription: String, rules: String, apiKey: String) async throws -> String {
+        let chatURL = "https://api.openai.com/v1/chat/completions"
+
+        guard let url = URL(string: chatURL) else {
+            throw OpenAIError.invalidURL
+        }
+
+        print("[OpenAIClient LOG] ========================================")
+        print("[OpenAIClient LOG] Applying formatting rules to transcription")
+        print("[OpenAIClient LOG] Rules: \(rules)")
+
+        // Build the system prompt
+        let systemPrompt = """
+        You are a text formatter. Your job is to take a transcription and apply the following formatting rules:
+
+        \(rules)
+
+        Return ONLY the formatted transcription text, with no additional commentary or explanation.
+        Do not change the meaning or content, only apply the specified formatting rules.
+        """
+
+        // Build the request payload
+        let payload: [String: Any] = [
+            "model": "gpt-4o-mini",
+            "messages": [
+                ["role": "system", "content": systemPrompt],
+                ["role": "user", "content": transcription]
+            ],
+            "temperature": 0.3,  // Lower temperature for more consistent formatting
+            "max_tokens": 1000
+        ]
+
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
+            throw OpenAIError.encodingError
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = jsonData
+
+        // Send request
+        do {
+            print("[OpenAIClient LOG] Sending formatting request to GPT-4o-mini...")
+            let (data, response) = try await URLSession.shared.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw OpenAIError.invalidResponse
+            }
+
+            print("[OpenAIClient LOG] Received response with status: \(httpResponse.statusCode)")
+
+            if httpResponse.statusCode != 200 {
+                let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+                print("[OpenAIClient LOG] Error response: \(errorMessage)")
+                throw OpenAIError.apiError("HTTP \(httpResponse.statusCode): \(errorMessage)")
+            }
+
+            // Parse response
+            guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let choices = json["choices"] as? [[String: Any]],
+                  let firstChoice = choices.first,
+                  let message = firstChoice["message"] as? [String: Any],
+                  let content = message["content"] as? String else {
+                throw OpenAIError.invalidResponse
+            }
+
+            let formattedText = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            print("[OpenAIClient LOG] Formatting successful")
+            print("[OpenAIClient LOG] Original length: \(transcription.count), Formatted length: \(formattedText.count)")
+            print("[OpenAIClient LOG] ========================================")
+
+            return formattedText
         } catch let error as OpenAIError {
             throw error
         } catch {
