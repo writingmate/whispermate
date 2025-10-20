@@ -63,13 +63,17 @@ struct OpenAIClient {
             print("[OpenAIClient LOG] Added language: \(languageCode)")
         }
 
-        // Add prompt parameter (optional)
-        if let prompt = prompt, !prompt.isEmpty {
-            body.append("--\(boundary)\r\n".data(using: .utf8)!)
-            body.append("Content-Disposition: form-data; name=\"prompt\"\r\n\r\n".data(using: .utf8)!)
-            body.append("\(prompt)\r\n".data(using: .utf8)!)
-            print("[OpenAIClient LOG] Added prompt: \(prompt)")
-        }
+        // DISABLED: Whisper API prompt parameter is for transcript context, not instructions
+        // The prompt parameter should contain actual transcript text from previous segments,
+        // not formatting instructions. Using instructions here causes the API to echo them back.
+        // TODO: Implement proper context-based prompting for multi-segment transcription
+        //
+        // if let prompt = prompt, !prompt.isEmpty {
+        //     body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        //     body.append("Content-Disposition: form-data; name=\"prompt\"\r\n\r\n".data(using: .utf8)!)
+        //     body.append("\(prompt)\r\n".data(using: .utf8)!)
+        //     print("[OpenAIClient LOG] Added prompt: \(prompt)")
+        // }
 
         // Add response_format parameter (optional, default is json)
         body.append("--\(boundary)\r\n".data(using: .utf8)!)

@@ -14,7 +14,17 @@
       "Bash(rm:*)",
       "Bash(git commit:*)",
       "Bash(gh repo create:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git rm:*)",
+      "Bash(hdiutil create:*)",
+      "Bash(hdiutil attach:*)",
+      "Read(//Volumes/WhisperMate/**)",
+      "Bash(gh release create:*)",
+      "Bash(security find-identity:*)",
+      "Bash(xcrun notarytool:*)",
+      "Bash(chmod:*)",
+      "Bash(security find-certificate:*)",
+      "Bash(open -a \"Keychain Access\")"
     ],
     "deny": [],
     "ask": []

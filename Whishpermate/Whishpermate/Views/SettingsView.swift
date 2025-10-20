@@ -150,8 +150,10 @@ struct SettingsView: View {
                     Divider()
                         .padding(.horizontal, max(24, geometry.size.width * 0.06))
 
-                    // Prompt Rules Section (OpenAI only)
-                    if apiProviderManager.selectedProvider == .openai {
+                    // Prompt Rules Section (DISABLED - see OpenAIClient.swift for explanation)
+                    // The Whisper API prompt parameter is for transcript context, not instructions
+                    // Re-enable when implementing proper context-based prompting
+                    if false && apiProviderManager.selectedProvider == .openai {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Transcription Prompt Rules")
                                 .font(.system(size: 15, weight: .semibold))
