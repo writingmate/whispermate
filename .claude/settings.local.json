@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xcodebuild:*)",
+      "WebSearch",
+      "WebFetch(domain:console.groq.com)",
+      "Bash(ping:*)",
+      "Bash(codesign:*)",
+      "Bash(killall:*)",
+      "WebFetch(domain:stackoverflow.com)",
+      "WebFetch(domain:platform.openai.com)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(rm:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
