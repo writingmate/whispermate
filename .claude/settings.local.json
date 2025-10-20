@@ -1,7 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Bash(sips:*)"
+      "Bash(sips:*)",
+      "Bash(clean build )",
+      "Bash(CODE_SIGN_IDENTITY=\"Developer ID Application: Artsiom Vysotski (G7DJ6P37KU)\")",
+      "Bash(CODE_SIGN_IDENTITY=\"Developer ID Application: Artsiom Vysotski (G7DJ6P37KU)\":*)",
+      "Bash(DEVELOPMENT_TEAM=\"G7DJ6P37KU\")",
+      "Bash(CODE_SIGN_STYLE=Manual:*)",
+      "Bash(PROVISIONING_PROFILE_SPECIFIER=\"\")",
+      "Bash(WhisperMate-v0.0.2.dmg)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)"
     ],
     "deny": [],
     "ask": []

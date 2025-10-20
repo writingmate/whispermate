@@ -24,13 +24,23 @@ struct ContentView: View {
         VStack(spacing: 0) {
             // Header with refined styling
             HStack {
-                HStack(spacing: 0) {
-                    Text("Whisper")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.primary)
-                    Text("Mate")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                HStack(spacing: 8) {
+                    // App icon from assets
+                    if let appIcon = NSImage(named: "AppIcon") {
+                        Image(nsImage: appIcon)
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                            .cornerRadius(6)
+                    }
+
+                    HStack(spacing: 0) {
+                        Text("Whisper")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.primary)
+                        Text("Mate")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 Spacer()
