@@ -11,7 +11,13 @@
       "Bash(WhisperMate-v0.0.2.dmg)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(xcodebuild:*)",
+      "Bash(clean build)",
+      "Bash(CODE_SIGN_ENTITLEMENTS=\"Whispermate/Whispermate.entitlements\":*)",
+      "Bash(hdiutil create:*)",
+      "Bash(WhisperMate-v0.0.3.dmg)",
+      "Bash(codesign:*)"
     ],
     "deny": [],
     "ask": []
