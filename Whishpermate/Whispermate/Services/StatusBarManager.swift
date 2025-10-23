@@ -1,0 +1,122 @@
+import SwiftUI
+import AppKit
+
+// MARK: - Notification Names
+extension NSNotification.Name {
+    static let showHistory = NSNotification.Name("ShowHistory")
+    static let showSettings = NSNotification.Name("ShowSettings")
+}
+
+class StatusBarManager {
+    private var statusItem: NSStatusItem?
+    private var menu: NSMenu?
+    weak var appWindow: NSWindow?
+
+    func setupMenuBar() {
+        // Create status bar item
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+
+        guard let button = statusItem?.button else {
+            print("[StatusBarManager] Failed to create status bar button")
+            return
+        }
+
+        // Use app icon for menu bar
+        if let appIcon = NSImage(named: "AppIcon"),
+           let icon = appIcon.copy() as? NSImage {
+            icon.size = NSSize(width: 18, height: 18)
+            button.image = icon
+        } else {
+            // Fallback to SF Symbol
+            let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .regular)
+            button.image = NSImage(systemSymbolName: "waveform", accessibilityDescription: "WhisperMate")?.withSymbolConfiguration(config)
+        }
+
+        // Create menu
+        menu = NSMenu()
+
+        // Show/Hide Window
+        let showHideItem = NSMenuItem(
+            title: "Show WhisperMate",
+            action: #selector(toggleWindow),
+            keyEquivalent: ""
+        )
+        showHideItem.target = self
+        menu?.addItem(showHideItem)
+
+        menu?.addItem(NSMenuItem.separator())
+
+        // History
+        let historyItem = NSMenuItem(
+            title: "History",
+            action: #selector(showHistory),
+            keyEquivalent: "h"
+        )
+        historyItem.target = self
+        menu?.addItem(historyItem)
+
+        // Settings
+        let settingsItem = NSMenuItem(
+            title: "Settings",
+            action: #selector(showSettings),
+            keyEquivalent: ","
+        )
+        settingsItem.target = self
+        menu?.addItem(settingsItem)
+
+        menu?.addItem(NSMenuItem.separator())
+
+        // Quit
+        let quitItem = NSMenuItem(
+            title: "Quit WhisperMate",
+            action: #selector(quit),
+            keyEquivalent: "q"
+        )
+        quitItem.target = self
+        menu?.addItem(quitItem)
+
+        statusItem?.menu = menu
+
+        print("[StatusBarManager] Menu bar icon created successfully")
+    }
+
+    @objc private func toggleWindow() {
+        // Use stored window reference if available, otherwise fall back to first window
+        let window = appWindow ?? NSApplication.shared.windows.first(where: { $0.level == .normal })
+
+        if let window = window {
+            if window.isVisible {
+                window.orderOut(nil)
+            } else {
+                NSApplication.shared.activate(ignoringOtherApps: true)
+                window.makeKeyAndOrderFront(nil)
+            }
+        } else {
+            print("[StatusBarManager] Warning: Could not find app window to toggle")
+        }
+    }
+
+    @objc private func showHistory() {
+        NSApplication.shared.activate(ignoringOtherApps: true)
+        let window = appWindow ?? NSApplication.shared.windows.first(where: { $0.level == .normal })
+        window?.makeKeyAndOrderFront(nil)
+        NotificationCenter.default.post(name: .showHistory, object: nil)
+    }
+
+    @objc private func showSettings() {
+        NSApplication.shared.activate(ignoringOtherApps: true)
+        let window = appWindow ?? NSApplication.shared.windows.first(where: { $0.level == .normal })
+        window?.makeKeyAndOrderFront(nil)
+        NotificationCenter.default.post(name: .showSettings, object: nil)
+    }
+
+    @objc private func quit() {
+        NSApplication.shared.terminate(nil)
+    }
+
+    deinit {
+        if let statusItem = statusItem {
+            NSStatusBar.system.removeStatusItem(statusItem)
+        }
+    }
+}
