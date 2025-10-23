@@ -1,4 +1,6 @@
 import SwiftUI
+import AVFoundation
+import AppKit
 
 struct ContentView: View {
     @StateObject private var audioRecorder = AudioRecorder()
@@ -6,9 +8,11 @@ struct ContentView: View {
     @StateObject private var historyManager = HistoryManager()
     @StateObject private var overlayManager = OverlayWindowManager()
     @StateObject private var languageManager = LanguageManager()
-    @StateObject private var apiProviderManager = APIProviderManager()
+    @StateObject private var transcriptionProviderManager = TranscriptionProviderManager()
+    @StateObject private var llmProviderManager = LLMProviderManager()
     @StateObject private var promptRulesManager = PromptRulesManager()
     @State private var transcription = ""
+    @State private var isTranscriptVisible = false
     @State private var isProcessing = false
     @State private var showingAPIKeyAlert = false
     @State private var showingSettings = false
@@ -17,180 +21,159 @@ struct ContentView: View {
     @State private var errorMessage = ""
     @State private var recordingStartTime: Date?
     @State private var shouldAutoPaste = false
-    @State private var showingAccessibilityAlert = false
+    @State private var isDragging = false
+    @State private var windowPosition: CGPoint?
 
     var body: some View {
         GeometryReader { geometry in
-        VStack(spacing: 0) {
-            // Header with refined styling
-            HStack {
-                HStack(spacing: 8) {
-                    // App icon from assets
-                    if let appIcon = NSImage(named: "AppIcon") {
-                        Image(nsImage: appIcon)
-                            .resizable()
-                            .frame(width: 24, height: 24)
-                            .cornerRadius(6)
-                    }
-
-                    HStack(spacing: 0) {
-                        Text("Whisper")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(.primary)
-                        Text("Mate")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                Spacer()
-
-                // Toolbar buttons with hover effects
-                HStack(spacing: 8) {
-                    Button(action: {
-                        showingHistory.toggle()
-                    }) {
-                        Image(systemName: "clock.arrow.circlepath")
-                            .font(.system(size: 16, weight: .regular))
-                            .foregroundStyle(.secondary)
-                            .frame(width: 28, height: 28)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .help("History")
-
-                    Button(action: {
-                        showingSettings.toggle()
-                    }) {
-                        Image(systemName: "gearshape")
-                            .font(.system(size: 16, weight: .regular))
-                            .foregroundStyle(.secondary)
-                            .frame(width: 28, height: 28)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .help("Settings")
-                }
-            }
-            .padding(.horizontal, max(20, geometry.size.width * 0.05))
-            .padding(.vertical, 16)
-
-            Divider()
-
-            // Main Content with improved spacing
-            VStack(spacing: 16) {
-                // Transcription Display with refined card design
-                ScrollView {
-                    Text(transcription.isEmpty ? "Press record to start..." : transcription)
-                        .font(.system(size: 14))
-                        .foregroundStyle(transcription.isEmpty ? .tertiary : .primary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(16)
-                        .textSelection(.enabled)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(nsColor: .textBackgroundColor))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color(nsColor: .separatorColor), lineWidth: 0.5)
-                )
-
-                // Status Messages with improved styling
-                VStack(spacing: 8) {
-                    // Recording Status
-                    if audioRecorder.isRecording {
-                        HStack(spacing: 6) {
-                            Circle()
-                                .fill(Color.red)
-                                .frame(width: 6, height: 6)
-                            Text("Recording...")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundStyle(.red)
-                        }
-                    }
-
-                    // Processing Indicator
-                    if isProcessing {
-                        HStack(spacing: 6) {
-                            ProgressView()
-                                .controlSize(.small)
-                                .scaleEffect(0.8)
-                            Text("Transcribing...")
-                                .font(.system(size: 12))
+            VStack(spacing: 0) {
+                // Main Content - text area (always present for smooth animation)
+                VStack(spacing: 0) {
+                    // Top toolbar with contract and copy buttons
+                    HStack {
+                        // Contract button (only shown when NOT in overlay mode)
+                        if !overlayManager.isOverlayMode {
+                            Button(action: {
+                                overlayManager.contractToOverlay()
+                            }) {
+                                HStack(spacing: 3) {
+                                    Image(systemName: "arrow.down.right.and.arrow.up.left")
+                                        .font(.system(size: 10))
+                                    Text("Contract")
+                                        .font(.system(size: 11))
+                                }
                                 .foregroundStyle(.secondary)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(
+                                    Capsule()
+                                        .fill(Color(nsColor: .controlBackgroundColor))
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
-                    }
 
-                    // Error Message
-                    if !errorMessage.isEmpty {
-                        Text(errorMessage)
-                            .font(.system(size: 12))
-                            .foregroundStyle(.red)
-                            .multilineTextAlignment(.center)
-                    }
-                }
-                .frame(minHeight: 24)
-            }
-            .padding(.horizontal, max(20, geometry.size.width * 0.05))
-            .padding(.vertical, 16)
+                        Spacer()
 
-            Divider()
-
-            // Record Button with refined Apple-style design
-            Button(action: {
-                print("[LOG] Button clicked")
-                shouldAutoPaste = true
-                handleRecordButton()
-            }) {
-                HStack(spacing: 8) {
-                    Image(systemName: audioRecorder.isRecording ? "stop.circle.fill" : "mic.circle.fill")
-                        .font(.system(size: 20, weight: .medium))
-                    if audioRecorder.isRecording {
-                        Text("Stop Recording")
-                            .font(.system(size: 15, weight: .semibold))
-                    } else {
-                        if let hotkey = hotkeyManager.currentHotkey {
-                            Text("Start Recording (\(hotkey.displayString))")
-                                .font(.system(size: 15, weight: .semibold))
-                        } else {
-                            Text("Start Recording")
-                                .font(.system(size: 15, weight: .semibold))
+                        // Copy button
+                        Button(action: {
+                            let pasteboard = NSPasteboard.general
+                            pasteboard.clearContents()
+                            pasteboard.setString(transcription, forType: .string)
+                        }) {
+                            HStack(spacing: 3) {
+                                Image(systemName: "doc.on.doc")
+                                    .font(.system(size: 10))
+                                Text("Copy")
+                                    .font(.system(size: 11))
+                            }
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                                Capsule()
+                                    .fill(Color(nsColor: .controlBackgroundColor))
+                            )
                         }
+                        .buttonStyle(.plain)
+                        .opacity(transcription.isEmpty ? 0 : 1)
                     }
+                    .padding(.horizontal, 12)
+                    .padding(.top, 8)
+
+                    // Text editor with padding
+                    TextEditor(text: $transcription)
+                        .font(.system(size: 14))
+                        .scrollContentBackground(.hidden)
+                        .background(Color.clear)
+                        .padding(.horizontal, 12)
+                        .padding(.bottom, 8)
                 }
-                .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
-                .frame(height: 44)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(isProcessing ? Color(nsColor: .systemGray) : (audioRecorder.isRecording ? Color.red : Color.accentColor))
+                .frame(height: isTranscriptVisible ? 280 : 0)
+                .background(Color(nsColor: .textBackgroundColor))
+                .opacity(isTranscriptVisible ? 1 : 0)
+
+                // Record Button with refined Apple-style design (stays at bottom)
+                Button(action: {
+                    print("[LOG] Button clicked")
+                    shouldAutoPaste = true
+                    handleRecordButton()
+                }) {
+                    if audioRecorder.isRecording {
+                        // Show visualization when recording
+                        AudioVisualizationView(audioLevel: audioRecorder.audioLevel)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 40)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color.accentColor.opacity(0.9))
+                            )
+                    } else {
+                        // Show normal button content when not recording
+                        HStack(spacing: 8) {
+                            Image(systemName: "mic.circle.fill")
+                                .font(.system(size: 20, weight: .medium))
+                            if let hotkey = hotkeyManager.currentHotkey {
+                                Text("Start Recording (\(hotkey.displayString))")
+                                    .font(.system(size: 15, weight: .semibold))
+                            } else {
+                                Text("Start Recording")
+                                    .font(.system(size: 15, weight: .semibold))
+                            }
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 40)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(isProcessing ? Color(nsColor: .systemGray) : Color.accentColor)
+                        )
+                    }
+                }
+                .buttonStyle(.plain)
+                .disabled(isProcessing)
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 5)
+                        .onChanged { value in
+                            if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
+                                if windowPosition == nil {
+                                    windowPosition = window.frame.origin
+                                }
+                                let newOrigin = CGPoint(
+                                    x: windowPosition!.x + value.translation.width,
+                                    y: windowPosition!.y - value.translation.height
+                                )
+                                window.setFrameOrigin(newOrigin)
+                            }
+                        }
+                        .onEnded { _ in
+                            windowPosition = nil
+                        }
                 )
             }
-            .buttonStyle(.plain)
-            .disabled(isProcessing)
-            .padding(.horizontal, max(20, geometry.size.width * 0.05))
-            .padding(.vertical, 16)
+            .frame(width: 400)
         }
-        }
-        .frame(minWidth: 400, maxWidth: 800, minHeight: 360, maxHeight: 600)
+        .frame(width: 400)
+        .frame(height: isTranscriptVisible ? 360 : 40)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isTranscriptVisible)
         .sheet(isPresented: $showingSettings) {
             SettingsView(
                 hotkeyManager: hotkeyManager,
                 languageManager: languageManager,
-                apiProviderManager: apiProviderManager,
+                transcriptionProviderManager: transcriptionProviderManager,
+                llmProviderManager: llmProviderManager,
                 promptRulesManager: promptRulesManager
             )
         }
         .sheet(isPresented: $showingHistory) {
             HistoryView(historyManager: historyManager)
         }
-        .alert("Enter Groq API Key", isPresented: $showingAPIKeyAlert) {
+        .alert("Enter API Key", isPresented: $showingAPIKeyAlert) {
             TextField("API Key", text: $apiKey)
             Button("Save") {
-                KeychainHelper.save(key: "groq_api_key", value: apiKey)
+                let keyName = transcriptionProviderManager.selectedProvider.apiKeyName
+                KeychainHelper.save(key: keyName, value: apiKey)
                 apiKey = ""
             }
             Button("Cancel", role: .cancel) {
@@ -199,41 +182,57 @@ struct ContentView: View {
         } message: {
             Text("Your API key will be securely stored in Keychain")
         }
-        .alert("Accessibility Permission Required", isPresented: $showingAccessibilityAlert) {
-            Button("Open System Settings") {
-                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                    NSWorkspace.shared.open(url)
-                }
+        .onChange(of: audioRecorder.audioLevel) { oldValue, newValue in
+            // Update overlay with audio level (ensure main thread)
+            DispatchQueue.main.async {
+                print("[ContentView] 📊 Updating overlay audioLevel: \(oldValue) -> \(newValue)")
+                overlayManager.audioLevel = newValue
             }
-            Button("Later", role: .cancel) {}
-        } message: {
-            Text("WhisperMate needs Accessibility permissions to paste transcriptions into other apps.\n\nPlease enable WhisperMate in System Settings → Privacy & Security → Accessibility")
         }
         .onAppear {
-            // Check for API key on launch based on selected provider
-            let keyName = apiProviderManager.selectedProvider.apiKeyName
-            if KeychainHelper.get(key: keyName) == nil {
+            isTranscriptVisible = !transcription.isEmpty
+
+            // Migrate old keychain items if needed (for smooth upgrade)
+            let transcriptionProvider = transcriptionProviderManager.selectedProvider
+            let llmProvider = llmProviderManager.selectedProvider
+            let transcriptionKeyName = transcriptionProvider.apiKeyName
+            let llmKeyName = llmProvider.apiKeyName
+
+            if SecretsLoader.transcriptionKey(for: transcriptionProvider) == nil {
+                KeychainHelper.migrateIfNeeded(key: transcriptionKeyName)
+            }
+
+            if SecretsLoader.llmKey(for: llmProvider) == nil {
+                KeychainHelper.migrateIfNeeded(key: llmKeyName)
+            }
+
+            // Check for API keys on launch (only prompt when no bundled key exists)
+            if resolvedTranscriptionApiKey() == nil {
                 showingAPIKeyAlert = true
             }
+
+            // Request accessibility permissions explicitly on first launch
+            // This ensures the app appears in System Settings > Accessibility
+            print("[ContentView LOG] Requesting accessibility permissions...")
+
+            // First, attempt to create a CGEvent - this triggers macOS to add us to the Accessibility list
+            if let source = CGEventSource(stateID: .hidSystemState) {
+                // Create a benign event (we won't post it, just creating it is enough)
+                let _ = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: false)
+                print("[ContentView LOG] Created test CGEvent to trigger Accessibility registration")
+            }
+
+            // Now request permission with prompt
+            let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true]
+            let trusted = AXIsProcessTrustedWithOptions(options as CFDictionary)
+            print("[ContentView LOG] Accessibility permission: \(trusted)")
 
             print("[ContentView LOG] ========================================")
             print("[ContentView LOG] onAppear - Setting up hotkey callbacks")
             print("[ContentView LOG] ========================================")
 
-            // Check for Accessibility permissions
-            let trusted = AXIsProcessTrusted()
-            if !trusted {
-                print("[ContentView LOG] ⚠️ Accessibility permissions NOT granted")
-                // Show alert after a short delay to let the app settle
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    showingAccessibilityAlert = true
-                }
-            } else {
-                print("[ContentView LOG] ✅ Accessibility permissions granted")
-            }
-
-            // Show overlay indicator (always visible)
-            overlayManager.showAlways()
+            // Hide overlay by default - it will show when hotkey is used
+            overlayManager.hide()
 
             // Set up hotkey callbacks (auto-paste enabled for hotkey)
             hotkeyManager.onHotkeyPressed = { [self] in
@@ -241,6 +240,16 @@ struct ContentView: View {
                 print("[ContentView LOG] shouldAutoPaste will be set to TRUE")
                 print("[ContentView LOG] isRecording: \(audioRecorder.isRecording), isProcessing: \(isProcessing)")
                 shouldAutoPaste = true
+                overlayManager.isOverlayMode = true
+
+                // Hide main window when using hotkey
+                if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
+                    window.orderOut(nil)
+                }
+
+                // Show overlay when using hotkey
+                overlayManager.show()
+
                 if !audioRecorder.isRecording && !isProcessing {
                     print("[ContentView LOG] Starting recording...")
                     startRecording()
@@ -261,11 +270,49 @@ struct ContentView: View {
             }
 
             print("[ContentView LOG] Hotkey callbacks configured!")
+
+            // Set up notification observers for menu bar actions
+            NotificationCenter.default.addObserver(
+                forName: .showHistory,
+                object: nil,
+                queue: .main
+            ) { [self] _ in
+                showingHistory = true
+            }
+
+            NotificationCenter.default.addObserver(
+                forName: .showSettings,
+                object: nil,
+                queue: .main
+            ) { [self] _ in
+                showingSettings = true
+            }
+        }
+        .onDisappear {
+            print("[ContentView LOG] 🧹 onDisappear - Cleaning up observers")
+
+            // Remove notification observers to prevent leaks
+            NotificationCenter.default.removeObserver(self, name: .showHistory, object: nil)
+            NotificationCenter.default.removeObserver(self, name: .showSettings, object: nil)
+
+            print("[ContentView LOG] ✅ Observer cleanup complete")
         }
     }
 
     private func handleRecordButton() {
         print("[LOG] handleRecordButton called - isRecording: \(audioRecorder.isRecording), isProcessing: \(isProcessing)")
+
+        // Using button means we're in main window mode, not overlay mode
+        overlayManager.isOverlayMode = false
+
+        // Hide overlay when using button
+        overlayManager.hide()
+
+        // Show main window
+        if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
+            window.orderFront(nil)
+        }
+
         if audioRecorder.isRecording {
             print("[LOG] handleRecordButton: stopping recording")
             stopRecordingAndTranscribe()
@@ -276,72 +323,166 @@ struct ContentView: View {
     }
 
     private func startRecording() {
-        print("[LOG] startRecording called")
+        print("[ContentView LOG] 🎬 ========== START RECORDING ==========")
         errorMessage = ""
-        transcription = ""
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            isTranscriptVisible = false
+            transcription = ""
+        }
         recordingStartTime = Date()
 
         // Store the currently active app for pasting later
         PasteHelper.storePreviousApp()
 
-        audioRecorder.startRecording()
-        print("[LOG] startRecording completed - audioRecorder.isRecording: \(audioRecorder.isRecording)")
+        // Check for transcription API key
+        guard resolvedTranscriptionApiKey() != nil else {
+            errorMessage = "Please set your \(transcriptionProviderManager.selectedProvider.displayName) transcription API key"
+            showingAPIKeyAlert = true
+            print("[ContentView LOG] ❌ No transcription API key found")
+            return
+        }
 
-        // Update overlay
-        overlayManager.updateState(isRecording: audioRecorder.isRecording, isProcessing: isProcessing)
+        // Update overlay IMMEDIATELY on key down (only if in overlay mode)
+        if overlayManager.isOverlayMode {
+            overlayManager.updateState(isRecording: true, isProcessing: false)
+        }
+
+        print("[ContentView LOG] ℹ️ Starting file-based recording")
+        audioRecorder.startRecording()
+        print("[ContentView LOG] ========== START RECORDING COMPLETE ==========")
     }
 
     private func stopRecordingAndTranscribe() {
         print("[LOG] stopRecordingAndTranscribe called")
+
+        // Check recording duration - skip if too short (< 0.3 seconds)
+        if let startTime = recordingStartTime {
+            let duration = Date().timeIntervalSince(startTime)
+            print("[LOG] Recording duration: \(duration) seconds")
+
+            if duration < 0.3 {
+                print("[LOG] Recording too short (\(duration)s), skipping transcription")
+                errorMessage = ""
+                shouldAutoPaste = false
+                recordingStartTime = nil
+                _ = audioRecorder.stopRecording()
+
+                // Update overlay - back to idle (only if in overlay mode)
+                if overlayManager.isOverlayMode {
+                    overlayManager.updateState(isRecording: false, isProcessing: false)
+                }
+                return
+            }
+        }
+
+        // Stop recording and get audio file
         guard let audioURL = audioRecorder.stopRecording() else {
             print("[LOG] stopRecordingAndTranscribe: failed to get audio URL")
             errorMessage = "Failed to save recording"
+            if overlayManager.isOverlayMode {
+                overlayManager.updateState(isRecording: false, isProcessing: false)
+            }
             return
         }
 
         print("[LOG] stopRecordingAndTranscribe: got audio URL: \(audioURL)")
 
-        let keyName = apiProviderManager.selectedProvider.apiKeyName
-        guard let apiKey = KeychainHelper.get(key: keyName) else {
-            print("[LOG] stopRecordingAndTranscribe: no API key found")
-            errorMessage = "Please set your \(apiProviderManager.selectedProvider.displayName) API key"
-            showingAPIKeyAlert = true
+        // Check if audio file exists and has content
+        do {
+            let fileAttributes = try FileManager.default.attributesOfItem(atPath: audioURL.path)
+            let fileSize = fileAttributes[.size] as? Int64 ?? 0
+            print("[LOG] Audio file size: \(fileSize) bytes")
+
+            if fileSize < 1000 { // Less than 1KB (essentially empty)
+                print("[LOG] Audio file too small (\(fileSize) bytes), skipping transcription")
+                errorMessage = "No audio detected"
+                shouldAutoPaste = false
+                if overlayManager.isOverlayMode {
+                    overlayManager.updateState(isRecording: false, isProcessing: false)
+                }
+
+                // Clean up the empty file
+                try? FileManager.default.removeItem(at: audioURL)
+                return
+            }
+        } catch {
+            print("[LOG] Error checking audio file: \(error)")
+            errorMessage = "Failed to verify recording"
+            if overlayManager.isOverlayMode {
+                overlayManager.updateState(isRecording: false, isProcessing: false)
+            }
             return
+        }
+
+        // Get transcription API key
+        guard let transcriptionApiKey = resolvedTranscriptionApiKey() else {
+            print("[LOG] stopRecordingAndTranscribe: no transcription API key found")
+            errorMessage = "Please set your \(transcriptionProviderManager.selectedProvider.displayName) transcription API key"
+            showingAPIKeyAlert = true
+            if overlayManager.isOverlayMode {
+                overlayManager.updateState(isRecording: false, isProcessing: false)
+            }
+            return
+        }
+
+        // Get LLM API key (optional - only needed if rules are enabled)
+        let enabledRules = promptRulesManager.rules.filter { $0.isEnabled }.map { $0.text }
+        var llmApiKey: String? = nil
+        if !enabledRules.isEmpty {
+            llmApiKey = resolvedLLMApiKey()
+            if llmApiKey == nil {
+                print("[LOG] Warning: LLM API key not found, skipping text correction")
+            }
         }
 
         print("[LOG] stopRecordingAndTranscribe: starting transcription, shouldAutoPaste: \(shouldAutoPaste)")
         isProcessing = true
 
-        // Update overlay - stopped recording, now processing
-        overlayManager.updateState(isRecording: false, isProcessing: true)
+        // Update overlay - stopped recording, now processing (only if in overlay mode)
+        if overlayManager.isOverlayMode {
+            overlayManager.updateState(isRecording: false, isProcessing: true)
+        }
 
         Task {
             do {
                 let languageCode = languageManager.apiLanguageCode
-                let prompt = promptRulesManager.combinedPrompt
-                let provider = apiProviderManager.selectedProvider
 
-                print("[LOG] Calling \(provider.displayName) API for transcription...")
+                print("[LOG] Calling transcription API...")
+                print("[LOG] Provider: \(transcriptionProviderManager.selectedProvider.displayName)")
+                print("[LOG] Endpoint: \(transcriptionProviderManager.effectiveEndpoint)")
+                print("[LOG] Model: \(transcriptionProviderManager.effectiveModel)")
                 print("[LOG] Using language: \(languageCode ?? "auto-detect")")
-                print("[LOG] Using prompt: \(prompt.isEmpty ? "none" : prompt)")
+                print("[LOG] Enabled rules count: \(enabledRules.count)")
 
-                let result: String
-                switch provider {
-                case .groq:
-                    result = try await GroqAPIClient.transcribe(audioURL: audioURL, apiKey: apiKey, languageCode: languageCode)
-                case .openai:
-                    // gpt-4o-transcribe supports instruction-style prompts directly
-                    result = try await OpenAIClient.transcribe(audioURL: audioURL, apiKey: apiKey, languageCode: languageCode, prompt: prompt.isEmpty ? nil : prompt)
-                }
+                let groqService = GroqService(
+                    transcriptionApiKey: transcriptionApiKey,
+                    transcriptionEndpoint: transcriptionProviderManager.effectiveEndpoint,
+                    transcriptionModel: transcriptionProviderManager.effectiveModel,
+                    llmApiKey: llmApiKey,
+                    llmEndpoint: llmProviderManager.effectiveEndpoint,
+                    llmModel: llmProviderManager.effectiveModel
+                )
+
+                let result = try await groqService.transcribeAndFix(
+                    audioURL: audioURL,
+                    language: languageCode,
+                    prompt: nil,
+                    rules: enabledRules
+                )
 
                 print("[LOG] Transcription received: \(result)")
                 await MainActor.run {
-                    transcription = result
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        transcription = result
+                        isTranscriptVisible = !result.isEmpty && !overlayManager.isOverlayMode  // Only show in main window if not in overlay mode
+                    }
                     isProcessing = false
                     errorMessage = ""
 
-                    // Update overlay - processing complete
-                    overlayManager.updateState(isRecording: false, isProcessing: false)
+                    // Update overlay - processing complete (only if in overlay mode)
+                    if overlayManager.isOverlayMode {
+                        overlayManager.updateState(isRecording: false, isProcessing: false)
+                    }
 
                     // Calculate duration
                     let duration = recordingStartTime.map { Date().timeIntervalSince($0) }
@@ -350,11 +491,39 @@ struct ContentView: View {
                     let recording = Recording(transcription: result, duration: duration)
                     historyManager.addRecording(recording)
 
-                    // Auto-paste if triggered by hold button
+                    // Auto-paste if triggered by hotkey
                     if shouldAutoPaste {
                         print("[LOG] Auto-pasting transcription result")
                         shouldAutoPaste = false
+
+                        // Always attempt to paste - this will trigger the system to add us to Accessibility list
                         PasteHelper.copyAndPaste(result)
+
+                        // After attempting paste, check if permission was granted
+                        // Wait a moment for the paste to complete/fail
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            let trusted = AXIsProcessTrusted()
+                            print("[LOG] Post-paste permission check: \(trusted)")
+
+                            if !trusted {
+                                print("[LOG] ⚠️ Paste may have failed - accessibility permission not granted")
+
+                                // Show alert to help user enable permission
+                                let alert = NSAlert()
+                                alert.messageText = "Enable Auto-Paste"
+                                alert.informativeText = "WhisperMate has been added to Accessibility settings but needs to be enabled.\n\nYour transcription is in the clipboard.\n\nTo enable auto-paste:\n1. Open System Settings (button below)\n2. Go to Privacy & Security > Accessibility\n3. Find WhisperMate in the list\n4. Toggle it ON"
+                                alert.alertStyle = .informational
+                                alert.addButton(withTitle: "Open System Settings")
+                                alert.addButton(withTitle: "OK")
+
+                                let response = alert.runModal()
+                                if response == .alertFirstButtonReturn {
+                                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                                        NSWorkspace.shared.open(url)
+                                    }
+                                }
+                            }
+                        }
                     } else {
                         print("[LOG] Skipping auto-paste (shouldAutoPaste is false)")
                     }
@@ -362,16 +531,49 @@ struct ContentView: View {
             } catch {
                 print("[LOG] Transcription error: \(error.localizedDescription)")
                 await MainActor.run {
-                    transcription = ""
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        transcription = ""
+                        isTranscriptVisible = false
+                    }
                     isProcessing = false
                     errorMessage = "Transcription failed: \(error.localizedDescription)"
                     shouldAutoPaste = false
 
-                    // Update overlay - processing failed
-                    overlayManager.updateState(isRecording: false, isProcessing: false)
+                    // Update overlay - processing failed (only if in overlay mode)
+                    if overlayManager.isOverlayMode {
+                        overlayManager.updateState(isRecording: false, isProcessing: false)
+                    }
                 }
             }
         }
+    }
+
+    private func resolvedTranscriptionApiKey() -> String? {
+        let provider = transcriptionProviderManager.selectedProvider
+        if let storedKey = KeychainHelper.get(key: provider.apiKeyName), !storedKey.isEmpty {
+            print("[ContentView LOG] Using keychain transcription key for provider: \(provider.displayName)")
+            return storedKey
+        }
+        if let bundledKey = SecretsLoader.transcriptionKey(for: provider), !bundledKey.isEmpty {
+            print("[ContentView LOG] Using bundled transcription key for provider: \(provider.displayName)")
+            return bundledKey
+        }
+        print("[ContentView LOG] No transcription key found for provider: \(provider.displayName)")
+        return nil
+    }
+
+    private func resolvedLLMApiKey() -> String? {
+        let provider = llmProviderManager.selectedProvider
+        if let storedKey = KeychainHelper.get(key: provider.apiKeyName), !storedKey.isEmpty {
+            print("[ContentView LOG] Using keychain LLM key for provider: \(provider.displayName)")
+            return storedKey
+        }
+        if let bundledKey = SecretsLoader.llmKey(for: provider), !bundledKey.isEmpty {
+            print("[ContentView LOG] Using bundled LLM key for provider: \(provider.displayName)")
+            return bundledKey
+        }
+        print("[ContentView LOG] No LLM key found for provider: \(provider.displayName)")
+        return nil
     }
 }
 
