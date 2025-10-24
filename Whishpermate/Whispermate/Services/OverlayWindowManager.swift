@@ -23,7 +23,7 @@ class OverlayWindowManager: ObservableObject {
             }
         }
     }
-    @Published var isOverlayMode = true {
+    @Published var isOverlayMode = false {  // Start in full mode by default
         didSet {
             print("[OverlayWindowManager LOG] ⚡️ isOverlayMode changed: \(oldValue) -> \(isOverlayMode)")
         }

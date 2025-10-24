@@ -12,7 +12,6 @@ struct ContentView: View {
     @StateObject private var llmProviderManager = LLMProviderManager()
     @StateObject private var promptRulesManager = PromptRulesManager()
     @State private var transcription = ""
-    @State private var isTranscriptVisible = false
     @State private var isProcessing = false
     @State private var showingAPIKeyAlert = false
     @State private var showingSettings = false
@@ -25,116 +24,66 @@ struct ContentView: View {
     @State private var windowPosition: CGPoint?
 
     var body: some View {
-        GeometryReader { geometry in
-            VStack(spacing: 0) {
-                // Main Content - text area (always present for smooth animation)
+        ZStack {
+            Color.clear  // Transparent background for entire window
+
+            GeometryReader { geometry in
+                // Outer container with rounded corners that expands/contracts
                 VStack(spacing: 0) {
-                    // Top toolbar with contract and copy buttons
-                    HStack {
-                        // Contract button (only shown when NOT in overlay mode)
-                        if !overlayManager.isOverlayMode {
-                            Button(action: {
-                                overlayManager.contractToOverlay()
-                            }) {
-                                HStack(spacing: 3) {
-                                    Image(systemName: "arrow.down.right.and.arrow.up.left")
-                                        .font(.system(size: 10))
-                                    Text("Contract")
-                                        .font(.system(size: 11))
-                                }
-                                .foregroundStyle(.secondary)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-                                .background(
-                                    Capsule()
-                                        .fill(Color(nsColor: .controlBackgroundColor))
-                                )
-                            }
-                            .buttonStyle(.plain)
-                        }
-
-                        Spacer()
-
-                        // Copy button
+                // Top toolbar with contract and copy buttons
+                HStack(spacing: 8) {
+                    // Contract button (only shown when NOT in overlay mode)
+                    if !overlayManager.isOverlayMode {
                         Button(action: {
-                            let pasteboard = NSPasteboard.general
-                            pasteboard.clearContents()
-                            pasteboard.setString(transcription, forType: .string)
+                            overlayManager.contractToOverlay()
                         }) {
-                            HStack(spacing: 3) {
-                                Image(systemName: "doc.on.doc")
-                                    .font(.system(size: 10))
-                                Text("Copy")
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.down.right.and.arrow.up.left")
                                     .font(.system(size: 11))
+                                Text("Contract")
+                                    .font(.system(size: 12))
                             }
                             .foregroundStyle(.secondary)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
                             .background(
                                 Capsule()
                                     .fill(Color(nsColor: .controlBackgroundColor))
                             )
                         }
                         .buttonStyle(.plain)
-                        .opacity(transcription.isEmpty ? 0 : 1)
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.top, 8)
 
-                    // Text editor with padding
-                    TextEditor(text: $transcription)
-                        .font(.system(size: 14))
-                        .scrollContentBackground(.hidden)
-                        .background(Color.clear)
-                        .padding(.horizontal, 12)
-                        .padding(.bottom, 8)
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: isTranscriptVisible ? 280 : 0)
-                .background(Color(nsColor: .textBackgroundColor))
-                .opacity(isTranscriptVisible ? 1 : 0)
+                    Spacer()
 
-                // Record Button with refined Apple-style design (stays at bottom)
-                Button(action: {
-                    print("[LOG] Button clicked")
-                    shouldAutoPaste = true
-                    handleRecordButton()
-                }) {
-                    if audioRecorder.isRecording {
-                        // Show visualization when recording
-                        AudioVisualizationView(audioLevel: audioRecorder.audioLevel)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 40)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.accentColor.opacity(0.9))
-                            )
-                    } else {
-                        // Show normal button content when not recording
-                        HStack(spacing: 8) {
-                            Image(systemName: "mic.circle.fill")
-                                .font(.system(size: 20, weight: .medium))
-                            if let hotkey = hotkeyManager.currentHotkey {
-                                Text("Start Recording (\(hotkey.displayString))")
-                                    .font(.system(size: 15, weight: .semibold))
-                            } else {
-                                Text("Start Recording")
-                                    .font(.system(size: 15, weight: .semibold))
-                            }
+                    // Copy button
+                    Button(action: {
+                        let pasteboard = NSPasteboard.general
+                        pasteboard.clearContents()
+                        pasteboard.setString(transcription, forType: .string)
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "doc.on.doc")
+                                .font(.system(size: 11))
+                            Text("Copy")
+                                .font(.system(size: 12))
                         }
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 40)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
                         .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(isProcessing ? Color(nsColor: .systemGray) : Color.accentColor)
+                            Capsule()
+                                .fill(Color(nsColor: .controlBackgroundColor))
                         )
                     }
+                    .buttonStyle(.plain)
+                    .opacity(transcription.isEmpty ? 0 : 1)
                 }
-                .buttonStyle(.plain)
-                .disabled(isProcessing)
-                .simultaneousGesture(
-                    DragGesture(minimumDistance: 5)
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+                .padding(.bottom, 8)
+                .gesture(
+                    DragGesture()
                         .onChanged { value in
                             if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
                                 if windowPosition == nil {
@@ -151,12 +100,72 @@ struct ContentView: View {
                             windowPosition = nil
                         }
                 )
+
+                // State-aware content area
+                VStack(spacing: 0) {
+                    // Main content area
+                    ZStack {
+                        if audioRecorder.isRecording {
+                            // Recording state: Show waveform visualization (large)
+                            AudioVisualizationView(audioLevel: audioRecorder.audioLevel, color: .accentColor)
+                                .frame(height: 100)
+                        } else if isProcessing {
+                            // Transcribing state: Show spinner
+                            VStack(spacing: 12) {
+                                ProgressView()
+                                    .controlSize(.large)
+                                Text("Transcribing...")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundStyle(.secondary)
+                            }
+                        } else if transcription.isEmpty {
+                            // Idle state: Show instructions
+                            VStack(spacing: 8) {
+                                Image(systemName: "mic.circle")
+                                    .font(.system(size: 48))
+                                    .foregroundStyle(.tertiary)
+                                Text("Ready to record")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(.secondary)
+                            }
+                        } else {
+                            // Result state: Show transcribed text
+                            TextEditor(text: $transcription)
+                                .font(.system(size: 14))
+                                .scrollContentBackground(.hidden)
+                                .background(Color.clear)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                    // Hotkey hint (always visible at bottom)
+                    HStack {
+                        Spacer()
+                        if let hotkey = hotkeyManager.currentHotkey {
+                            Text("Press \(hotkey.displayString) to record")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.tertiary)
+                        } else {
+                            Text("Set a hotkey in settings")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.tertiary)
+                        }
+                        Spacer()
+                    }
+                    .padding(.bottom, 8)
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 0)
+                .padding(.bottom, 8)
+                }
+                .background(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .frame(width: 400)
             }
-            .frame(width: 400)
         }
         .frame(width: 400)
-        .frame(height: isTranscriptVisible ? 360 : 40)
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isTranscriptVisible)
+        .frame(height: 320)
+        .background(Color.clear)
         .sheet(isPresented: $showingSettings) {
             SettingsView(
                 hotkeyManager: hotkeyManager,
@@ -190,8 +199,6 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            isTranscriptVisible = !transcription.isEmpty
-
             // Migrate old keychain items if needed (for smooth upgrade)
             let transcriptionProvider = transcriptionProviderManager.selectedProvider
             let llmProvider = llmProviderManager.selectedProvider
@@ -239,16 +246,23 @@ struct ContentView: View {
                 print("[ContentView LOG] 🎯 onHotkeyPressed callback triggered! 🎯")
                 print("[ContentView LOG] shouldAutoPaste will be set to TRUE")
                 print("[ContentView LOG] isRecording: \(audioRecorder.isRecording), isProcessing: \(isProcessing)")
+                print("[ContentView LOG] Current mode: \(overlayManager.isOverlayMode ? "overlay" : "full")")
                 shouldAutoPaste = true
-                overlayManager.isOverlayMode = true
 
-                // Hide main window when using hotkey
-                if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-                    window.orderOut(nil)
+                // Show appropriate UI based on current mode
+                if overlayManager.isOverlayMode {
+                    // In overlay mode - hide main window, show overlay
+                    if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
+                        window.orderOut(nil)
+                    }
+                    overlayManager.show()
+                } else {
+                    // In full mode - show main window, hide overlay
+                    overlayManager.hide()
+                    if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
+                        window.orderFront(nil)
+                    }
                 }
-
-                // Show overlay when using hotkey
-                overlayManager.show()
 
                 if !audioRecorder.isRecording && !isProcessing {
                     print("[ContentView LOG] Starting recording...")
@@ -325,10 +339,7 @@ struct ContentView: View {
     private func startRecording() {
         print("[ContentView LOG] 🎬 ========== START RECORDING ==========")
         errorMessage = ""
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-            isTranscriptVisible = false
-            transcription = ""
-        }
+        transcription = ""
         recordingStartTime = Date()
 
         // Store the currently active app for pasting later
@@ -472,10 +483,7 @@ struct ContentView: View {
 
                 print("[LOG] Transcription received: \(result)")
                 await MainActor.run {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                        transcription = result
-                        isTranscriptVisible = !result.isEmpty && !overlayManager.isOverlayMode  // Only show in main window if not in overlay mode
-                    }
+                    transcription = result
                     isProcessing = false
                     errorMessage = ""
 
@@ -531,10 +539,7 @@ struct ContentView: View {
             } catch {
                 print("[LOG] Transcription error: \(error.localizedDescription)")
                 await MainActor.run {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                        transcription = ""
-                        isTranscriptVisible = false
-                    }
+                    transcription = ""
                     isProcessing = false
                     errorMessage = "Transcription failed: \(error.localizedDescription)"
                     shouldAutoPaste = false
