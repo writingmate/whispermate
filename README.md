@@ -2,6 +2,8 @@
 
 A native macOS voice-to-text app powered by Groq's Whisper API.
 
+![WhisperMate Screenshot](screenshot.png)
+
 ## Key Features
 
 ### Security & Privacy
