@@ -39,3 +39,4 @@ Pods/
 .env
 *.key
 secrets.json
+Whishpermate/Whispermate/Secrets.plist

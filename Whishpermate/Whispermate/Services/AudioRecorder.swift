@@ -13,25 +13,7 @@ class AudioRecorder: NSObject, ObservableObject {
 
     override init() {
         super.init()
-        requestMicrophonePermission()
-    }
-
-    private func requestMicrophonePermission() {
-        // Request microphone permission for macOS
-        switch AVCaptureDevice.authorizationStatus(for: .audio) {
-        case .authorized:
-            break
-        case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .audio) { granted in
-                if !granted {
-                    print("Microphone permission denied")
-                }
-            }
-        case .denied, .restricted:
-            print("Microphone permission denied or restricted")
-        @unknown default:
-            break
-        }
+        // Microphone permission is now handled by OnboardingManager
     }
 
     func startRecording() {

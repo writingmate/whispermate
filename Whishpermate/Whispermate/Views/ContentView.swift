@@ -7,6 +7,7 @@ struct ContentView: View {
     @StateObject private var hotkeyManager = HotkeyManager()
     @StateObject private var historyManager = HistoryManager()
     @StateObject private var overlayManager = OverlayWindowManager()
+    @StateObject private var onboardingManager = OnboardingManager()
     @StateObject private var languageManager = LanguageManager()
     @StateObject private var transcriptionProviderManager = TranscriptionProviderManager()
     @StateObject private var llmProviderManager = LLMProviderManager()
@@ -22,6 +23,7 @@ struct ContentView: View {
     @State private var shouldAutoPaste = false
     @State private var isDragging = false
     @State private var windowPosition: CGPoint?
+    @State private var isContinuousRecording = false
 
     var body: some View {
         ZStack {
@@ -32,28 +34,6 @@ struct ContentView: View {
                 VStack(spacing: 0) {
                 // Top toolbar with contract and copy buttons
                 HStack(spacing: 8) {
-                    // Contract button (only shown when NOT in overlay mode)
-                    if !overlayManager.isOverlayMode {
-                        Button(action: {
-                            overlayManager.contractToOverlay()
-                        }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "arrow.down.right.and.arrow.up.left")
-                                    .font(.system(size: 11))
-                                Text("Contract")
-                                    .font(.system(size: 12))
-                            }
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(
-                                Capsule()
-                                    .fill(Color(nsColor: .controlBackgroundColor))
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-
                     Spacer()
 
                     // Copy button
@@ -62,26 +42,32 @@ struct ContentView: View {
                         pasteboard.clearContents()
                         pasteboard.setString(transcription, forType: .string)
                     }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "doc.on.doc")
-                                .font(.system(size: 11))
-                            Text("Copy")
-                                .font(.system(size: 12))
-                        }
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(
-                            Capsule()
-                                .fill(Color(nsColor: .controlBackgroundColor))
-                        )
+                        Image(systemName: "doc.on.doc")
+                            .font(.system(size: 13))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 20, height: 20)
                     }
                     .buttonStyle(.plain)
+                    .help("Copy transcription")
                     .opacity(transcription.isEmpty ? 0 : 1)
+
+                    // Contract button (only shown when NOT in overlay mode)
+                    if !overlayManager.isOverlayMode {
+                        Button(action: {
+                            overlayManager.contractToOverlay()
+                        }) {
+                            Image(systemName: "arrow.down.right.and.arrow.up.left")
+                                .font(.system(size: 13))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 20, height: 20)
+                        }
+                        .buttonStyle(.plain)
+                        .help("Contract to overlay mode")
+                    }
                 }
                 .padding(.horizontal, 16)
-                .padding(.top, 12)
-                .padding(.bottom, 8)
+                .padding(.top, 16)
+                .padding(.bottom, 12)
                 .gesture(
                     DragGesture()
                         .onChanged { value in
@@ -178,6 +164,10 @@ struct ContentView: View {
         .sheet(isPresented: $showingHistory) {
             HistoryView(historyManager: historyManager)
         }
+        .sheet(isPresented: $onboardingManager.showOnboarding) {
+            OnboardingView(onboardingManager: onboardingManager, hotkeyManager: hotkeyManager)
+        }
+        .interactiveDismissDisabled(onboardingManager.showOnboarding)
         .alert("Enter API Key", isPresented: $showingAPIKeyAlert) {
             TextField("API Key", text: $apiKey)
             Button("Save") {
@@ -199,6 +189,9 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            // Check onboarding status first
+            onboardingManager.checkOnboardingStatus()
+
             // Migrate old keychain items if needed (for smooth upgrade)
             let transcriptionProvider = transcriptionProviderManager.selectedProvider
             let llmProvider = llmProviderManager.selectedProvider
@@ -214,25 +207,12 @@ struct ContentView: View {
             }
 
             // Check for API keys on launch (only prompt when no bundled key exists)
-            if resolvedTranscriptionApiKey() == nil {
+            if resolvedTranscriptionApiKey() == nil && !onboardingManager.showOnboarding {
                 showingAPIKeyAlert = true
             }
 
-            // Request accessibility permissions explicitly on first launch
-            // This ensures the app appears in System Settings > Accessibility
-            print("[ContentView LOG] Requesting accessibility permissions...")
-
-            // First, attempt to create a CGEvent - this triggers macOS to add us to the Accessibility list
-            if let source = CGEventSource(stateID: .hidSystemState) {
-                // Create a benign event (we won't post it, just creating it is enough)
-                let _ = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: false)
-                print("[ContentView LOG] Created test CGEvent to trigger Accessibility registration")
-            }
-
-            // Now request permission with prompt
-            let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true]
-            let trusted = AXIsProcessTrustedWithOptions(options as CFDictionary)
-            print("[ContentView LOG] Accessibility permission: \(trusted)")
+            // Note: Accessibility permissions are now handled by onboarding
+            // Old code commented out - handled by OnboardingManager now
 
             print("[ContentView LOG] ========================================")
             print("[ContentView LOG] onAppear - Setting up hotkey callbacks")
@@ -244,6 +224,13 @@ struct ContentView: View {
             // Set up hotkey callbacks (auto-paste enabled for hotkey)
             hotkeyManager.onHotkeyPressed = { [self] in
                 print("[ContentView LOG] 🎯 onHotkeyPressed callback triggered! 🎯")
+
+                // Ignore hotkey during onboarding
+                if onboardingManager.showOnboarding {
+                    print("[ContentView LOG] ⚠️ Ignoring hotkey - onboarding in progress")
+                    return
+                }
+
                 print("[ContentView LOG] shouldAutoPaste will be set to TRUE")
                 print("[ContentView LOG] isRecording: \(audioRecorder.isRecording), isProcessing: \(isProcessing)")
                 print("[ContentView LOG] Current mode: \(overlayManager.isOverlayMode ? "overlay" : "full")")
@@ -274,12 +261,58 @@ struct ContentView: View {
 
             hotkeyManager.onHotkeyReleased = { [self] in
                 print("[ContentView LOG] 🎯 onHotkeyReleased callback triggered! 🎯")
+
+                // Ignore hotkey during onboarding
+                if onboardingManager.showOnboarding {
+                    print("[ContentView LOG] ⚠️ Ignoring hotkey release - onboarding in progress")
+                    return
+                }
+
                 print("[ContentView LOG] isRecording: \(audioRecorder.isRecording)")
-                if audioRecorder.isRecording {
-                    print("[ContentView LOG] Stopping recording and transcribing...")
+                if audioRecorder.isRecording && !isContinuousRecording {
+                    print("[ContentView LOG] Stopping hold-to-record and transcribing...")
                     stopRecordingAndTranscribe()
                 } else {
-                    print("[ContentView LOG] NOT stopping recording (not currently recording)")
+                    print("[ContentView LOG] NOT stopping recording (continuous mode or not recording)")
+                }
+            }
+
+            hotkeyManager.onDoubleTap = { [self] in
+                print("[ContentView LOG] 🎯🎯 onDoubleTap callback triggered! 🎯🎯")
+
+                // Ignore hotkey during onboarding
+                if onboardingManager.showOnboarding {
+                    print("[ContentView LOG] ⚠️ Ignoring double-tap - onboarding in progress")
+                    return
+                }
+
+                // Toggle continuous recording
+                if isContinuousRecording && audioRecorder.isRecording {
+                    print("[ContentView LOG] Double-tap: Stopping continuous recording")
+                    isContinuousRecording = false
+                    shouldAutoPaste = false
+                    stopRecordingAndTranscribe()
+                } else if !audioRecorder.isRecording && !isProcessing {
+                    print("[ContentView LOG] Double-tap: Starting continuous recording")
+                    isContinuousRecording = true
+                    shouldAutoPaste = true
+
+                    // Show appropriate UI based on current mode
+                    if overlayManager.isOverlayMode {
+                        if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
+                            window.orderOut(nil)
+                        }
+                        overlayManager.show()
+                    } else {
+                        overlayManager.hide()
+                        if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
+                            window.orderFront(nil)
+                        }
+                    }
+
+                    startRecording()
+                } else {
+                    print("[ContentView LOG] Double-tap: Already recording or processing")
                 }
             }
 
@@ -499,8 +532,8 @@ struct ContentView: View {
                     let recording = Recording(transcription: result, duration: duration)
                     historyManager.addRecording(recording)
 
-                    // Auto-paste if triggered by hotkey
-                    if shouldAutoPaste {
+                    // Auto-paste if triggered by hotkey (but not during onboarding)
+                    if shouldAutoPaste && !onboardingManager.showOnboarding {
                         print("[LOG] Auto-pasting transcription result")
                         shouldAutoPaste = false
 

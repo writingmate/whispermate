@@ -11,10 +11,11 @@ struct HotkeyRecorderView: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
 
-            HStack {
+            HStack(spacing: 8) {
                 Text(displayText)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(8)
+                    .frame(height: 36)
+                    .padding(.horizontal, 8)
                     .background(isRecording ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
                     .cornerRadius(6)
                     .overlay(
@@ -25,22 +26,27 @@ struct HotkeyRecorderView: View {
                         startRecording()
                     }
 
-                if hotkeyManager.currentHotkey != nil {
-                    Button(action: {
-                        hotkeyManager.clearHotkey()
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
-                    }
-                    .buttonStyle(.plain)
+                // Always reserve space for X button to prevent jumping
+                Button(action: {
+                    hotkeyManager.clearHotkey()
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.secondary)
+                        .opacity(hotkeyManager.currentHotkey != nil ? 1.0 : 0.0)
                 }
+                .buttonStyle(.plain)
+                .frame(width: 20, height: 20)
+                .disabled(hotkeyManager.currentHotkey == nil)
             }
+            .frame(height: 36)
 
-            if isRecording {
-                Text("Press your desired key combination...")
-                    .font(.caption2)
-                    .foregroundColor(.blue)
-            }
+            // Always render hint text but make it invisible when not recording
+            Text("Press your desired key combination...")
+                .font(.caption2)
+                .foregroundColor(.blue)
+                .opacity(isRecording ? 1.0 : 0.0)
+                .frame(maxWidth: .infinity, alignment: .leading) // Match recording box alignment
+                .frame(height: 14) // Fixed height to prevent layout shift
         }
         .background(HotkeyEventHandler(isRecording: $isRecording, hotkeyManager: hotkeyManager))
     }
@@ -80,14 +86,26 @@ struct HotkeyEventHandler: NSViewRepresentable {
                 print("[HotkeyRecorder LOG]   - modifiers: \(modifiers.rawValue)")
                 print("[HotkeyRecorder LOG]   - modifiers description: \(modifiers)")
 
-                // Allow just Fn key, or any modifier combination
+                // Check if it's a function key (F1-F20, keyCode 122-145, or individual codes)
+                let functionKeys: [UInt16] = [
+                    122, 120, 99, 118, 96, 97, 98, 100, 101, 109, 103, 111,  // F1-F12
+                    105, 107, 113, 106                                          // F13-F16
+                ]
+                let isFunctionKey = functionKeys.contains(event.keyCode)
+
+                // Allow: modifiers present, OR function key without modifiers
                 if !modifiers.isEmpty {
                     print("[HotkeyRecorder LOG]   - Modifiers not empty, setting hotkey")
                     let hotkey = Hotkey(keyCode: event.keyCode, modifiers: modifiers)
                     hotkeyManager.setHotkey(hotkey)
                     isRecording = false
+                } else if isFunctionKey {
+                    print("[HotkeyRecorder LOG]   - Function key detected, setting hotkey")
+                    let hotkey = Hotkey(keyCode: event.keyCode, modifiers: [])
+                    hotkeyManager.setHotkey(hotkey)
+                    isRecording = false
                 } else {
-                    print("[HotkeyRecorder LOG]   - Modifiers empty, ignoring")
+                    print("[HotkeyRecorder LOG]   - Not a valid hotkey (need modifiers or function key)")
                 }
             }
         }

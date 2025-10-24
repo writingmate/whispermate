@@ -15,7 +15,7 @@ struct RecordingOverlayView: View {
                 Spacer()
 
                 // Overlay indicator with smooth expand/collapse
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     // Icon/indicator
                     if manager.isRecording {
                         // Show waveform visualization when recording
@@ -36,7 +36,7 @@ struct RecordingOverlayView: View {
                         .transition(.opacity)
                     } else {
                         Image(systemName: "mic.fill")
-                            .font(.system(size: 11))
+                            .font(.system(size: 9))
                             .foregroundStyle(.white.opacity(0.7))
                             .transition(.scale.combined(with: .opacity))
                     }
@@ -47,9 +47,9 @@ struct RecordingOverlayView: View {
                             manager.expandToFullMode()
                         }) {
                             Image(systemName: "arrow.up.left.and.arrow.down.right")
-                                .font(.system(size: 10, weight: .medium))
+                                .font(.system(size: 9, weight: .medium))
                                 .foregroundStyle(.white.opacity(0.9))
-                                .padding(6)
+                                .padding(4)
                                 .background(
                                     Circle()
                                         .fill(Color.white.opacity(0.2))
@@ -59,8 +59,8 @@ struct RecordingOverlayView: View {
                         .transition(.scale.combined(with: .opacity))
                     }
                 }
-                .padding(.horizontal, (manager.isRecording || manager.isProcessing) ? 20 : 12)
-                .padding(.vertical, (manager.isRecording || manager.isProcessing) ? 12 : 8)
+                .padding(.horizontal, isHovering ? 8 : ((manager.isRecording || manager.isProcessing) ? 15 : 16))
+                .padding(.vertical, (manager.isRecording || manager.isProcessing) ? 9 : 6)
                 .background(
                     Capsule()
                         .fill(manager.isRecording ? Color.accentColor.opacity(0.9) : (manager.isProcessing ? Color.accentColor : Color.gray.opacity(0.6)))

@@ -17,7 +17,18 @@
       "Bash(CODE_SIGN_ENTITLEMENTS=\"Whispermate/Whispermate.entitlements\":*)",
       "Bash(hdiutil create:*)",
       "Bash(WhisperMate-v0.0.3.dmg)",
-      "Bash(codesign:*)"
+      "Bash(codesign:*)",
+      "Bash(killall:*)",
+      "Bash(/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister:*)",
+      "Bash(open:*)",
+      "Bash(log stream:*)",
+      "Read(//Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug/Whispermate.app/Contents/Resources/**)",
+      "Bash(security delete-generic-password:*)",
+      "WebFetch(domain:www.createwithswift.com)",
+      "Bash(git checkout:*)",
+      "Bash(defaults delete:*)",
+      "Bash(git describe:*)",
+      "Bash(gh release create:*)"
     ],
     "deny": [],
     "ask": []

@@ -9,18 +9,37 @@ class HotkeyManager: ObservableObject {
     private var keyUpMonitor: Any?
     private var previousFunctionKeyState = false
     private var fnKeyMonitor: FnKeyMonitor?
+    private var deferRegistration = false
+
+    // Double-tap detection
+    private var lastTapTime: Date?
+    private let doubleTapInterval: TimeInterval = 0.3 // 300ms
+    private var isHoldingKey = false
 
     var onHotkeyPressed: (() -> Void)?
     var onHotkeyReleased: (() -> Void)?
+    var onDoubleTap: (() -> Void)?
 
     init() {
         loadHotkey()
     }
 
+    func setDeferRegistration(_ shouldDefer: Bool) {
+        deferRegistration = shouldDefer
+        if !shouldDefer && currentHotkey != nil {
+            // Registration was deferred but now enabled - register the hotkey
+            registerHotkey()
+        }
+    }
+
     func setHotkey(_ hotkey: Hotkey) {
         currentHotkey = hotkey
         saveHotkey()
-        registerHotkey()
+
+        // Only register if not deferred
+        if !deferRegistration {
+            registerHotkey()
+        }
     }
 
     func clearHotkey() {
@@ -158,7 +177,20 @@ class HotkeyManager: ObservableObject {
         if event.keyCode == hotkey.keyCode &&
            event.modifierFlags.intersection(.deviceIndependentFlagsMask) == hotkey.modifiers {
 
+            // Check for double-tap
+            let now = Date()
+            if let lastTap = lastTapTime, now.timeIntervalSince(lastTap) < doubleTapInterval {
+                print("[HotkeyManager LOG] handleKeyDownEvent: DOUBLE-TAP detected - calling onDoubleTap")
+                lastTapTime = nil // Reset for next sequence
+                isHoldingKey = false // Don't track as hold
+                onDoubleTap?()
+                return true
+            }
+
+            // Single tap - start hold-to-record
             print("[HotkeyManager LOG] handleKeyDownEvent: MATCH - calling onHotkeyPressed (START recording)")
+            lastTapTime = now // Track this tap for potential double-tap
+            isHoldingKey = true
             onHotkeyPressed?()
             return true
         }
@@ -174,8 +206,14 @@ class HotkeyManager: ObservableObject {
 
         // Check if the key code matches (modifiers may not be present on keyUp)
         if event.keyCode == hotkey.keyCode {
-            print("[HotkeyManager LOG] handleKeyUpEvent: MATCH - calling onHotkeyReleased (STOP recording)")
-            onHotkeyReleased?()
+            // Only call onHotkeyReleased if we're in hold-to-record mode
+            if isHoldingKey {
+                print("[HotkeyManager LOG] handleKeyUpEvent: MATCH - calling onHotkeyReleased (STOP recording)")
+                isHoldingKey = false
+                onHotkeyReleased?()
+            } else {
+                print("[HotkeyManager LOG] handleKeyUpEvent: Key released but not in hold mode (continuous recording)")
+            }
             return true
         }
 

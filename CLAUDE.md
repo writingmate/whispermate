@@ -1,0 +1,1 @@
+- do not build dmg and tag unless i ask, commit periodically but don't bump the version

@@ -30,7 +30,7 @@ class PromptRulesManager: ObservableObject {
         } else {
             // Add default rules (examples from OpenAI docs)
             rules = [
-                PromptRule(text: "Hello, welcome to my lecture."),
+//                PromptRule(text: "Hello, welcome to my lecture."),
                 PromptRule(text: "Format numbers as digits (1, 2, 3) not words.")
             ]
             saveRules()

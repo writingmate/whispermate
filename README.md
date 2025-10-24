@@ -4,52 +4,73 @@ A secure, simple macOS app for voice-to-text transcription using Groq's Whisper 
 
 ## Features
 
-- Real-time audio recording from microphone
-- Fast transcription using Groq's Whisper Large V3 model
-- Secure API key storage in macOS Keychain
-- Clean, native SwiftUI interface
-- Minimal dependencies (AVFoundation only)
+- **Hotkey-Driven Recording**: Press and hold your hotkey to record, or double-tap for continuous recording
+- **Live Audio Visualization**: Real-time waveform display during recording
+- **Smart Overlay Mode**: Minimal recording indicator that stays out of your way
+- **Fast Transcription**: Uses Groq's Whisper Large V3 model for near-instant results
+- **Auto-Paste**: Transcriptions automatically pasted into your active app
+- **Secure Storage**: API keys stored safely in macOS Keychain
+- **Native UI**: Clean SwiftUI interface with dark mode support
+- **Guided Onboarding**: First-time setup wizard for permissions and hotkey configuration
 
-## Setup
+## Installation
 
-### Prerequisites
+### Option 1: Download Release (Recommended)
+
+1. Download the latest `WhisperMate-v0.0.4.dmg` from the [Releases page](https://github.com/writingmate/whispermate/releases/latest)
+2. Open the DMG file
+3. Drag Whispermate to your Applications folder
+4. Launch Whispermate from Applications
+5. Follow the onboarding wizard to:
+   - Grant microphone permission
+   - Grant accessibility permission (for auto-paste)
+   - Configure your recording hotkey
+
+### Option 2: Build from Source
+
+#### Prerequisites
 
 - macOS 13.0+ (Ventura or later)
 - Xcode 15.0+
 - Groq API key (get one at https://console.groq.com)
 
-### Installation
+#### Steps
 
-1. Open Xcode
-2. File → New → Project → macOS → App
-3. Name: `WhisperMate`
-4. Interface: SwiftUI
-5. Language: Swift
-6. Replace the generated files with the source files from this repository
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/writingmate/whispermate.git
+   cd whispermate/Whishpermate
+   ```
 
-### Project Configuration
+2. Open the project:
+   ```bash
+   open Whispermate.xcodeproj
+   ```
 
-1. In Xcode, select your project in the navigator
-2. Go to "Signing & Capabilities"
-3. Add your development team
-4. Under "Info" tab, add the microphone permission:
-   - Key: `NSMicrophoneUsageDescription`
-   - Value: "WhisperMate needs access to your microphone to record audio for transcription."
+3. Build and run (⌘R)
 
-### Add Info.plist
+4. Follow the onboarding wizard on first launch
 
-1. Right-click on your project → New File → Property List
-2. Name it `Info.plist`
-3. Copy the contents from the provided Info.plist file
+## Getting Started
 
-### Running the App
+1. **First Launch**: Complete the onboarding wizard
+   - Enable microphone access
+   - Enable accessibility permissions (needed for auto-paste)
+   - Set your recording hotkey (Fn key recommended)
 
-1. Build and run (⌘R)
-2. On first launch, enter your Groq API key
-3. Grant microphone permission when prompted
-4. Click "Start Recording" to begin
-5. Speak clearly into your microphone
-6. Click "Stop Recording" to transcribe
+2. **Recording**:
+   - **Hold-to-Record**: Press and hold your hotkey, release to transcribe
+   - **Continuous Recording**: Double-tap your hotkey to start, tap once to stop
+
+3. **Modes**:
+   - **Overlay Mode**: Minimal indicator in bottom-right corner
+   - **Full Mode**: Expanded window with settings and transcription history
+
+4. **Settings**:
+   - Configure your Groq API key
+   - Choose between OpenAI Whisper or Groq transcription
+   - Customize hotkey
+   - Toggle auto-paste functionality
 
 ## Security
 
