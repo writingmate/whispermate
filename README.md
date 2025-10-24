@@ -1,6 +1,44 @@
 # WhisperMate
 
-A secure, simple macOS app for voice-to-text transcription using Groq's Whisper API.
+A blazing-fast, secure, and native macOS voice-to-text app powered by Groq's Whisper API.
+
+## Why WhisperMate?
+
+### 🔒 Security & Open Source by Design
+- **100% Transparent**: Read the code to see exactly how your data is handled
+- **Zero Storage**: Nothing is stored locally or remotely - audio is transcribed and immediately discarded
+- **Direct API**: Data only sent to Groq API, no third-party servers
+- **Keychain Security**: API keys stored in macOS Keychain, never in plain text
+
+### ⚡ Extremely Fast
+- **400-800ms Response Times**: Powered by Groq's high-performance inference
+- **Real-time Transcription**: Near-instant results using Whisper Large V3 Turbo
+- **Optimized Pipeline**: Direct audio-to-text with minimal overhead
+- **Try It Yourself**: Experience the speed difference immediately
+
+### 🤖 LLM Post-Processing
+- **Smart Transformations**: Configure how transcriptions are processed
+- **Multi-Language Support**: Speak in Russian, transcribe to English instantly
+- **Tone Adjustment**: Change casual speech to formal text automatically
+- **Custom Glossaries**: Define industry-specific terms and corrections
+- **Powered by Groq's LLMs**: Lightning-fast post-processing with llama models
+
+### ⌨️ Push-to-Talk Hotkey
+- **Hold to Record**: Press and hold Fn (or any key) while dictating
+- **Instant Activation**: No need to click buttons or switch windows
+- **Continuous Mode**: Double-tap for hands-free extended recording
+- **Auto-Paste**: Transcription appears instantly in your active app
+
+### 🪶 Tiny & Native
+- **1.35 MB Size**: Comparing to 200+ MB Electron-based alternatives (Whisper Flow, etc.)
+- **Minimal Resource Use**: Native macOS SDK - no Chrome/Electron overhead
+- **Swift + SwiftUI**: Built with Apple's modern frameworks
+- **Efficient**: Barely uses any CPU or memory when idle
+
+### 💰 Free While in Beta
+- **No Subscription**: Completely free during beta period
+- **Pay for API Only**: You only pay for your Groq API usage (extremely affordable)
+- **No Hidden Costs**: Open source, transparent pricing
 
 ## Features
 
