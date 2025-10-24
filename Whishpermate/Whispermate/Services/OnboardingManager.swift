@@ -9,12 +9,14 @@ enum OnboardingStep: Int, CaseIterable {
     case microphone = 0
     case accessibility = 1
     case hotkey = 2
+    case prompts = 3
 
     var title: String {
         switch self {
         case .microphone: return "Enable Microphone"
         case .accessibility: return "Enable Accessibility"
         case .hotkey: return "Set Your Hotkey"
+        case .prompts: return "Configure Text Rules"
         }
     }
 
@@ -23,6 +25,7 @@ enum OnboardingStep: Int, CaseIterable {
         case .microphone: return "mic.circle.fill"
         case .accessibility: return "hand.tap.fill"
         case .hotkey: return "keyboard.fill"
+        case .prompts: return "text.badge.checkmark"
         }
     }
 
@@ -34,6 +37,8 @@ enum OnboardingStep: Int, CaseIterable {
             return "Whispermate needs accessibility permissions to automatically paste transcriptions into your apps."
         case .hotkey:
             return "Choose a single key (like Fn) to control recording. Press and hold to record, or double-tap to start/stop long recording."
+        case .prompts:
+            return "Add rules to improve transcription quality. You can enable/disable, add, or delete rules anytime in settings."
         }
     }
 }
@@ -81,7 +86,7 @@ class OnboardingManager: ObservableObject {
     }
 
     func checkAllPermissions() -> Bool {
-        return isMicrophoneGranted() && isAccessibilityGranted() && isHotkeyConfigured()
+        return isMicrophoneGranted() && isAccessibilityGranted() && isHotkeyConfigured() && isPromptsConfigured()
     }
 
     func isMicrophoneGranted() -> Bool {
@@ -96,11 +101,18 @@ class OnboardingManager: ObservableObject {
         return UserDefaults.standard.data(forKey: "recordingHotkey") != nil
     }
 
+    func isPromptsConfigured() -> Bool {
+        // Prompts step is always considered "complete" since we have defaults
+        // User just needs to review it
+        return UserDefaults.standard.bool(forKey: "has_seen_prompts_onboarding")
+    }
+
     func isStepComplete(_ step: OnboardingStep) -> Bool {
         switch step {
         case .microphone: return isMicrophoneGranted()
         case .accessibility: return isAccessibilityGranted()
         case .hotkey: return isHotkeyConfigured()
+        case .prompts: return isPromptsConfigured()
         }
     }
 
@@ -160,5 +172,10 @@ class OnboardingManager: ObservableObject {
         let _ = AXIsProcessTrustedWithOptions(options)
 
         print("[OnboardingManager] Permission dialog triggered")
+    }
+
+    func markPromptsAsSeen() {
+        UserDefaults.standard.set(true, forKey: "has_seen_prompts_onboarding")
+        print("[OnboardingManager] Marked prompts as seen")
     }
 }

@@ -28,7 +28,17 @@
       "Bash(git checkout:*)",
       "Bash(defaults delete:*)",
       "Bash(git describe:*)",
-      "Bash(gh release create:*)"
+      "Bash(gh release create:*)",
+      "Bash(screencapture:*)",
+      "Read(//Users/avysotsky/Documents/**)",
+      "Read(//Users/avysotsky/Desktop/**)",
+      "Bash(xargs:*)",
+      "Bash(git reset:*)",
+      "Bash(python3:*)",
+      "Read(//tmp/**)",
+      "Read(//Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug/Whispermate.app/Contents/MacOS/**)",
+      "Bash(defaults read:*)",
+      "Bash(VERSION=\"0.0.4\")"
     ],
     "deny": [],
     "ask": []

@@ -2,7 +2,6 @@ import SwiftUI
 import AVFoundation
 
 enum SettingsSection: String, CaseIterable, Identifiable {
-    case general = "General"
     case audio = "Audio"
     case rules = "Text Rules"
     case hotkeys = "Hotkeys"
@@ -11,7 +10,6 @@ enum SettingsSection: String, CaseIterable, Identifiable {
 
     var icon: String {
         switch self {
-        case .general: return "gearshape"
         case .audio: return "waveform"
         case .rules: return "text.badge.checkmark"
         case .hotkeys: return "keyboard"
@@ -25,7 +23,7 @@ struct SettingsView: View {
     @ObservedObject var transcriptionProviderManager: TranscriptionProviderManager
     @ObservedObject var llmProviderManager: LLMProviderManager
     @ObservedObject var promptRulesManager: PromptRulesManager
-    @State private var selectedSection: SettingsSection = .general
+    @State private var selectedSection: SettingsSection = .audio
     @State private var transcriptionApiKey = ""
     @State private var llmApiKey = ""
     @State private var customEndpoint = ""
@@ -81,25 +79,28 @@ struct SettingsView: View {
 
             // Content Area
             VStack(spacing: 0) {
-                // Close button
+                // Header with title and close button
                 HStack {
+                    Text(selectedSection.rawValue)
+                        .font(.system(size: 20, weight: .semibold))
+
                     Spacer()
+
                     Button(action: {
                         dismiss()
                     }) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 20))
-                            .foregroundStyle(.black)
+                            .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
-                    .padding(12)
                 }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 16)
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
                         switch selectedSection {
-                        case .general:
-                            generalSection
                         case .audio:
                             audioSection
                         case .rules:
@@ -345,10 +346,6 @@ struct SettingsView: View {
     // MARK: - Audio Section
     private var audioSection: some View {
         VStack(alignment: .leading, spacing: 24) {
-            // Section Header
-            Text("Audio")
-                .font(.system(size: 20, weight: .semibold))
-
             // Audio Input Device
             VStack(alignment: .leading, spacing: 12) {
                 Text("Input Device")
@@ -371,7 +368,7 @@ struct SettingsView: View {
 
             // Language Selection
             VStack(alignment: .leading, spacing: 12) {
-                Text("Transcription Language")
+                Text("Language")
                     .font(.system(size: 15, weight: .semibold))
 
                 Text("Select languages for transcription. Auto-detect works for all languages.")
@@ -424,11 +421,7 @@ struct SettingsView: View {
     // MARK: - Text Rules Section
     private var rulesSection: some View {
         VStack(alignment: .leading, spacing: 24) {
-            // Section Header
-            Text("Text Correction Rules")
-                .font(.system(size: 20, weight: .semibold))
-
-            Text("Add formatting rules for LLM post-processing (GPT-OSS-20B)")
+            Text("Add formatting rules for post-processing")
                 .font(.system(size: 13))
                 .foregroundStyle(.secondary)
 
@@ -530,47 +523,12 @@ struct SettingsView: View {
     // MARK: - Hotkeys Section
     private var hotkeysSection: some View {
         VStack(alignment: .leading, spacing: 24) {
-            // Section Header
-            Text("Hotkeys")
-                .font(.system(size: 20, weight: .semibold))
+            Text("Press a key combination to toggle recording from anywhere")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
 
-            // Global Hotkey
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Global Hotkey")
-                    .font(.system(size: 15, weight: .semibold))
-
-                Text("Press a key combination to toggle recording from anywhere")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
-
-                VStack(alignment: .leading, spacing: 16) {
-                    HotkeyRecorderView(hotkeyManager: hotkeyManager)
-                        .frame(height: 60)
-
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack(alignment: .top, spacing: 8) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.system(size: 12))
-                                .foregroundStyle(.orange)
-                                .frame(width: 16, alignment: .center)
-
-                            Text("Requires Accessibility permissions in System Settings")
-                                .font(.system(size: 12))
-                                .foregroundStyle(.secondary)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-
-                        Button("Open Accessibility Settings") {
-                            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-                                NSWorkspace.shared.open(url)
-                            }
-                        }
-                        .font(.system(size: 12))
-                        .buttonStyle(.link)
-                        .padding(.leading, 24) // Align with text above
-                    }
-                }
-            }
+            HotkeyRecorderView(hotkeyManager: hotkeyManager)
+                .frame(height: 40)
         }
     }
 

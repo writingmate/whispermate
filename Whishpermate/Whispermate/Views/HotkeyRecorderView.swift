@@ -6,47 +6,32 @@ struct HotkeyRecorderView: View {
     @State private var isRecording = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Recording Hotkey")
-                .font(.caption)
-                .foregroundColor(.secondary)
-
-            HStack(spacing: 8) {
-                Text(displayText)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .frame(height: 36)
-                    .padding(.horizontal, 8)
-                    .background(isRecording ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
-                    .cornerRadius(6)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke(isRecording ? Color.blue : Color.clear, lineWidth: 2)
-                    )
-                    .onTapGesture {
-                        startRecording()
-                    }
-
-                // Always reserve space for X button to prevent jumping
-                Button(action: {
-                    hotkeyManager.clearHotkey()
-                }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.secondary)
-                        .opacity(hotkeyManager.currentHotkey != nil ? 1.0 : 0.0)
+        HStack(spacing: 8) {
+            Text(displayText)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(height: 40)
+                .padding(.horizontal, 12)
+                .background(isRecording ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
+                .cornerRadius(6)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(isRecording ? Color.blue : Color.clear, lineWidth: 2)
+                )
+                .onTapGesture {
+                    startRecording()
                 }
-                .buttonStyle(.plain)
-                .frame(width: 20, height: 20)
-                .disabled(hotkeyManager.currentHotkey == nil)
-            }
-            .frame(height: 36)
 
-            // Always render hint text but make it invisible when not recording
-            Text("Press your desired key combination...")
-                .font(.caption2)
-                .foregroundColor(.blue)
-                .opacity(isRecording ? 1.0 : 0.0)
-                .frame(maxWidth: .infinity, alignment: .leading) // Match recording box alignment
-                .frame(height: 14) // Fixed height to prevent layout shift
+            // Always reserve space for X button to prevent jumping
+            Button(action: {
+                hotkeyManager.clearHotkey()
+            }) {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.secondary)
+                    .opacity(hotkeyManager.currentHotkey != nil ? 1.0 : 0.0)
+            }
+            .buttonStyle(.plain)
+            .frame(width: 20, height: 20)
+            .disabled(hotkeyManager.currentHotkey == nil)
         }
         .background(HotkeyEventHandler(isRecording: $isRecording, hotkeyManager: hotkeyManager))
     }

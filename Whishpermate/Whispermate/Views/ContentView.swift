@@ -165,7 +165,11 @@ struct ContentView: View {
             HistoryView(historyManager: historyManager)
         }
         .sheet(isPresented: $onboardingManager.showOnboarding) {
-            OnboardingView(onboardingManager: onboardingManager, hotkeyManager: hotkeyManager)
+            OnboardingView(
+                onboardingManager: onboardingManager,
+                hotkeyManager: hotkeyManager,
+                promptRulesManager: promptRulesManager
+            )
         }
         .interactiveDismissDisabled(onboardingManager.showOnboarding)
         .alert("Enter API Key", isPresented: $showingAPIKeyAlert) {

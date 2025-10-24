@@ -14,23 +14,12 @@ struct HistoryView: View {
     var body: some View {
         GeometryReader { geometry in
         VStack(spacing: 0) {
-            // Header with refined styling
+            // Header with title and close button (matching Settings style)
             HStack {
-                Text("Recording History")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.primary)
+                Text("History")
+                    .font(.system(size: 20, weight: .semibold))
 
                 Spacer()
-
-                Text("\(historyManager.recordings.count) / 100")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(
-                        Capsule()
-                            .fill(Color(nsColor: .separatorColor).opacity(0.5))
-                    )
 
                 Button(action: {
                     dismiss()
@@ -38,20 +27,19 @@ struct HistoryView: View {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 20))
                         .foregroundStyle(.secondary)
-                        .symbolRenderingMode(.hierarchical)
                 }
                 .buttonStyle(.plain)
             }
-            .padding(.horizontal, max(24, geometry.size.width * 0.06))
-            .padding(.vertical, 20)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 16)
 
             Divider()
 
-            // Search Bar with refined design
+            // Search Bar
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: 14))
-                    .foregroundStyle(.tertiary)
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
 
                 TextField("Search transcriptions...", text: $searchText)
                     .textFieldStyle(.plain)
@@ -62,9 +50,8 @@ struct HistoryView: View {
                         searchText = ""
                     }) {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 14))
+                            .font(.system(size: 13))
                             .foregroundStyle(.secondary)
-                            .symbolRenderingMode(.hierarchical)
                     }
                     .buttonStyle(.plain)
                 }
@@ -72,42 +59,41 @@ struct HistoryView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(nsColor: .textBackgroundColor))
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color(nsColor: .controlBackgroundColor))
             )
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(nsColor: .separatorColor), lineWidth: 0.5)
-            )
-            .padding(.horizontal, max(24, geometry.size.width * 0.06))
-            .padding(.vertical, 16)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 12)
 
             // Recordings List
             if filteredRecordings.isEmpty {
-                VStack(spacing: 16) {
+                VStack(spacing: 12) {
                     Spacer()
                     Image(systemName: searchText.isEmpty ? "mic.slash" : "magnifyingglass")
-                        .font(.system(size: 56))
-                        .foregroundStyle(.quaternary)
-                        .symbolRenderingMode(.hierarchical)
+                        .font(.system(size: 48))
+                        .foregroundStyle(.tertiary)
                     Text(searchText.isEmpty ? "No recordings yet" : "No results found")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.system(size: 15, weight: .medium))
                         .foregroundStyle(.secondary)
                     if searchText.isEmpty {
                         Text("Start recording to build your history")
-                            .font(.system(size: 13))
-                            .foregroundStyle(.tertiary)
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
                     }
                     Spacer()
                 }
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 4) {
+                    LazyVStack(spacing: 0) {
                         ForEach(filteredRecordings) { recording in
-                            RecordingRow(recording: recording, historyManager: historyManager, windowWidth: geometry.size.width)
+                            RecordingRow(recording: recording, historyManager: historyManager)
+
+                            if recording.id != filteredRecordings.last?.id {
+                                Divider()
+                                    .padding(.horizontal, 24)
+                            }
                         }
                     }
-                    .padding(.horizontal, max(24, geometry.size.width * 0.06))
                     .padding(.vertical, 8)
                 }
             }
@@ -136,7 +122,7 @@ struct HistoryView: View {
             .padding(.vertical, 16)
         }
         }
-        .frame(minWidth: 400, maxWidth: 800, minHeight: 400, maxHeight: 700)
+        .frame(minWidth: 800, maxWidth: 1600, minHeight: 800, maxHeight: 1400)
         .alert("Clear All History?", isPresented: $showingClearConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Clear All", role: .destructive) {
@@ -151,26 +137,25 @@ struct HistoryView: View {
 struct RecordingRow: View {
     let recording: Recording
     let historyManager: HistoryManager
-    let windowWidth: CGFloat
 
     @State private var isHovering = false
     @State private var showingDeleteConfirmation = false
 
     var body: some View {
-        HStack(alignment: .top, spacing: max(12, windowWidth * 0.02)) {
+        HStack(alignment: .top, spacing: 16) {
             // Timestamp
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(recording.formattedDate)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.primary)
 
                 if let duration = recording.formattedDuration {
                     Text(duration)
-                        .font(.system(size: 11))
-                        .foregroundStyle(.tertiary)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
                 }
             }
-            .frame(minWidth: 100, maxWidth: 140, alignment: .leading)
+            .frame(minWidth: 120, alignment: .leading)
 
             // Transcription
             Text(recording.transcription)
@@ -178,45 +163,38 @@ struct RecordingRow: View {
                 .foregroundStyle(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .textSelection(.enabled)
-                .lineLimit(3)
 
-            // Actions (shown on hover)
-            if isHovering {
-                HStack(spacing: 8) {
-                    Button(action: {
-                        copyToClipboard(recording.transcription)
-                    }) {
-                        Image(systemName: "doc.on.doc")
-                            .font(.system(size: 14))
-                            .foregroundStyle(.blue)
-                            .frame(width: 24, height: 24)
-                    }
-                    .buttonStyle(.plain)
-                    .help("Copy")
-
-                    Button(action: {
-                        showingDeleteConfirmation = true
-                    }) {
-                        Image(systemName: "trash")
-                            .font(.system(size: 14))
-                            .foregroundStyle(.red)
-                            .frame(width: 24, height: 24)
-                    }
-                    .buttonStyle(.plain)
-                    .help("Delete")
+            // Actions (always rendered, opacity changes on hover)
+            HStack(spacing: 8) {
+                Button(action: {
+                    copyToClipboard(recording.transcription)
+                }) {
+                    Image(systemName: "doc.on.doc")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.blue)
                 }
+                .buttonStyle(.plain)
+                .help("Copy")
+                .opacity(isHovering ? 1 : 0)
+
+                Button(action: {
+                    showingDeleteConfirmation = true
+                }) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.red)
+                }
+                .buttonStyle(.plain)
+                .help("Delete")
+                .opacity(isHovering ? 1 : 0)
             }
+            .frame(width: 60)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(isHovering ? Color(nsColor: .controlBackgroundColor) : Color.clear)
-        )
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
+        .background(isHovering ? Color(nsColor: .controlBackgroundColor).opacity(0.5) : Color.clear)
         .onHover { hovering in
-            withAnimation(.easeInOut(duration: 0.15)) {
-                isHovering = hovering
-            }
+            isHovering = hovering
         }
         .alert("Delete Recording?", isPresented: $showingDeleteConfirmation) {
             Button("Cancel", role: .cancel) {}
