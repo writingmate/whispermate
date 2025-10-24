@@ -1,55 +1,35 @@
 # WhisperMate
 
-A blazing-fast, secure, and native macOS voice-to-text app powered by Groq's Whisper API.
+A native macOS voice-to-text app powered by Groq's Whisper API.
 
-## Why WhisperMate?
+## Key Features
 
-### 🔒 Security & Open Source by Design
-- **100% Transparent**: Read the code to see exactly how your data is handled
-- **Zero Storage**: Nothing is stored locally or remotely - audio is transcribed and immediately discarded
-- **Direct API**: Data only sent to Groq API, no third-party servers
-- **Keychain Security**: API keys stored in macOS Keychain, never in plain text
+### Security & Privacy
+- Open source - read the code to see exactly how data is handled
+- Audio is transcribed and immediately discarded, nothing is stored
+- Data only sent to Groq API, no third-party servers
+- API keys stored in macOS Keychain
 
-### ⚡ Extremely Fast
-- **400-800ms Response Times**: Powered by Groq's high-performance inference
-- **Real-time Transcription**: Near-instant results using Whisper Large V3 Turbo
-- **Optimized Pipeline**: Direct audio-to-text with minimal overhead
-- **Try It Yourself**: Experience the speed difference immediately
+### Performance
+- 400-800ms response times using Groq's inference
+- Native Swift/SwiftUI implementation
+- 1.35 MB app size (vs 200+ MB for Electron-based alternatives)
+- Minimal CPU and memory usage
 
-### 🤖 LLM Post-Processing
-- **Smart Transformations**: Configure how transcriptions are processed
-- **Multi-Language Support**: Speak in Russian, transcribe to English instantly
-- **Tone Adjustment**: Change casual speech to formal text automatically
-- **Custom Glossaries**: Define industry-specific terms and corrections
-- **Powered by Groq's LLMs**: Lightning-fast post-processing with llama models
+### LLM Post-Processing
+- Optional transformations using Groq's LLM models
+- Translate between languages (e.g. speak Russian, get English text)
+- Adjust tone or formality
+- Custom glossaries for domain-specific terms
 
-### ⌨️ Push-to-Talk Hotkey
-- **Hold to Record**: Press and hold Fn (or any key) while dictating
-- **Instant Activation**: No need to click buttons or switch windows
-- **Continuous Mode**: Double-tap for hands-free extended recording
-- **Auto-Paste**: Transcription appears instantly in your active app
+### Usage
+- Press and hold a hotkey (like Fn) to record
+- Double-tap for continuous recording mode
+- Auto-paste transcriptions into active application
+- Minimal overlay indicator or full window mode
 
-### 🪶 Tiny & Native
-- **1.35 MB Size**: Comparing to 200+ MB Electron-based alternatives (Whisper Flow, etc.)
-- **Minimal Resource Use**: Native macOS SDK - no Chrome/Electron overhead
-- **Swift + SwiftUI**: Built with Apple's modern frameworks
-- **Efficient**: Barely uses any CPU or memory when idle
-
-### 💰 Free While in Beta
-- **No Subscription**: Completely free during beta period
-- **Pay for API Only**: You only pay for your Groq API usage (extremely affordable)
-- **No Hidden Costs**: Open source, transparent pricing
-
-## Features
-
-- **Hotkey-Driven Recording**: Press and hold your hotkey to record, or double-tap for continuous recording
-- **Live Audio Visualization**: Real-time waveform display during recording
-- **Smart Overlay Mode**: Minimal recording indicator that stays out of your way
-- **Fast Transcription**: Uses Groq's Whisper Large V3 model for near-instant results
-- **Auto-Paste**: Transcriptions automatically pasted into your active app
-- **Secure Storage**: API keys stored safely in macOS Keychain
-- **Native UI**: Clean SwiftUI interface with dark mode support
-- **Guided Onboarding**: First-time setup wizard for permissions and hotkey configuration
+### Pricing
+Free during beta. You only pay for Groq API usage.
 
 ## Installation
 
