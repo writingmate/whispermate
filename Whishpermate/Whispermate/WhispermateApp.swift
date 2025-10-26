@@ -64,7 +64,6 @@ struct WhishpermateApp: App {
         WindowGroup {
             ContentView()
         }
-        .windowStyle(.plain)
         .windowResizability(.contentSize)
         .commands {
             // Replace default "Preferences" with our Settings
@@ -89,13 +88,11 @@ struct WhishpermateApp: App {
             SettingsWindowView()
         }
         .windowResizability(.contentSize)
-        .defaultPosition(.center)
 
         // History window
         Window("History", id: "history") {
             HistoryWindowView()
         }
         .windowResizability(.contentSize)
-        .defaultPosition(.center)
     }
 }

@@ -49,12 +49,29 @@ class FnKeyMonitor {
     }
 
     private var pollCount = 0
+    private var consecutiveTrueCount = 0
+    private let stuckThreshold = 180 // 3 seconds at 60Hz - reset if stuck
 
     private func checkFnKeyState() {
         pollCount += 1
 
         // Poll the current Fn key state using CGEventSource
         let isFnPressed = CGKeyCode.kVK_Function.isPressed
+
+        // Track consecutive true readings - CGEventSource can get stuck reporting true
+        if isFnPressed {
+            consecutiveTrueCount += 1
+        } else {
+            consecutiveTrueCount = 0
+        }
+
+        // If we've seen true for too long, assume it's stuck and reset
+        if consecutiveTrueCount >= stuckThreshold {
+            print("[FnKeyMonitor] ⚠️ Fn key appears stuck at 'true' - resetting state")
+            previousFnState = false
+            consecutiveTrueCount = 0
+            return
+        }
 
         // Show polling is happening (every 60 polls = ~1 second at 60Hz)
         if pollCount % 60 == 0 {

@@ -590,8 +590,28 @@ struct SettingsView: View {
 
     // MARK: - Helper Functions
     private func loadAudioDevices() {
-        // Get all available audio input devices
-        audioDevices = AVCaptureDevice.devices(for: .audio)
+        // Get all available audio input devices using discovery session
+        let discoverySession = AVCaptureDevice.DiscoverySession(
+            deviceTypes: [.builtInMicrophone, .externalUnknown],
+            mediaType: .audio,
+            position: .unspecified
+        )
+
+        // Get all devices from the session
+        audioDevices = discoverySession.devices
+
+        // Also try to get any other audio devices not in the standard types
+        #if compiler(>=6.0)
+        if #available(macOS 14.0, *) {
+            // On macOS 14+, we can get more device types
+            let extendedSession = AVCaptureDevice.DiscoverySession(
+                deviceTypes: [.builtInMicrophone, .externalUnknown, .microphone],
+                mediaType: .audio,
+                position: .unspecified
+            )
+            audioDevices = extendedSession.devices
+        }
+        #endif
 
         // Select default device
         if selectedAudioDevice == nil {

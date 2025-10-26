@@ -160,7 +160,7 @@ struct ContentView: View {
             )
             .interactiveDismissDisabled(true)
         }
-        .onChange(of: onboardingManager.showOnboarding) { _, newValue in
+        .onChange(of: onboardingManager.showOnboarding) { newValue in
             showOnboarding = newValue
         }
         .alert("Enter API Key", isPresented: $showingAPIKeyAlert) {
@@ -176,10 +176,10 @@ struct ContentView: View {
         } message: {
             Text("Your API key will be securely stored in Keychain")
         }
-        .onChange(of: audioRecorder.audioLevel) { oldValue, newValue in
+        .onChange(of: audioRecorder.audioLevel) { newValue in
             // Update overlay with audio level (ensure main thread)
             DispatchQueue.main.async {
-                print("[ContentView] 📊 Updating overlay audioLevel: \(oldValue) -> \(newValue)")
+                print("[ContentView] 📊 Updating overlay audioLevel: \(newValue)")
                 overlayManager.audioLevel = newValue
             }
         }

@@ -100,6 +100,13 @@ class GroqService {
     // MARK: - LLM Post-Processing
 
     func fixText(_ text: String, rules: [String]) async throws -> String {
+        // Check if text is empty or whitespace-only
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedText.isEmpty else {
+            print("[GroqService] ⚠️ Empty transcription - skipping LLM post-processing")
+            return text
+        }
+
         // Check if LLM API key is available
         guard let apiKey = llmApiKey else {
             print("[GroqService] ⚠️ No LLM API key - skipping text correction")

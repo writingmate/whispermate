@@ -36,7 +36,7 @@ enum OnboardingStep: Int, CaseIterable {
         case .accessibility:
             return "Whispermate needs accessibility permissions to automatically paste transcriptions into your apps."
         case .hotkey:
-            return "Choose a single key (like Fn) to control recording. Press and hold to record, or double-tap to start/stop long recording."
+            return "Use the Fn key to control recording. Press and hold to record, or double-tap to start/stop long recording."
         case .prompts:
             return "Add rules to improve transcription quality. You can enable/disable, add, or delete rules anytime in settings."
         }

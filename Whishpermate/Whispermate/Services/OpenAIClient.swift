@@ -8,38 +8,87 @@ enum OpenAIError: Error {
     case encodingError
 }
 
-struct OpenAIClient {
-    private static let baseURL = "https://api.openai.com/v1/audio/transcriptions"
+/// Unified OpenAI-compatible client that works with Groq, OpenAI, and any OpenAI-compatible API
+/// Single client configured once and used everywhere
+class OpenAIClient {
+    // MARK: - Configuration
 
-    enum Model: String {
-        case whisper1 = "whisper-1"
-        case gpt4oTranscribe = "gpt-4o-transcribe"
-        case gpt4oMiniTranscribe = "gpt-4o-mini-transcribe"
+    struct Configuration {
+        var transcriptionEndpoint: String
+        var transcriptionModel: String
+        var chatCompletionEndpoint: String
+        var chatCompletionModel: String
+        var apiKey: String
+        var customHeaders: [String: String]
+
+        init(
+            transcriptionEndpoint: String = "",
+            transcriptionModel: String = "",
+            chatCompletionEndpoint: String = "",
+            chatCompletionModel: String = "",
+            apiKey: String = "",
+            customHeaders: [String: String] = [:]
+        ) {
+            self.transcriptionEndpoint = transcriptionEndpoint
+            self.transcriptionModel = transcriptionModel
+            self.chatCompletionEndpoint = chatCompletionEndpoint
+            self.chatCompletionModel = chatCompletionModel
+            self.apiKey = apiKey
+            self.customHeaders = customHeaders
+        }
     }
 
-    // Default to gpt-4o-transcribe (latest and best model)
-    private static let defaultModel = Model.gpt4oTranscribe
+    private var config: Configuration
 
-    static func transcribe(audioURL: URL, apiKey: String, languageCode: String? = nil, prompt: String? = nil) async throws -> String {
-        guard let url = URL(string: baseURL) else {
+    init(config: Configuration) {
+        self.config = config
+        print("[OpenAIClient] Initialized")
+        print("[OpenAIClient] Transcription: \(config.transcriptionEndpoint)")
+        print("[OpenAIClient] Chat: \(config.chatCompletionEndpoint)")
+    }
+
+    /// Update configuration (useful for switching providers or updating settings)
+    func updateConfig(_ newConfig: Configuration) {
+        config = newConfig
+        print("[OpenAIClient] Configuration updated")
+    }
+
+    // MARK: - Transcription
+
+    func transcribe(
+        audioURL: URL,
+        languageCode: String? = nil,
+        prompt: String? = nil,
+        model: String? = nil
+    ) async throws -> String {
+        let effectiveModel = model ?? config.transcriptionModel
+
+        guard let url = URL(string: config.transcriptionEndpoint) else {
             throw OpenAIError.invalidURL
         }
 
-        print("[OpenAIClient LOG] ========================================")
-        print("[OpenAIClient LOG] Starting transcription")
-        print("[OpenAIClient LOG] Language: \(languageCode ?? "auto-detect")")
-        print("[OpenAIClient LOG] Prompt: \(prompt ?? "none")")
+        print("[OpenAIClient] ========================================")
+        print("[OpenAIClient] Starting transcription")
+        print("[OpenAIClient] Endpoint: \(config.transcriptionEndpoint)")
+        print("[OpenAIClient] Model: \(effectiveModel)")
+        print("[OpenAIClient] Language: \(languageCode ?? "auto-detect")")
+        print("[OpenAIClient] Prompt: \(prompt ?? "none")")
 
         // Create multipart form data
         let boundary = UUID().uuidString
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        // Add custom headers
+        for (key, value) in config.customHeaders {
+            request.setValue(value, forHTTPHeaderField: key)
+        }
 
         // Read audio file data
         let audioData = try Data(contentsOf: audioURL)
-        print("[OpenAIClient LOG] Audio file size: \(audioData.count) bytes")
+        print("[OpenAIClient] Audio file size: \(audioData.count) bytes")
 
         // Build multipart body
         var body = Data()
@@ -54,24 +103,20 @@ struct OpenAIClient {
         // Add model parameter (required)
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
         body.append("Content-Disposition: form-data; name=\"model\"\r\n\r\n".data(using: .utf8)!)
-        body.append("\(defaultModel.rawValue)\r\n".data(using: .utf8)!)
+        body.append("\(effectiveModel)\r\n".data(using: .utf8)!)
 
         // Add language parameter (optional)
         if let languageCode = languageCode {
             body.append("--\(boundary)\r\n".data(using: .utf8)!)
             body.append("Content-Disposition: form-data; name=\"language\"\r\n\r\n".data(using: .utf8)!)
             body.append("\(languageCode)\r\n".data(using: .utf8)!)
-            print("[OpenAIClient LOG] Added language: \(languageCode)")
         }
 
-        // Add prompt parameter (gpt-4o-transcribe supports instruction-style prompts)
-        // Unlike whisper-1, gpt-4o-transcribe can use prompts for formatting instructions
-        // See: https://platform.openai.com/docs/guides/speech-to-text#prompting
+        // Add prompt parameter (optional)
         if let prompt = prompt, !prompt.isEmpty {
             body.append("--\(boundary)\r\n".data(using: .utf8)!)
             body.append("Content-Disposition: form-data; name=\"prompt\"\r\n\r\n".data(using: .utf8)!)
             body.append("\(prompt)\r\n".data(using: .utf8)!)
-            print("[OpenAIClient LOG] Added prompt: \(prompt)")
         }
 
         // Add response_format parameter (optional, default is json)
@@ -86,18 +131,17 @@ struct OpenAIClient {
 
         // Send request
         do {
-            print("[OpenAIClient LOG] Sending request to OpenAI...")
             let (data, response) = try await URLSession.shared.data(for: request)
 
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw OpenAIError.invalidResponse
             }
 
-            print("[OpenAIClient LOG] Received response with status: \(httpResponse.statusCode)")
+            print("[OpenAIClient] Response status: \(httpResponse.statusCode)")
 
             if httpResponse.statusCode != 200 {
                 let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-                print("[OpenAIClient LOG] Error response: \(errorMessage)")
+                print("[OpenAIClient] Error: \(errorMessage)")
                 throw OpenAIError.apiError("HTTP \(httpResponse.statusCode): \(errorMessage)")
             }
 
@@ -106,49 +150,42 @@ struct OpenAIClient {
                 throw OpenAIError.invalidResponse
             }
 
-            print("[OpenAIClient LOG] Transcription successful")
-            print("[OpenAIClient LOG] ========================================")
+            print("[OpenAIClient] Transcription successful")
+            print("[OpenAIClient] ========================================")
             return text.trimmingCharacters(in: .whitespacesAndNewlines)
         } catch let error as OpenAIError {
             throw error
         } catch {
-            print("[OpenAIClient LOG] Network error: \(error)")
+            print("[OpenAIClient] Network error: \(error)")
             throw OpenAIError.networkError(error)
         }
     }
 
-    /// Apply formatting rules to transcription using GPT-4o-mini
-    /// This is a post-processing step that takes raw transcription and applies user-defined rules
-    static func applyFormattingRules(transcription: String, rules: String, apiKey: String) async throws -> String {
-        let chatURL = "https://api.openai.com/v1/chat/completions"
+    // MARK: - Chat Completion
 
-        guard let url = URL(string: chatURL) else {
+    func chatCompletion(
+        messages: [[String: String]],
+        temperature: Double = 0.3,
+        maxTokens: Int = 1000,
+        model: String? = nil
+    ) async throws -> String {
+        let effectiveModel = model ?? config.chatCompletionModel
+
+        guard let url = URL(string: config.chatCompletionEndpoint) else {
             throw OpenAIError.invalidURL
         }
 
-        print("[OpenAIClient LOG] ========================================")
-        print("[OpenAIClient LOG] Applying formatting rules to transcription")
-        print("[OpenAIClient LOG] Rules: \(rules)")
-
-        // Build the system prompt
-        let systemPrompt = """
-        You are a text formatter. Your job is to take a transcription and apply the following formatting rules:
-
-        \(rules)
-
-        Return ONLY the formatted transcription text, with no additional commentary or explanation.
-        Do not change the meaning or content, only apply the specified formatting rules.
-        """
+        print("[OpenAIClient] ========================================")
+        print("[OpenAIClient] Chat completion request")
+        print("[OpenAIClient] Endpoint: \(config.chatCompletionEndpoint)")
+        print("[OpenAIClient] Model: \(effectiveModel)")
 
         // Build the request payload
         let payload: [String: Any] = [
-            "model": "gpt-4o-mini",
-            "messages": [
-                ["role": "system", "content": systemPrompt],
-                ["role": "user", "content": transcription]
-            ],
-            "temperature": 0.3,  // Lower temperature for more consistent formatting
-            "max_tokens": 1000
+            "model": effectiveModel,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": maxTokens
         ]
 
         guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
@@ -157,24 +194,29 @@ struct OpenAIClient {
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        // Add custom headers
+        for (key, value) in config.customHeaders {
+            request.setValue(value, forHTTPHeaderField: key)
+        }
+
         request.httpBody = jsonData
 
         // Send request
         do {
-            print("[OpenAIClient LOG] Sending formatting request to GPT-4o-mini...")
             let (data, response) = try await URLSession.shared.data(for: request)
 
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw OpenAIError.invalidResponse
             }
 
-            print("[OpenAIClient LOG] Received response with status: \(httpResponse.statusCode)")
+            print("[OpenAIClient] Response status: \(httpResponse.statusCode)")
 
             if httpResponse.statusCode != 200 {
                 let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-                print("[OpenAIClient LOG] Error response: \(errorMessage)")
+                print("[OpenAIClient] Error: \(errorMessage)")
                 throw OpenAIError.apiError("HTTP \(httpResponse.statusCode): \(errorMessage)")
             }
 
@@ -187,17 +229,78 @@ struct OpenAIClient {
                 throw OpenAIError.invalidResponse
             }
 
-            let formattedText = content.trimmingCharacters(in: .whitespacesAndNewlines)
-            print("[OpenAIClient LOG] Formatting successful")
-            print("[OpenAIClient LOG] Original length: \(transcription.count), Formatted length: \(formattedText.count)")
-            print("[OpenAIClient LOG] ========================================")
+            let result = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            print("[OpenAIClient] Chat completion successful")
+            print("[OpenAIClient] ========================================")
 
-            return formattedText
+            return result
         } catch let error as OpenAIError {
             throw error
         } catch {
-            print("[OpenAIClient LOG] Network error: \(error)")
+            print("[OpenAIClient] Network error: \(error)")
             throw OpenAIError.networkError(error)
         }
+    }
+
+    // MARK: - Combined Workflow
+
+    /// Transcribe audio and optionally apply formatting rules
+    func transcribeAndFormat(
+        audioURL: URL,
+        languageCode: String? = nil,
+        prompt: String? = nil,
+        formattingRules: [String] = []
+    ) async throws -> String {
+        // Step 1: Transcribe
+        let rawTranscription = try await transcribe(
+            audioURL: audioURL,
+            languageCode: languageCode,
+            prompt: prompt
+        )
+
+        // Check if transcription is empty
+        let trimmed = rawTranscription.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            print("[OpenAIClient] ⚠️ Empty transcription - skipping formatting")
+            return rawTranscription
+        }
+
+        // Step 2: Apply formatting rules (if any)
+        guard !formattingRules.isEmpty else {
+            return rawTranscription
+        }
+
+        return try await applyFormattingRules(transcription: rawTranscription, rules: formattingRules)
+    }
+
+    /// Apply formatting rules to transcription using chat completion
+    func applyFormattingRules(transcription: String, rules: [String]) async throws -> String {
+        // Check if transcription is empty or whitespace-only
+        let trimmedTranscription = transcription.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTranscription.isEmpty else {
+            print("[OpenAIClient] ⚠️ Empty transcription - skipping formatting rules")
+            return transcription
+        }
+
+        // Build the system prompt
+        var systemPrompt = """
+        You are a text correction assistant. Fix any transcription errors, improve punctuation, and format the text according to the rules provided.
+
+        IMPORTANT: Only output the corrected text. Do not add any explanations, comments, or extra content.
+        """
+
+        if !rules.isEmpty {
+            systemPrompt += "\n\nApply these rules:\n"
+            for (index, rule) in rules.enumerated() {
+                systemPrompt += "\(index + 1). \(rule)\n"
+            }
+        }
+
+        let messages = [
+            ["role": "system", "content": systemPrompt],
+            ["role": "user", "content": transcription]
+        ]
+
+        return try await chatCompletion(messages: messages)
     }
 }
