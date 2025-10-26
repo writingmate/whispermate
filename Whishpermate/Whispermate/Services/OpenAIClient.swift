@@ -42,15 +42,15 @@ class OpenAIClient {
 
     init(config: Configuration) {
         self.config = config
-        print("[OpenAIClient] Initialized")
-        print("[OpenAIClient] Transcription: \(config.transcriptionEndpoint)")
-        print("[OpenAIClient] Chat: \(config.chatCompletionEndpoint)")
+        DebugLog.info("Initialized", context: "OpenAIClient")
+        DebugLog.api("Transcription endpoint: \(config.transcriptionEndpoint)")
+        DebugLog.api("Chat endpoint: \(config.chatCompletionEndpoint)")
     }
 
     /// Update configuration (useful for switching providers or updating settings)
     func updateConfig(_ newConfig: Configuration) {
         config = newConfig
-        print("[OpenAIClient] Configuration updated")
+        DebugLog.info("Configuration updated", context: "OpenAIClient")
     }
 
     // MARK: - Transcription
@@ -67,12 +67,8 @@ class OpenAIClient {
             throw OpenAIError.invalidURL
         }
 
-        print("[OpenAIClient] ========================================")
-        print("[OpenAIClient] Starting transcription")
-        print("[OpenAIClient] Endpoint: \(config.transcriptionEndpoint)")
-        print("[OpenAIClient] Model: \(effectiveModel)")
-        print("[OpenAIClient] Language: \(languageCode ?? "auto-detect")")
-        print("[OpenAIClient] Prompt: \(prompt ?? "none")")
+        DebugLog.api("Starting transcription", endpoint: config.transcriptionEndpoint)
+        DebugLog.info("Model: \(effectiveModel), Language: \(languageCode ?? "auto-detect")", context: "OpenAIClient")
 
         // Create multipart form data
         let boundary = UUID().uuidString
@@ -88,7 +84,7 @@ class OpenAIClient {
 
         // Read audio file data
         let audioData = try Data(contentsOf: audioURL)
-        print("[OpenAIClient] Audio file size: \(audioData.count) bytes")
+        DebugLog.info("Audio file size: \(audioData.count) bytes", context: "OpenAIClient")
 
         // Build multipart body
         var body = Data()
@@ -137,11 +133,11 @@ class OpenAIClient {
                 throw OpenAIError.invalidResponse
             }
 
-            print("[OpenAIClient] Response status: \(httpResponse.statusCode)")
+            DebugLog.api("Response status: \(httpResponse.statusCode)")
 
             if httpResponse.statusCode != 200 {
                 let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-                print("[OpenAIClient] Error: \(errorMessage)")
+                DebugLog.error("API Error: \(errorMessage)", context: "OpenAIClient")
                 throw OpenAIError.apiError("HTTP \(httpResponse.statusCode): \(errorMessage)")
             }
 
@@ -150,13 +146,12 @@ class OpenAIClient {
                 throw OpenAIError.invalidResponse
             }
 
-            print("[OpenAIClient] Transcription successful")
-            print("[OpenAIClient] ========================================")
+            DebugLog.info("Transcription successful", context: "OpenAIClient")
             return text.trimmingCharacters(in: .whitespacesAndNewlines)
         } catch let error as OpenAIError {
             throw error
         } catch {
-            print("[OpenAIClient] Network error: \(error)")
+            DebugLog.error("Network error: \(error)", context: "OpenAIClient")
             throw OpenAIError.networkError(error)
         }
     }
@@ -175,10 +170,8 @@ class OpenAIClient {
             throw OpenAIError.invalidURL
         }
 
-        print("[OpenAIClient] ========================================")
-        print("[OpenAIClient] Chat completion request")
-        print("[OpenAIClient] Endpoint: \(config.chatCompletionEndpoint)")
-        print("[OpenAIClient] Model: \(effectiveModel)")
+        DebugLog.api("Chat completion request", endpoint: config.chatCompletionEndpoint)
+        DebugLog.info("Model: \(effectiveModel)", context: "OpenAIClient")
 
         // Build the request payload
         let payload: [String: Any] = [
@@ -230,14 +223,13 @@ class OpenAIClient {
             }
 
             let result = content.trimmingCharacters(in: .whitespacesAndNewlines)
-            print("[OpenAIClient] Chat completion successful")
-            print("[OpenAIClient] ========================================")
+            DebugLog.info("Chat completion successful", context: "OpenAIClient")
 
             return result
         } catch let error as OpenAIError {
             throw error
         } catch {
-            print("[OpenAIClient] Network error: \(error)")
+            DebugLog.error("Network error: \(error)", context: "OpenAIClient")
             throw OpenAIError.networkError(error)
         }
     }
@@ -261,7 +253,7 @@ class OpenAIClient {
         // Check if transcription is empty
         let trimmed = rawTranscription.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
-            print("[OpenAIClient] ⚠️ Empty transcription - skipping formatting")
+            DebugLog.warning("Empty transcription - skipping formatting", context: "OpenAIClient")
             return rawTranscription
         }
 
