@@ -529,21 +529,38 @@ struct ContentView: View {
                 print("[LOG] Using language: \(languageCode ?? "auto-detect")")
                 print("[LOG] Enabled rules count: \(enabledRules.count)")
 
-                let groqService = GroqService(
-                    transcriptionApiKey: transcriptionApiKey,
+                // Create unified OpenAI client for transcription
+                // Note: We use transcription API key for transcription, and will create separate client for LLM if needed
+                let transcriptionConfig = OpenAIClient.Configuration(
                     transcriptionEndpoint: transcriptionProviderManager.effectiveEndpoint,
                     transcriptionModel: transcriptionProviderManager.effectiveModel,
-                    llmApiKey: llmApiKey,
-                    llmEndpoint: llmProviderManager.effectiveEndpoint,
-                    llmModel: llmProviderManager.effectiveModel
+                    chatCompletionEndpoint: llmProviderManager.effectiveEndpoint,
+                    chatCompletionModel: llmProviderManager.effectiveModel,
+                    apiKey: transcriptionApiKey
                 )
 
-                let result = try await groqService.transcribeAndFix(
+                let openAIClient = OpenAIClient(config: transcriptionConfig)
+
+                // Transcribe first
+                var result = try await openAIClient.transcribe(
                     audioURL: audioURL,
-                    language: languageCode,
-                    prompt: nil,
-                    rules: enabledRules
+                    languageCode: languageCode,
+                    prompt: nil
                 )
+
+                // Apply formatting rules if we have them and LLM key
+                if !enabledRules.isEmpty, let llmKey = llmApiKey {
+                    // Update config with LLM API key for chat completion
+                    let llmConfig = OpenAIClient.Configuration(
+                        transcriptionEndpoint: transcriptionProviderManager.effectiveEndpoint,
+                        transcriptionModel: transcriptionProviderManager.effectiveModel,
+                        chatCompletionEndpoint: llmProviderManager.effectiveEndpoint,
+                        chatCompletionModel: llmProviderManager.effectiveModel,
+                        apiKey: llmKey
+                    )
+                    openAIClient.updateConfig(llmConfig)
+                    result = try await openAIClient.applyFormattingRules(transcription: result, rules: enabledRules)
+                }
 
                 print("[LOG] Transcription received: \(result)")
                 await MainActor.run {

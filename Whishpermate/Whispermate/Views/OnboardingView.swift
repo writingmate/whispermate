@@ -432,18 +432,17 @@ struct OnboardingView: View {
                 return
             }
 
-            // Create GroqService instance
-            let groqService = GroqService(
-                transcriptionApiKey: "", // Not needed for LLM-only
-                transcriptionEndpoint: "",
-                transcriptionModel: "",
-                llmApiKey: llmApiKey,
-                llmEndpoint: "https://api.groq.com/openai/v1/chat/completions",
-                llmModel: "llama-3.3-70b-versatile"
+            // Create OpenAI client for LLM processing
+            let clientConfig = OpenAIClient.Configuration(
+                chatCompletionEndpoint: "https://api.groq.com/openai/v1/chat/completions",
+                chatCompletionModel: "llama-3.3-70b-versatile",
+                apiKey: llmApiKey
             )
 
+            let openAIClient = OpenAIClient(config: clientConfig)
+
             // Process text with rules
-            let result = try await groqService.fixText(exampleText, rules: enabledRules)
+            let result = try await openAIClient.applyFormattingRules(transcription: exampleText, rules: enabledRules)
 
             await MainActor.run {
                 processedText = result
