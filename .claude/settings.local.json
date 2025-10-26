@@ -38,7 +38,15 @@
       "Read(//tmp/**)",
       "Read(//Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug/Whispermate.app/Contents/MacOS/**)",
       "Bash(defaults read:*)",
-      "Bash(VERSION=\"0.0.4\")"
+      "Bash(VERSION=\"0.0.4\")",
+      "Bash(git push:*)",
+      "Bash(xcrun stapler:*)",
+      "Bash(xcrun notarytool submit:*)",
+      "Bash(~/.local/bin/claude:*)",
+      "Bash(git clone:*)",
+      "Bash(gh release upload:*)",
+      "Bash(git stash:*)",
+      "Bash(defaults domains:*)"
     ],
     "deny": [],
     "ask": []

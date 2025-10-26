@@ -1,1 +1,2 @@
 - do not build dmg and tag unless i ask, commit periodically but don't bump the version
+- use HIG best practices as much as possible, don't design custom componets
