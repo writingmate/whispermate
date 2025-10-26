@@ -10,6 +10,7 @@ struct OnboardingView: View {
     @State private var exampleText = "I have two apples and three oranges"
     @State private var processedText = ""
     @State private var isProcessingExample = false
+    @State private var fnKeyMonitor: FnKeyMonitor?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -21,17 +22,18 @@ struct OnboardingView: View {
                         .frame(width: 8, height: 8)
                 }
             }
-            .padding(.top, 32)
-            .padding(.bottom, 24)
+            .padding(.top, 20)
+            .padding(.bottom, 20)
 
             // Content area
             ScrollView {
-                VStack(spacing: onboardingManager.currentStep == .prompts ? 16 : 24) {
+                VStack(spacing: 20) {
                     // Icon (hidden for prompts step to save space)
                     if onboardingManager.currentStep != .prompts {
                         Image(systemName: onboardingManager.currentStep.icon)
                             .font(.system(size: 64))
                             .foregroundStyle(Color.accentColor)
+                            .padding(.top, 8)
                     }
 
                     // Title
@@ -44,32 +46,51 @@ struct OnboardingView: View {
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .lineSpacing(4)
-                        .padding(.horizontal, 48)
+                        .padding(.horizontal, 60)
                         .fixedSize(horizontal: false, vertical: true)
 
-                    // Step-specific content with conditional spacing
-                    if onboardingManager.currentStep == .prompts {
-                        Spacer().frame(height: 8)
-                    } else {
-                        Spacer().frame(height: 16)
-                    }
-
                     stepContent
+                        .padding(.top, 4)
                 }
-                .padding(.bottom, 16)
+                .padding(.bottom, 20)
             }
             .frame(maxHeight: .infinity)
 
             // Bottom action button
             bottomButton
-                .padding(.horizontal, 32)
-                .padding(.bottom, 32)
+                .padding(.horizontal, 40)
+                .padding(.bottom, 24)
         }
-        .frame(width: 520, height: 500)
+        .frame(width: 560, height: 520)
         .background(Color(nsColor: .windowBackgroundColor))
         .onAppear {
             // Defer hotkey registration during onboarding
             hotkeyManager.setDeferRegistration(true)
+
+            // Center the onboarding window on screen
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                // Find the sheet window - it's a titled window that's not the main borderless window
+                let windows = NSApplication.shared.windows
+                print("[OnboardingView] Found \(windows.count) windows")
+
+                for (index, window) in windows.enumerated() {
+                    print("[OnboardingView] Window \(index): visible=\(window.isVisible), level=\(window.level.rawValue), styleMask=\(window.styleMask.rawValue), title=\(window.title)")
+                }
+
+                if let sheetWindow = windows.first(where: { $0.isVisible && $0.styleMask.contains(.titled) }) {
+                    print("[OnboardingView] Found sheet window: \(sheetWindow.title)")
+                    if let screen = NSScreen.main {
+                        let screenFrame = screen.visibleFrame
+                        let windowFrame = sheetWindow.frame
+                        let x = screenFrame.midX - windowFrame.width / 2
+                        let y = screenFrame.midY - windowFrame.height / 2
+                        print("[OnboardingView] Centering window at x=\(x), y=\(y)")
+                        sheetWindow.setFrameOrigin(NSPoint(x: x, y: y))
+                    }
+                } else {
+                    print("[OnboardingView] ⚠️ Could not find sheet window to center")
+                }
+            }
 
             // Start polling for accessibility permission if on that step
             if onboardingManager.currentStep == .accessibility {
@@ -112,32 +133,50 @@ struct OnboardingView: View {
 
         case .hotkey:
             VStack(spacing: 12) {
-                HotkeyRecorderView(hotkeyManager: hotkeyManager)
-                    .frame(height: 40)
+                // Fn key button (square)
+                Text("Fn")
+                    .font(.system(size: 40, weight: .semibold))
+                    .foregroundStyle(hotkeyManager.currentHotkey?.keyCode == 63 ? .green : .primary)
+                    .frame(width: 100, height: 100)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(nsColor: .controlBackgroundColor))
+                            .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(hotkeyManager.currentHotkey?.keyCode == 63 ? Color.green : Color.clear, lineWidth: 3)
+                    )
 
-                if hotkeyManager.currentHotkey != nil {
-                    HStack(spacing: 4) {
+                if hotkeyManager.currentHotkey?.keyCode == 63 {
+                    HStack(spacing: 6) {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundStyle(.green)
-                        Text("Hotkey configured")
+                        Text("Fn key detected")
                             .font(.system(size: 12))
                             .foregroundStyle(.green)
                     }
                 } else {
-                    Text("Tip: Fn key works best")
-                        .font(.system(size: 11))
+                    Text("Press Fn")
+                        .font(.system(size: 12))
                         .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
                 }
             }
-            .padding(.horizontal, 32)
+            .onAppear {
+                // Start monitoring for Fn key press
+                startFnKeyMonitoring()
+            }
+            .onDisappear {
+                // Stop monitoring when leaving this step
+                stopFnKeyMonitoring()
+            }
 
         case .prompts:
-            VStack(spacing: 12) {
+            VStack(spacing: 16) {
                 // Show current rules
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(promptRulesManager.rules) { rule in
-                        HStack(spacing: 8) {
+                        HStack(spacing: 10) {
                             Button(action: {
                                 promptRulesManager.toggleRule(rule)
                             }) {
@@ -162,8 +201,8 @@ struct OnboardingView: View {
                             }
                             .buttonStyle(.plain)
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
                         .background(
                             RoundedRectangle(cornerRadius: 6)
                                 .fill(Color(nsColor: .controlBackgroundColor))
@@ -171,10 +210,10 @@ struct OnboardingView: View {
                     }
 
                     // Add new rule
-                    HStack(spacing: 6) {
+                    HStack(spacing: 8) {
                         TextField("Add custom rule...", text: $newRuleText)
                             .textFieldStyle(.roundedBorder)
-                            .font(.system(size: 11))
+                            .font(.system(size: 12))
                             .onSubmit {
                                 if !newRuleText.isEmpty {
                                     promptRulesManager.addRule(newRuleText)
@@ -189,7 +228,7 @@ struct OnboardingView: View {
                             }
                         }) {
                             Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 16))
+                                .font(.system(size: 18))
                         }
                         .buttonStyle(.plain)
                         .disabled(newRuleText.isEmpty)
@@ -205,12 +244,13 @@ struct OnboardingView: View {
                         .padding(.horizontal, 8)
                     VStack { Divider() }
                 }
+                .padding(.vertical, 4)
 
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 6) {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 8) {
                         TextField("Try example text...", text: $exampleText)
                             .textFieldStyle(.roundedBorder)
-                            .font(.system(size: 11))
+                            .font(.system(size: 12))
 
                         Button(action: {
                             Task {
@@ -223,7 +263,7 @@ struct OnboardingView: View {
                                     .frame(width: 16, height: 16)
                             } else {
                                 Image(systemName: "arrow.right.circle.fill")
-                                    .font(.system(size: 16))
+                                    .font(.system(size: 18))
                             }
                         }
                         .buttonStyle(.plain)
@@ -232,9 +272,9 @@ struct OnboardingView: View {
 
                     if !processedText.isEmpty {
                         Text(processedText)
-                            .font(.system(size: 11))
+                            .font(.system(size: 12))
                             .foregroundStyle(.primary)
-                            .padding(8)
+                            .padding(10)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(
                                 RoundedRectangle(cornerRadius: 6)
@@ -243,8 +283,8 @@ struct OnboardingView: View {
                     }
                 }
             }
-            .padding(.horizontal, 32)
-            .frame(maxWidth: 420)
+            .padding(.horizontal, 40)
+            .frame(maxWidth: .infinity)
         }
     }
 
@@ -334,6 +374,23 @@ struct OnboardingView: View {
         isCheckingAccessibility = false
     }
 
+    private func startFnKeyMonitoring() {
+        print("[OnboardingView] Starting Fn key monitoring")
+        fnKeyMonitor = FnKeyMonitor()
+        fnKeyMonitor?.onFnPressed = { [self] in
+            print("[OnboardingView] Fn key pressed - setting hotkey")
+            hotkeyManager.setHotkey(Hotkey(keyCode: 63, modifiers: .function))
+            stopFnKeyMonitoring()
+        }
+        fnKeyMonitor?.startMonitoring()
+    }
+
+    private func stopFnKeyMonitoring() {
+        print("[OnboardingView] Stopping Fn key monitoring")
+        fnKeyMonitor?.stopMonitoring()
+        fnKeyMonitor = nil
+    }
+
     private func checkAccessibilityPeriodically() {
         guard isCheckingAccessibility else { return }
 
@@ -375,18 +432,17 @@ struct OnboardingView: View {
                 return
             }
 
-            // Create GroqService instance
-            let groqService = GroqService(
-                transcriptionApiKey: "", // Not needed for LLM-only
-                transcriptionEndpoint: "",
-                transcriptionModel: "",
-                llmApiKey: llmApiKey,
-                llmEndpoint: "https://api.groq.com/openai/v1/chat/completions",
-                llmModel: "llama-3.3-70b-versatile"
+            // Create OpenAI client for LLM processing
+            let clientConfig = OpenAIClient.Configuration(
+                chatCompletionEndpoint: "https://api.groq.com/openai/v1/chat/completions",
+                chatCompletionModel: "llama-3.3-70b-versatile",
+                apiKey: llmApiKey
             )
 
+            let openAIClient = OpenAIClient(config: clientConfig)
+
             // Process text with rules
-            let result = try await groqService.fixText(exampleText, rules: enabledRules)
+            let result = try await openAIClient.applyFormattingRules(transcription: exampleText, rules: enabledRules)
 
             await MainActor.run {
                 processedText = result

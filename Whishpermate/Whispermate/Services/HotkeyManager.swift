@@ -68,15 +68,22 @@ class HotkeyManager: ObservableObject {
     private var flagsMonitor: Any?
 
     private func registerHotkey() {
-        unregisterHotkey()
-
         guard let hotkey = currentHotkey else {
             print("[HotkeyManager LOG] registerHotkey: No hotkey configured")
+            unregisterHotkey()
             return
         }
 
         print("[HotkeyManager LOG] registerHotkey: keyCode=\(hotkey.keyCode), modifiers=\(hotkey.modifiers.rawValue)")
         print("[HotkeyManager LOG] registerHotkey: displayString=\(hotkey.displayString)")
+
+        // If the Fn monitor is already running for the same hotkey, don't restart it
+        if hotkey.modifiers == .function && hotkey.keyCode == 63 && fnKeyMonitor != nil {
+            print("[HotkeyManager LOG] Fn key monitor already running, skipping re-registration")
+            return
+        }
+
+        unregisterHotkey()
 
         // If hotkey is just Fn key, use polling-based monitoring
         if hotkey.modifiers == .function && hotkey.keyCode == 63 {
