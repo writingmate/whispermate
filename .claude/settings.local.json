@@ -46,7 +46,16 @@
       "Bash(git clone:*)",
       "Bash(gh release upload:*)",
       "Bash(git stash:*)",
-      "Bash(defaults domains:*)"
+      "Bash(defaults domains:*)",
+      "Bash(VERSION=\"0.0.7\")",
+      "Bash(echo:*)",
+      "Bash(xcrun notarytool store-credentials:*)",
+      "Bash(xcrun notarytool log:*)",
+      "Bash(spctl -a -t open --context context:primary-signature -v:*)",
+      "Bash(lipo -info:*)",
+      "Bash(spctl:*)",
+      "Bash(hdiutil attach:*)",
+      "Bash(hdiutil detach:*)"
     ],
     "deny": [],
     "ask": []

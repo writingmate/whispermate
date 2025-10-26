@@ -562,7 +562,7 @@ struct ContentView: View {
                     result = try await openAIClient.applyFormattingRules(transcription: result, rules: enabledRules)
                 }
 
-                print("[LOG] Transcription received: \(result)")
+                DebugLog.sensitive("Transcription received: \(result)", context: "ContentView")
                 await MainActor.run {
                     transcription = result
                     isProcessing = false
@@ -637,28 +637,28 @@ struct ContentView: View {
     private func resolvedTranscriptionApiKey() -> String? {
         let provider = transcriptionProviderManager.selectedProvider
         if let storedKey = KeychainHelper.get(key: provider.apiKeyName), !storedKey.isEmpty {
-            print("[ContentView LOG] Using keychain transcription key for provider: \(provider.displayName)")
+            DebugLog.sensitive("Using keychain transcription key for provider: \(provider.displayName)", context: "ContentView")
             return storedKey
         }
         if let bundledKey = SecretsLoader.transcriptionKey(for: provider), !bundledKey.isEmpty {
-            print("[ContentView LOG] Using bundled transcription key for provider: \(provider.displayName)")
+            DebugLog.sensitive("Using bundled transcription key for provider: \(provider.displayName)", context: "ContentView")
             return bundledKey
         }
-        print("[ContentView LOG] No transcription key found for provider: \(provider.displayName)")
+        DebugLog.warning("No transcription key found for provider: \(provider.displayName)", context: "ContentView")
         return nil
     }
 
     private func resolvedLLMApiKey() -> String? {
         let provider = llmProviderManager.selectedProvider
         if let storedKey = KeychainHelper.get(key: provider.apiKeyName), !storedKey.isEmpty {
-            print("[ContentView LOG] Using keychain LLM key for provider: \(provider.displayName)")
+            DebugLog.sensitive("Using keychain LLM key for provider: \(provider.displayName)", context: "ContentView")
             return storedKey
         }
         if let bundledKey = SecretsLoader.llmKey(for: provider), !bundledKey.isEmpty {
-            print("[ContentView LOG] Using bundled LLM key for provider: \(provider.displayName)")
+            DebugLog.sensitive("Using bundled LLM key for provider: \(provider.displayName)", context: "ContentView")
             return bundledKey
         }
-        print("[ContentView LOG] No LLM key found for provider: \(provider.displayName)")
+        DebugLog.warning("No LLM key found for provider: \(provider.displayName)", context: "ContentView")
         return nil
     }
 }
