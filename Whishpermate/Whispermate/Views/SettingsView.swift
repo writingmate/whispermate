@@ -1,7 +1,9 @@
 import SwiftUI
 import AVFoundation
+import ApplicationServices
 
 enum SettingsSection: String, CaseIterable, Identifiable {
+    case permissions = "Permissions"
     case audio = "Audio"
     case rules = "Text Rules"
     case hotkeys = "Hotkeys"
@@ -10,6 +12,7 @@ enum SettingsSection: String, CaseIterable, Identifiable {
 
     var icon: String {
         switch self {
+        case .permissions: return "lock.shield"
         case .audio: return "waveform"
         case .rules: return "text.badge.checkmark"
         case .hotkeys: return "keyboard"
@@ -72,35 +75,31 @@ struct SettingsView: View {
 
                 Spacer()
             }
-            .frame(width: 160)
+            .frame(width: 200)
             .background(Color(nsColor: .controlBackgroundColor))
 
             Divider()
 
             // Content Area
             VStack(spacing: 0) {
-                // Header with title and close button
+                // Header
                 HStack {
                     Text(selectedSection.rawValue)
-                        .font(.system(size: 20, weight: .semibold))
-
+                        .font(.system(size: 18, weight: .semibold))
                     Spacer()
-
-                    Button(action: {
-                        dismiss()
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 20))
-                            .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, 20)
                 .padding(.vertical, 16)
+                .background(Color(nsColor: .textBackgroundColor))
 
+                Divider()
+
+                // Content
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
+                    VStack(alignment: .leading, spacing: 20) {
                         switch selectedSection {
+                        case .permissions:
+                            permissionsSection
                         case .audio:
                             audioSection
                         case .rules:
@@ -109,12 +108,12 @@ struct SettingsView: View {
                             hotkeysSection
                         }
                     }
-                    .padding(24)
+                    .padding(20)
                 }
             }
             .background(Color(nsColor: .textBackgroundColor))
         }
-        .frame(minWidth: 600, maxWidth: 900, minHeight: 500, maxHeight: 800)
+        .frame(width: 700, height: 550)
         .onAppear {
             loadAudioDevices()
         }
@@ -343,6 +342,63 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Permissions Section
+    private var permissionsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Microphone Permission
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "mic.fill")
+                        .foregroundStyle(.secondary)
+                    Text("Microphone")
+                        .font(.system(size: 13, weight: .medium))
+                    Spacer()
+                    if AVCaptureDevice.authorizationStatus(for: .audio) == .authorized {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                    } else {
+                        Button("Grant Access") {
+                            Task {
+                                await AVCaptureDevice.requestAccess(for: .audio)
+                            }
+                        }
+                        .controlSize(.small)
+                    }
+                }
+                Text("Required to record audio for transcription")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+
+            Divider()
+
+            // Accessibility Permission
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Image(systemName: "hand.raised.fill")
+                        .foregroundStyle(.secondary)
+                    Text("Accessibility")
+                        .font(.system(size: 13, weight: .medium))
+                    Spacer()
+                    if AXIsProcessTrusted() {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                    } else {
+                        Button("Open Settings") {
+                            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }
+                        .controlSize(.small)
+                    }
+                }
+                Text("Required to auto-paste transcriptions")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
     // MARK: - Audio Section
     private var audioSection: some View {
         VStack(alignment: .leading, spacing: 24) {
@@ -534,12 +590,8 @@ struct SettingsView: View {
 
     // MARK: - Helper Functions
     private func loadAudioDevices() {
-        let discoverySession = AVCaptureDevice.DiscoverySession(
-            deviceTypes: [.builtInMicrophone, .externalUnknown],
-            mediaType: .audio,
-            position: .unspecified
-        )
-        audioDevices = discoverySession.devices
+        // Get all available audio input devices
+        audioDevices = AVCaptureDevice.devices(for: .audio)
 
         // Select default device
         if selectedAudioDevice == nil {

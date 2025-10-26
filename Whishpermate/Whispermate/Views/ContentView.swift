@@ -15,9 +15,9 @@ struct ContentView: View {
     @State private var transcription = ""
     @State private var isProcessing = false
     @State private var showingAPIKeyAlert = false
-    @State private var showingSettings = false
-    @State private var showingHistory = false
+    @State private var showOnboarding = false
     @State private var apiKey = ""
+    @Environment(\.openWindow) private var openWindow
     @State private var errorMessage = ""
     @State private var recordingStartTime: Date?
     @State private var shouldAutoPaste = false
@@ -152,26 +152,17 @@ struct ContentView: View {
         .frame(width: 400)
         .frame(height: 320)
         .background(Color.clear)
-        .sheet(isPresented: $showingSettings) {
-            SettingsView(
-                hotkeyManager: hotkeyManager,
-                languageManager: languageManager,
-                transcriptionProviderManager: transcriptionProviderManager,
-                llmProviderManager: llmProviderManager,
-                promptRulesManager: promptRulesManager
-            )
-        }
-        .sheet(isPresented: $showingHistory) {
-            HistoryView(historyManager: historyManager)
-        }
-        .sheet(isPresented: $onboardingManager.showOnboarding) {
+        .sheet(isPresented: $showOnboarding) {
             OnboardingView(
                 onboardingManager: onboardingManager,
                 hotkeyManager: hotkeyManager,
                 promptRulesManager: promptRulesManager
             )
+            .interactiveDismissDisabled(true)
         }
-        .interactiveDismissDisabled(onboardingManager.showOnboarding)
+        .onChange(of: onboardingManager.showOnboarding) { _, newValue in
+            showOnboarding = newValue
+        }
         .alert("Enter API Key", isPresented: $showingAPIKeyAlert) {
             TextField("API Key", text: $apiKey)
             Button("Save") {
@@ -195,6 +186,11 @@ struct ContentView: View {
         .onAppear {
             // Check onboarding status first
             onboardingManager.checkOnboardingStatus()
+
+            // Sync initial onboarding state
+            if onboardingManager.showOnboarding {
+                showOnboarding = true
+            }
 
             // Migrate old keychain items if needed (for smooth upgrade)
             let transcriptionProvider = transcriptionProviderManager.selectedProvider
@@ -244,14 +240,15 @@ struct ContentView: View {
                 if overlayManager.isOverlayMode {
                     // In overlay mode - hide main window, show overlay
                     if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-                        window.orderOut(nil)
+                        window.setIsVisible(false)
                     }
                     overlayManager.show()
                 } else {
                     // In full mode - show main window, hide overlay
                     overlayManager.hide()
                     if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-                        window.orderFront(nil)
+                        window.setIsVisible(true)
+                        window.makeKeyAndOrderFront(nil)
                     }
                 }
 
@@ -304,13 +301,14 @@ struct ContentView: View {
                     // Show appropriate UI based on current mode
                     if overlayManager.isOverlayMode {
                         if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-                            window.orderOut(nil)
+                            window.setIsVisible(false)
                         }
                         overlayManager.show()
                     } else {
                         overlayManager.hide()
                         if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-                            window.orderFront(nil)
+                            window.setIsVisible(true)
+                            window.makeKeyAndOrderFront(nil)
                         }
                     }
 
@@ -328,7 +326,7 @@ struct ContentView: View {
                 object: nil,
                 queue: .main
             ) { [self] _ in
-                showingHistory = true
+                openWindow(id: "history")
             }
 
             NotificationCenter.default.addObserver(
@@ -336,7 +334,35 @@ struct ContentView: View {
                 object: nil,
                 queue: .main
             ) { [self] _ in
-                showingSettings = true
+                openWindow(id: "settings")
+            }
+
+            // Set up app state observers for overlay management
+            NotificationCenter.default.addObserver(
+                forName: NSApplication.didResignActiveNotification,
+                object: nil,
+                queue: .main
+            ) { [self] _ in
+                print("[ContentView LOG] 🌙 App went to background - showing overlay")
+                overlayManager.show()
+                // Hide main window when going to background
+                if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
+                    window.setIsVisible(false)
+                }
+            }
+
+            NotificationCenter.default.addObserver(
+                forName: NSApplication.didBecomeActiveNotification,
+                object: nil,
+                queue: .main
+            ) { [self] _ in
+                print("[ContentView LOG] ☀️ App came to foreground - hiding overlay")
+                overlayManager.hide()
+                // Show main window when coming to foreground
+                if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
+                    window.setIsVisible(true)
+                    window.makeKeyAndOrderFront(nil)
+                }
             }
         }
         .onDisappear {
@@ -361,7 +387,8 @@ struct ContentView: View {
 
         // Show main window
         if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-            window.orderFront(nil)
+            window.setIsVisible(true)
+            window.makeKeyAndOrderFront(nil)
         }
 
         if audioRecorder.isRecording {
