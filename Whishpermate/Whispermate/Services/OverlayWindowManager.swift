@@ -9,11 +9,13 @@ class OverlayWindowManager: ObservableObject {
     @Published var isRecording = false {
         didSet {
             print("[OverlayWindowManager LOG] ⚡️ isRecording changed: \(oldValue) -> \(isRecording)")
+            updateWindowSize()
         }
     }
     @Published var isProcessing = false {
         didSet {
             print("[OverlayWindowManager LOG] ⚡️ isProcessing changed: \(oldValue) -> \(isProcessing)")
+            updateWindowSize()
         }
     }
     @Published var audioLevel: Float = 0.0 {
@@ -23,7 +25,7 @@ class OverlayWindowManager: ObservableObject {
             }
         }
     }
-    @Published var isOverlayMode = false {  // Start in full mode by default
+    @Published var isOverlayMode = true {  // Start in overlay mode by default
         didSet {
             print("[OverlayWindowManager LOG] ⚡️ isOverlayMode changed: \(oldValue) -> \(isOverlayMode)")
         }
@@ -72,27 +74,29 @@ class OverlayWindowManager: ObservableObject {
     }
 
     func expandToFullMode() {
-        print("[OverlayWindowManager LOG] expandToFullMode() - switching to full mode")
-        isOverlayMode = false
-        hide()  // Hide overlay
+        print("[OverlayWindowManager LOG] expandToFullMode() - bringing app to foreground")
+
+        // Bring app to foreground - this will trigger didBecomeActive notification
+        // which will handle the mode switch
+        NSApp.activate(ignoringOtherApps: true)
 
         // Show main window
         if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-            window.orderFront(nil)
-            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
         }
     }
 
     func contractToOverlay() {
-        print("[OverlayWindowManager LOG] contractToOverlay() - switching to overlay mode")
-        isOverlayMode = true
+        print("[OverlayWindowManager LOG] contractToOverlay() - sending app to background")
 
-        // Hide main window
+        // Hide main window which effectively sends app to background
         if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
             window.orderOut(nil)
         }
 
-        show()  // Show overlay
+        // Hide the app (send to background) - this will trigger didResignActive notification
+        // which will handle the mode switch
+        NSApp.hide(nil)
     }
 
     private func createWindow() {
@@ -105,8 +109,7 @@ class OverlayWindowManager: ObservableObject {
         }
 
         let screenFrame = screen.visibleFrame
-        let windowWidth: CGFloat = 300
-        let windowHeight: CGFloat = 60
+        let (windowWidth, windowHeight) = getWindowSize()
 
         // Position at bottom center (very close to bottom)
         let xPos = screenFrame.origin.x + (screenFrame.width - windowWidth) / 2
@@ -164,8 +167,7 @@ class OverlayWindowManager: ObservableObject {
         }
 
         let screenFrame = screen.visibleFrame
-        let windowWidth: CGFloat = 300
-        let windowHeight: CGFloat = 60
+        let (windowWidth, windowHeight) = getWindowSize()
 
         // Position at bottom center
         let xPos = screenFrame.origin.x + (screenFrame.width - windowWidth) / 2
@@ -175,6 +177,40 @@ class OverlayWindowManager: ObservableObject {
         window.setFrame(newFrame, display: true)
 
         print("[OverlayWindowManager LOG] ✅ Repositioned to: (\(xPos), \(yPos))")
+    }
+
+    private func getWindowSize() -> (width: CGFloat, height: CGFloat) {
+        // Large size for recording/processing states
+        if isRecording || isProcessing {
+            return (210, 52)
+        }
+        // Small size for idle state
+        return (70, 42)
+    }
+
+    private func updateWindowSize() {
+        guard let window = overlayWindow, let screen = NSScreen.main else {
+            return
+        }
+
+        let screenFrame = screen.visibleFrame
+        let (windowWidth, windowHeight) = getWindowSize()
+
+        // Keep centered at bottom
+        let xPos = screenFrame.origin.x + (screenFrame.width - windowWidth) / 2
+        let yPos = screenFrame.origin.y + 0
+
+        let newFrame = NSRect(x: xPos, y: yPos, width: windowWidth, height: windowHeight)
+
+        // Animate window resize with spring timing (synchronized with SwiftUI content animations)
+        NSAnimationContext.runAnimationGroup({ context in
+            context.duration = 0.2
+            context.timingFunction = CAMediaTimingFunction(controlPoints: 0.5, 1.0, 0.89, 1.0) // Spring curve
+            context.allowsImplicitAnimation = true
+            window.animator().setFrame(newFrame, display: true)
+        }, completionHandler: nil)
+
+        print("[OverlayWindowManager LOG] 📐 Window animating resize to: \(windowWidth)×\(windowHeight)")
     }
 
     deinit {
