@@ -88,18 +88,18 @@ class LanguageManager: ObservableObject {
     func loadLanguages() {
         if let savedLanguages = UserDefaults.standard.array(forKey: userDefaultsKey) as? [String] {
             selectedLanguages = Set(savedLanguages.compactMap { Language(rawValue: $0) })
-            print("[LanguageManager LOG] Loaded languages: \(selectedLanguages.map { $0.displayName })")
+            DebugLog.info("Loaded languages: \(selectedLanguages.map { $0.displayName })", context: "LanguageManager LOG")
         } else {
             // Default to auto-detect
             selectedLanguages = [.auto]
-            print("[LanguageManager LOG] No saved languages, defaulting to auto-detect")
+            DebugLog.info("No saved languages, defaulting to auto-detect", context: "LanguageManager LOG")
         }
     }
 
     func saveLanguages() {
         let languageCodes = Array(selectedLanguages.map { $0.rawValue })
         UserDefaults.standard.set(languageCodes, forKey: userDefaultsKey)
-        print("[LanguageManager LOG] Saved languages: \(selectedLanguages.map { $0.displayName })")
+        DebugLog.info("Saved languages: \(selectedLanguages.map { $0.displayName })", context: "LanguageManager LOG")
     }
 
     func toggleLanguage(_ language: Language) {
@@ -129,12 +129,17 @@ class LanguageManager: ObservableObject {
 
     /// Get the language code to send to the API
     /// If auto-detect is selected, return nil (let API auto-detect)
-    /// If multiple languages are selected, return the first one (Whisper doesn't support multiple simultaneously)
+    /// If multiple languages are selected, return comma-separated codes
     var apiLanguageCode: String? {
         if selectedLanguages.contains(.auto) {
             return nil
         }
-        // Return first selected language that's not auto
-        return selectedLanguages.first(where: { $0 != .auto })?.rawValue
+        // Return all selected language codes, comma-separated
+        let languageCodes = selectedLanguages
+            .filter { $0 != .auto }
+            .map { $0.rawValue }
+            .sorted() // Sort for consistency
+
+        return languageCodes.isEmpty ? nil : languageCodes.joined(separator: ",")
     }
 }

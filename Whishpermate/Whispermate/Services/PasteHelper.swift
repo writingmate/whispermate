@@ -9,32 +9,32 @@ class PasteHelper {
         let workspace = NSWorkspace.shared
         if let activeApp = workspace.frontmostApplication {
             previousApp = activeApp
-            print("[PasteHelper LOG] Stored previous app: \(activeApp.localizedName ?? "unknown")")
+            DebugLog.info("Stored previous app: \(activeApp.localizedName ?? "unknown")", context: "PasteHelper")
         }
     }
 
     static func copyAndPaste(_ text: String) {
-        print("[PasteHelper LOG] ========================================")
-        print("[PasteHelper LOG] copyAndPaste called")
-        print("[PasteHelper LOG] Text length: \(text.count) characters")
+        DebugLog.info("========================================", context: "PasteHelper")
+        DebugLog.info("copyAndPaste called", context: "PasteHelper")
+        DebugLog.info("Text length: \(text.count) characters", context: "PasteHelper")
 
         // Check accessibility permissions early
         let trusted = AXIsProcessTrusted()
-        print("[PasteHelper LOG] Accessibility trusted: \(trusted)")
+        DebugLog.info("Accessibility trusted: \(trusted)", context: "PasteHelper")
 
         if !trusted {
-            print("[PasteHelper LOG] ⚠️ WARNING: Accessibility permissions not granted!")
+            DebugLog.info("⚠️ WARNING: Accessibility permissions not granted!", context: "PasteHelper")
             // Prompt user to grant accessibility
             let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true]
             let enabled = AXIsProcessTrustedWithOptions(options)
-            print("[PasteHelper LOG] Prompted for accessibility - enabled: \(enabled)")
+            DebugLog.info("Prompted for accessibility - enabled: \(enabled)", context: "PasteHelper")
 
             if !enabled {
                 // Just copy to clipboard without pasting
                 let pasteboard = NSPasteboard.general
                 pasteboard.clearContents()
                 pasteboard.setString(text, forType: .string)
-                print("[PasteHelper LOG] ⚠️ Only copied to clipboard (no paste - permissions needed)")
+                DebugLog.info("⚠️ Only copied to clipboard (no paste - permissions needed)", context: "PasteHelper")
                 return
             }
         }
@@ -43,49 +43,49 @@ class PasteHelper {
         var textToPaste = text
         if let focusedElement = getFocusedTextElement() {
             if let existingText = getTextFromElement(focusedElement) {
-                print("[PasteHelper LOG] Existing text found: \"\(existingText.prefix(50))...\"")
+                DebugLog.info("Existing text found: \"\(existingText.prefix(50))...\"", context: "PasteHelper")
                 // Add space if there's existing text and it doesn't end with whitespace
                 if !existingText.isEmpty && !existingText.hasSuffix(" ") && !existingText.hasSuffix("\n") && !existingText.hasSuffix("\t") {
                     textToPaste = " " + text
-                    print("[PasteHelper LOG] ✅ Added space before text")
+                    DebugLog.info("✅ Added space before text", context: "PasteHelper")
                 } else {
-                    print("[PasteHelper LOG] ℹ️ No space needed (text is empty or ends with whitespace)")
+                    DebugLog.info("ℹ️ No space needed (text is empty or ends with whitespace)", context: "PasteHelper")
                 }
             }
         } else {
-            print("[PasteHelper LOG] ℹ️ Could not get focused element, pasting without space check")
+            DebugLog.info("ℹ️ Could not get focused element, pasting without space check", context: "PasteHelper")
         }
 
         let pasteboard = NSPasteboard.general
 
         // Store original clipboard content
         let originalContent = pasteboard.string(forType: .string)
-        print("[PasteHelper LOG] Stored original clipboard content: \(originalContent != nil ? "yes (\(originalContent!.count) chars)" : "none")")
+        DebugLog.info("Stored original clipboard content: \(originalContent != nil ? "yes (\(originalContent!.count) chars)" : "none")", context: "PasteHelper")
 
         // Copy transcription to clipboard (use the prepared text with space if needed)
         pasteboard.clearContents()
         let success = pasteboard.setString(textToPaste, forType: .string)
-        print("[PasteHelper LOG] Clipboard set success: \(success)")
+        DebugLog.info("Clipboard set success: \(success)", context: "PasteHelper")
 
         // Verify clipboard contents
         if let clipboardContent = pasteboard.string(forType: .string) {
-            print("[PasteHelper LOG] Clipboard verification: \(clipboardContent.prefix(50))...")
+            DebugLog.info("Clipboard verification: \(clipboardContent.prefix(50))...", context: "PasteHelper")
         } else {
-            print("[PasteHelper LOG] ERROR: Failed to verify clipboard contents!")
+            DebugLog.info("ERROR: Failed to verify clipboard contents!", context: "PasteHelper")
         }
 
         // Get the app to paste into
         let targetApp = previousApp ?? NSWorkspace.shared.frontmostApplication
-        print("[PasteHelper LOG] Target app for paste: \(targetApp?.localizedName ?? "unknown")")
+        DebugLog.info("Target app for paste: \(targetApp?.localizedName ?? "unknown")", context: "PasteHelper")
 
         // Activate the target app first
         if let app = targetApp, app.bundleIdentifier != Bundle.main.bundleIdentifier {
-            print("[PasteHelper LOG] Activating target app: \(app.localizedName ?? "unknown")")
+            DebugLog.info("Activating target app: \(app.localizedName ?? "unknown")", context: "PasteHelper")
             app.activate(options: [])
 
             // Wait for app to become active, then paste
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                print("[PasteHelper LOG] Delay complete, simulating paste...")
+                DebugLog.info("Delay complete, simulating paste...", context: "PasteHelper")
                 simulatePaste()
 
                 // Restore original clipboard content after a short delay
@@ -93,13 +93,13 @@ class PasteHelper {
                     if let original = originalContent {
                         pasteboard.clearContents()
                         pasteboard.setString(original, forType: .string)
-                        print("[PasteHelper LOG] Restored original clipboard content")
+                        DebugLog.info("Restored original clipboard content", context: "PasteHelper")
                     }
                     previousApp = nil // Clear stored app
                 }
             }
         } else {
-            print("[PasteHelper LOG] No target app, pasting directly")
+            DebugLog.info("No target app, pasting directly", context: "PasteHelper")
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                 simulatePaste()
 
@@ -108,7 +108,7 @@ class PasteHelper {
                     if let original = originalContent {
                         pasteboard.clearContents()
                         pasteboard.setString(original, forType: .string)
-                        print("[PasteHelper LOG] Restored original clipboard content")
+                        DebugLog.info("Restored original clipboard content", context: "PasteHelper")
                     }
                     previousApp = nil
                 }
@@ -117,24 +117,24 @@ class PasteHelper {
     }
 
     private static func simulatePaste() {
-        print("[PasteHelper LOG] simulatePaste started")
+        DebugLog.info("simulatePaste started", context: "PasteHelper")
 
         // Check accessibility permissions
         let trusted = AXIsProcessTrusted()
-        print("[PasteHelper LOG] Accessibility trusted: \(trusted)")
+        DebugLog.info("Accessibility trusted: \(trusted)", context: "PasteHelper")
 
         if !trusted {
-            print("[PasteHelper LOG] ⚠️ WARNING: Accessibility permissions not granted!")
-            print("[PasteHelper LOG] Paste may not work without accessibility access")
+            DebugLog.info("⚠️ WARNING: Accessibility permissions not granted!", context: "PasteHelper")
+            DebugLog.info("Paste may not work without accessibility access", context: "PasteHelper")
         }
 
         // Simulate Cmd+V keypress
         guard let source = CGEventSource(stateID: .hidSystemState) else {
-            print("[PasteHelper LOG] ERROR: Failed to create CGEventSource")
+            DebugLog.info("ERROR: Failed to create CGEventSource", context: "PasteHelper")
             return
         }
 
-        print("[PasteHelper LOG] Creating keyboard events...")
+        DebugLog.info("Creating keyboard events...", context: "PasteHelper")
 
         // Key codes
         let cmdKeyCode: CGKeyCode = 0x37  // Left Command
@@ -142,54 +142,54 @@ class PasteHelper {
 
         // Create Cmd key down event
         guard let cmdDown = CGEvent(keyboardEventSource: source, virtualKey: cmdKeyCode, keyDown: true) else {
-            print("[PasteHelper LOG] ERROR: Failed to create cmdDown event")
+            DebugLog.info("ERROR: Failed to create cmdDown event", context: "PasteHelper")
             return
         }
         cmdDown.flags = .maskCommand
 
         // Create V key down event with Cmd modifier
         guard let vDown = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: true) else {
-            print("[PasteHelper LOG] ERROR: Failed to create vDown event")
+            DebugLog.info("ERROR: Failed to create vDown event", context: "PasteHelper")
             return
         }
         vDown.flags = .maskCommand
 
         // Create V key up event with Cmd modifier
         guard let vUp = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: false) else {
-            print("[PasteHelper LOG] ERROR: Failed to create vUp event")
+            DebugLog.info("ERROR: Failed to create vUp event", context: "PasteHelper")
             return
         }
         vUp.flags = .maskCommand
 
         // Create Cmd key up event
         guard let cmdUp = CGEvent(keyboardEventSource: source, virtualKey: cmdKeyCode, keyDown: false) else {
-            print("[PasteHelper LOG] ERROR: Failed to create cmdUp event")
+            DebugLog.info("ERROR: Failed to create cmdUp event", context: "PasteHelper")
             return
         }
 
-        print("[PasteHelper LOG] Events created successfully")
-        print("[PasteHelper LOG] Posting events to system...")
+        DebugLog.info("Events created successfully", context: "PasteHelper")
+        DebugLog.info("Posting events to system...", context: "PasteHelper")
 
         // Post events in sequence with small delays
         let loc = CGEventTapLocation.cghidEventTap
 
         cmdDown.post(tap: loc)
-        print("[PasteHelper LOG] Posted: Cmd down")
+        DebugLog.info("Posted: Cmd down", context: "PasteHelper")
 
         usleep(1000) // 1ms delay
         vDown.post(tap: loc)
-        print("[PasteHelper LOG] Posted: V down")
+        DebugLog.info("Posted: V down", context: "PasteHelper")
 
         usleep(1000) // 1ms delay
         vUp.post(tap: loc)
-        print("[PasteHelper LOG] Posted: V up")
+        DebugLog.info("Posted: V up", context: "PasteHelper")
 
         usleep(1000) // 1ms delay
         cmdUp.post(tap: loc)
-        print("[PasteHelper LOG] Posted: Cmd up")
+        DebugLog.info("Posted: Cmd up", context: "PasteHelper")
 
-        print("[PasteHelper LOG] All events posted successfully")
-        print("[PasteHelper LOG] ========================================")
+        DebugLog.info("All events posted successfully", context: "PasteHelper")
+        DebugLog.info("========================================", context: "PasteHelper")
     }
 
     // MARK: - Accessibility Helpers
@@ -203,7 +203,7 @@ class PasteHelper {
         let appResult = AXUIElementCopyAttributeValue(systemWideElement, kAXFocusedApplicationAttribute as CFString, &focusedApp)
 
         guard appResult == .success, let appElement = focusedApp else {
-            print("[PasteHelper LOG] Could not get focused application")
+            DebugLog.info("Could not get focused application", context: "PasteHelper")
             return nil
         }
 
@@ -212,7 +212,7 @@ class PasteHelper {
         let elementResult = AXUIElementCopyAttributeValue(appElement as! AXUIElement, kAXFocusedUIElementAttribute as CFString, &focusedElement)
 
         guard elementResult == .success else {
-            print("[PasteHelper LOG] Could not get focused UI element")
+            DebugLog.info("Could not get focused UI element", context: "PasteHelper")
             return nil
         }
 
@@ -236,7 +236,7 @@ class PasteHelper {
             return text
         }
 
-        print("[PasteHelper LOG] Could not get text from element")
+        DebugLog.info("Could not get text from element", context: "PasteHelper")
         return nil
     }
 }

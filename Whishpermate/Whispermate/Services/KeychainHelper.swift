@@ -19,7 +19,7 @@ struct KeychainHelper {
         let status = SecItemCopyMatching(oldQuery as CFDictionary, &dataTypeRef)
 
         if status == errSecSuccess, let data = dataTypeRef as? Data, let value = String(data: data, encoding: .utf8) {
-            print("Migrating keychain item '\(key)' to new format")
+            DebugLog.info("Migrating keychain item '\(key)' to new format", context: "KeychainHelper")
             // Delete old item
             SecItemDelete(oldQuery as CFDictionary)
             // Save in new format
@@ -44,9 +44,9 @@ struct KeychainHelper {
         // Add new item
         let status = SecItemAdd(query as CFDictionary, nil)
         if status != errSecSuccess {
-            print("Error saving to keychain: \(status)")
+            DebugLog.info("Error saving to keychain: \(status)", context: "KeychainHelper")
         } else {
-            print("Successfully saved '\(key)' to keychain")
+            DebugLog.info("Successfully saved '\(key)' to keychain", context: "KeychainHelper")
         }
     }
 
@@ -67,7 +67,7 @@ struct KeychainHelper {
                 return String(data: data, encoding: .utf8)
             }
         } else if status != errSecItemNotFound {
-            print("Error reading from keychain: \(status)")
+            DebugLog.info("Error reading from keychain: \(status)", context: "KeychainHelper")
         }
 
         return nil
@@ -82,9 +82,9 @@ struct KeychainHelper {
 
         let status = SecItemDelete(query as CFDictionary)
         if status == errSecSuccess {
-            print("Successfully deleted '\(key)' from keychain")
+            DebugLog.info("Successfully deleted '\(key)' from keychain", context: "KeychainHelper")
         } else if status != errSecItemNotFound {
-            print("Error deleting from keychain: \(status)")
+            DebugLog.info("Error deleting from keychain: \(status)", context: "KeychainHelper")
         }
     }
 }

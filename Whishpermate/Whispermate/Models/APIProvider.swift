@@ -36,7 +36,7 @@ enum TranscriptionProvider: String, CaseIterable, Identifiable {
 
     var defaultModel: String {
         switch self {
-        case .groq: return "whisper-large-v3"
+        case .groq: return "whisper-large-v3-turbo"
         case .openai: return "whisper-1"
         case .custom: return ""
         }
@@ -67,13 +67,13 @@ class TranscriptionProviderManager: ObservableObject {
         }
         customEndpoint = UserDefaults.standard.string(forKey: endpointKey) ?? ""
         customModel = UserDefaults.standard.string(forKey: modelKey) ?? ""
-        print("[TranscriptionProviderManager] Loaded: \(selectedProvider.displayName)")
+        DebugLog.info("Loaded: \(selectedProvider.displayName)", context: "TranscriptionProviderManager")
     }
 
     func setProvider(_ provider: TranscriptionProvider) {
         selectedProvider = provider
         UserDefaults.standard.set(provider.rawValue, forKey: providerKey)
-        print("[TranscriptionProviderManager] Set provider: \(provider.displayName)")
+        DebugLog.info("Set provider: \(provider.displayName)", context: "TranscriptionProviderManager")
     }
 
     func saveCustomSettings(endpoint: String, model: String) {
@@ -137,7 +137,7 @@ enum LLMProvider: String, CaseIterable, Identifiable {
 
     var defaultModel: String {
         switch self {
-        case .groq: return "openai/gpt-oss-20b"
+        case .groq: return "openai/gpt-oss-120b"
         case .openai: return "gpt-4o"
         case .anthropic: return "claude-3-5-sonnet-20241022"
         case .custom: return ""
@@ -169,13 +169,13 @@ class LLMProviderManager: ObservableObject {
         }
         customEndpoint = UserDefaults.standard.string(forKey: endpointKey) ?? ""
         customModel = UserDefaults.standard.string(forKey: modelKey) ?? ""
-        print("[LLMProviderManager] Loaded: \(selectedProvider.displayName)")
+        DebugLog.info("Loaded: \(selectedProvider.displayName)", context: "LLMProviderManager")
     }
 
     func setProvider(_ provider: LLMProvider) {
         selectedProvider = provider
         UserDefaults.standard.set(provider.rawValue, forKey: providerKey)
-        print("[LLMProviderManager] Set provider: \(provider.displayName)")
+        DebugLog.info("Set provider: \(provider.displayName)", context: "LLMProviderManager")
     }
 
     func saveCustomSettings(endpoint: String, model: String) {

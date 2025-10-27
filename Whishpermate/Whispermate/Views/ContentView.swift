@@ -24,6 +24,7 @@ struct ContentView: View {
     @State private var isDragging = false
     @State private var windowPosition: CGPoint?
     @State private var isContinuousRecording = false
+    @State private var capturedAppContext: String?
 
     var body: some View {
         ZStack {
@@ -156,11 +157,14 @@ struct ContentView: View {
             OnboardingView(
                 onboardingManager: onboardingManager,
                 hotkeyManager: hotkeyManager,
-                promptRulesManager: promptRulesManager
+                languageManager: languageManager,
+                promptRulesManager: promptRulesManager,
+                llmProviderManager: llmProviderManager
             )
             .interactiveDismissDisabled(true)
         }
         .onChange(of: onboardingManager.showOnboarding) { newValue in
+            DebugLog.info("Onboarding state changed to \(newValue)", context: "ContentView")
             showOnboarding = newValue
         }
         .alert("Enter API Key", isPresented: $showingAPIKeyAlert) {
@@ -179,18 +183,18 @@ struct ContentView: View {
         .onChange(of: audioRecorder.audioLevel) { newValue in
             // Update overlay with audio level (ensure main thread)
             DispatchQueue.main.async {
-                print("[ContentView] 📊 Updating overlay audioLevel: \(newValue)")
+                DebugLog.info("📊 Updating overlay audioLevel: \(newValue)", context: "ContentView")
                 overlayManager.audioLevel = newValue
             }
         }
         .onAppear {
-            // Check onboarding status first
-            onboardingManager.checkOnboardingStatus()
+            DebugLog.info("ContentView onAppear - checking onboarding status", context: "ContentView")
 
-            // Sync initial onboarding state
-            if onboardingManager.showOnboarding {
-                showOnboarding = true
-            }
+            // Check onboarding status and sync state once
+            onboardingManager.checkOnboardingStatus()
+            showOnboarding = onboardingManager.showOnboarding
+
+            DebugLog.info("Initial onboarding state: \(showOnboarding)", context: "ContentView")
 
             // Migrate old keychain items if needed (for smooth upgrade)
             let transcriptionProvider = transcriptionProviderManager.selectedProvider
@@ -214,111 +218,83 @@ struct ContentView: View {
             // Note: Accessibility permissions are now handled by onboarding
             // Old code commented out - handled by OnboardingManager now
 
-            print("[ContentView LOG] ========================================")
-            print("[ContentView LOG] onAppear - Setting up hotkey callbacks")
-            print("[ContentView LOG] ========================================")
+            DebugLog.info("========================================", context: "ContentView")
+            DebugLog.info("onAppear - Setting up hotkey callbacks", context: "ContentView")
+            DebugLog.info("========================================", context: "ContentView")
 
             // Hide overlay by default - it will show when hotkey is used
             overlayManager.hide()
 
             // Set up hotkey callbacks (auto-paste enabled for hotkey)
             hotkeyManager.onHotkeyPressed = { [self] in
-                print("[ContentView LOG] 🎯 onHotkeyPressed callback triggered! 🎯")
+                DebugLog.info("🎯 onHotkeyPressed callback triggered! 🎯", context: "ContentView")
 
                 // Ignore hotkey during onboarding
                 if onboardingManager.showOnboarding {
-                    print("[ContentView LOG] ⚠️ Ignoring hotkey - onboarding in progress")
+                    DebugLog.info("⚠️ Ignoring hotkey - onboarding in progress", context: "ContentView")
                     return
                 }
 
-                print("[ContentView LOG] shouldAutoPaste will be set to TRUE")
-                print("[ContentView LOG] isRecording: \(audioRecorder.isRecording), isProcessing: \(isProcessing)")
-                print("[ContentView LOG] Current mode: \(overlayManager.isOverlayMode ? "overlay" : "full")")
+                DebugLog.info("shouldAutoPaste will be set to TRUE", context: "ContentView")
+                DebugLog.info("isRecording: \(audioRecorder.isRecording), isProcessing: \(isProcessing)", context: "ContentView")
                 shouldAutoPaste = true
 
-                // Show appropriate UI based on current mode
-                if overlayManager.isOverlayMode {
-                    // In overlay mode - hide main window, show overlay
-                    if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-                        window.setIsVisible(false)
-                    }
-                    overlayManager.show()
-                } else {
-                    // In full mode - show main window, hide overlay
-                    overlayManager.hide()
-                    if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-                        window.setIsVisible(true)
-                        window.makeKeyAndOrderFront(nil)
-                    }
-                }
-
+                // Just start recording - don't change window visibility
+                // The app foreground/background state determines overlay vs main window
                 if !audioRecorder.isRecording && !isProcessing {
-                    print("[ContentView LOG] Starting recording...")
+                    DebugLog.info("Starting recording...", context: "ContentView")
                     startRecording()
                 } else {
-                    print("[ContentView LOG] NOT starting recording (already recording or processing)")
+                    DebugLog.info("NOT starting recording (already recording or processing)", context: "ContentView")
                 }
             }
 
             hotkeyManager.onHotkeyReleased = { [self] in
-                print("[ContentView LOG] 🎯 onHotkeyReleased callback triggered! 🎯")
+                DebugLog.info("🎯 onHotkeyReleased callback triggered! 🎯", context: "ContentView")
 
                 // Ignore hotkey during onboarding
                 if onboardingManager.showOnboarding {
-                    print("[ContentView LOG] ⚠️ Ignoring hotkey release - onboarding in progress")
+                    DebugLog.info("⚠️ Ignoring hotkey release - onboarding in progress", context: "ContentView")
                     return
                 }
 
-                print("[ContentView LOG] isRecording: \(audioRecorder.isRecording)")
+                DebugLog.info("isRecording: \(audioRecorder.isRecording)", context: "ContentView")
                 if audioRecorder.isRecording && !isContinuousRecording {
-                    print("[ContentView LOG] Stopping hold-to-record and transcribing...")
+                    DebugLog.info("Stopping hold-to-record and transcribing...", context: "ContentView")
                     stopRecordingAndTranscribe()
                 } else {
-                    print("[ContentView LOG] NOT stopping recording (continuous mode or not recording)")
+                    DebugLog.info("NOT stopping recording (continuous mode or not recording)", context: "ContentView")
                 }
             }
 
             hotkeyManager.onDoubleTap = { [self] in
-                print("[ContentView LOG] 🎯🎯 onDoubleTap callback triggered! 🎯🎯")
+                DebugLog.info("🎯🎯 onDoubleTap callback triggered! 🎯🎯", context: "ContentView")
 
                 // Ignore hotkey during onboarding
                 if onboardingManager.showOnboarding {
-                    print("[ContentView LOG] ⚠️ Ignoring double-tap - onboarding in progress")
+                    DebugLog.info("⚠️ Ignoring double-tap - onboarding in progress", context: "ContentView")
                     return
                 }
 
                 // Toggle continuous recording
                 if isContinuousRecording && audioRecorder.isRecording {
-                    print("[ContentView LOG] Double-tap: Stopping continuous recording")
+                    DebugLog.info("Double-tap: Stopping continuous recording", context: "ContentView")
                     isContinuousRecording = false
                     shouldAutoPaste = false
                     stopRecordingAndTranscribe()
                 } else if !audioRecorder.isRecording && !isProcessing {
-                    print("[ContentView LOG] Double-tap: Starting continuous recording")
+                    DebugLog.info("Double-tap: Starting continuous recording", context: "ContentView")
                     isContinuousRecording = true
                     shouldAutoPaste = true
 
-                    // Show appropriate UI based on current mode
-                    if overlayManager.isOverlayMode {
-                        if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-                            window.setIsVisible(false)
-                        }
-                        overlayManager.show()
-                    } else {
-                        overlayManager.hide()
-                        if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-                            window.setIsVisible(true)
-                            window.makeKeyAndOrderFront(nil)
-                        }
-                    }
-
+                    // Just start recording - don't change window visibility
                     startRecording()
                 } else {
-                    print("[ContentView LOG] Double-tap: Already recording or processing")
+                    DebugLog.info("Double-tap: Already recording or processing", context: "ContentView")
                 }
             }
 
-            print("[ContentView LOG] Hotkey callbacks configured!")
+            DebugLog.info("Hotkey callbacks configured!", context: "ContentView")
 
             // Set up notification observers for menu bar actions
             NotificationCenter.default.addObserver(
@@ -337,13 +313,22 @@ struct ContentView: View {
                 openWindow(id: "settings")
             }
 
+            NotificationCenter.default.addObserver(
+                forName: .showOnboarding,
+                object: nil,
+                queue: .main
+            ) { [self] _ in
+                onboardingManager.reopenOnboarding()
+            }
+
             // Set up app state observers for overlay management
             NotificationCenter.default.addObserver(
                 forName: NSApplication.didResignActiveNotification,
                 object: nil,
                 queue: .main
             ) { [self] _ in
-                print("[ContentView LOG] 🌙 App went to background - showing overlay")
+                DebugLog.info("🌙 App went to background - showing overlay", context: "ContentView")
+                overlayManager.isOverlayMode = true
                 overlayManager.show()
                 // Hide main window when going to background
                 if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
@@ -356,7 +341,8 @@ struct ContentView: View {
                 object: nil,
                 queue: .main
             ) { [self] _ in
-                print("[ContentView LOG] ☀️ App came to foreground - hiding overlay")
+                DebugLog.info("☀️ App came to foreground - hiding overlay", context: "ContentView")
+                overlayManager.isOverlayMode = false
                 overlayManager.hide()
                 // Show main window when coming to foreground
                 if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
@@ -366,45 +352,45 @@ struct ContentView: View {
             }
         }
         .onDisappear {
-            print("[ContentView LOG] 🧹 onDisappear - Cleaning up observers")
+            DebugLog.info("🧹 onDisappear - Cleaning up observers", context: "ContentView")
 
             // Remove notification observers to prevent leaks
             NotificationCenter.default.removeObserver(self, name: .showHistory, object: nil)
             NotificationCenter.default.removeObserver(self, name: .showSettings, object: nil)
+            NotificationCenter.default.removeObserver(self, name: .showOnboarding, object: nil)
 
-            print("[ContentView LOG] ✅ Observer cleanup complete")
+            DebugLog.info("✅ Observer cleanup complete", context: "ContentView")
         }
     }
 
     private func handleRecordButton() {
-        print("[LOG] handleRecordButton called - isRecording: \(audioRecorder.isRecording), isProcessing: \(isProcessing)")
+        DebugLog.info("handleRecordButton called - isRecording: \(audioRecorder.isRecording), isProcessing: \(isProcessing)", context: "ContentView")
 
-        // Using button means we're in main window mode, not overlay mode
-        overlayManager.isOverlayMode = false
-
-        // Hide overlay when using button
-        overlayManager.hide()
-
-        // Show main window
-        if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-            window.setIsVisible(true)
-            window.makeKeyAndOrderFront(nil)
-        }
+        // Button is only used in main window (when app is in foreground)
+        // No need to manage overlay mode here
 
         if audioRecorder.isRecording {
-            print("[LOG] handleRecordButton: stopping recording")
+            DebugLog.info("handleRecordButton: stopping recording", context: "ContentView")
             stopRecordingAndTranscribe()
         } else {
-            print("[LOG] handleRecordButton: starting recording")
+            DebugLog.info("handleRecordButton: starting recording", context: "ContentView")
             startRecording()
         }
     }
 
     private func startRecording() {
-        print("[ContentView LOG] 🎬 ========== START RECORDING ==========")
+        DebugLog.info("🎬 ========== START RECORDING ==========", context: "ContentView")
         errorMessage = ""
         transcription = ""
         recordingStartTime = Date()
+
+        // Capture app context (app name and window title) before recording
+        if let context = AppContextHelper.getCurrentAppContext() {
+            capturedAppContext = context.description
+            DebugLog.info("Captured app context: \(context.description)", context: "ContentView")
+        } else {
+            capturedAppContext = nil
+        }
 
         // Store the currently active app for pasting later
         PasteHelper.storePreviousApp()
@@ -413,7 +399,7 @@ struct ContentView: View {
         guard resolvedTranscriptionApiKey() != nil else {
             errorMessage = "Please set your \(transcriptionProviderManager.selectedProvider.displayName) transcription API key"
             showingAPIKeyAlert = true
-            print("[ContentView LOG] ❌ No transcription API key found")
+            DebugLog.info("❌ No transcription API key found", context: "ContentView")
             return
         }
 
@@ -422,21 +408,21 @@ struct ContentView: View {
             overlayManager.updateState(isRecording: true, isProcessing: false)
         }
 
-        print("[ContentView LOG] ℹ️ Starting file-based recording")
+        DebugLog.info("ℹ️ Starting file-based recording", context: "ContentView")
         audioRecorder.startRecording()
-        print("[ContentView LOG] ========== START RECORDING COMPLETE ==========")
+        DebugLog.info("========== START RECORDING COMPLETE ==========", context: "ContentView")
     }
 
     private func stopRecordingAndTranscribe() {
-        print("[LOG] stopRecordingAndTranscribe called")
+        DebugLog.info("stopRecordingAndTranscribe called", context: "ContentView")
 
         // Check recording duration - skip if too short (< 0.3 seconds)
         if let startTime = recordingStartTime {
             let duration = Date().timeIntervalSince(startTime)
-            print("[LOG] Recording duration: \(duration) seconds")
+            DebugLog.info("Recording duration: \(duration) seconds", context: "ContentView")
 
             if duration < 0.3 {
-                print("[LOG] Recording too short (\(duration)s), skipping transcription")
+                DebugLog.info("Recording too short (\(duration)s), skipping transcription", context: "ContentView")
                 errorMessage = ""
                 shouldAutoPaste = false
                 recordingStartTime = nil
@@ -452,7 +438,7 @@ struct ContentView: View {
 
         // Stop recording and get audio file
         guard let audioURL = audioRecorder.stopRecording() else {
-            print("[LOG] stopRecordingAndTranscribe: failed to get audio URL")
+            DebugLog.info("stopRecordingAndTranscribe: failed to get audio URL", context: "ContentView")
             errorMessage = "Failed to save recording"
             if overlayManager.isOverlayMode {
                 overlayManager.updateState(isRecording: false, isProcessing: false)
@@ -460,16 +446,16 @@ struct ContentView: View {
             return
         }
 
-        print("[LOG] stopRecordingAndTranscribe: got audio URL: \(audioURL)")
+        DebugLog.info("stopRecordingAndTranscribe: got audio URL: \(audioURL)", context: "ContentView")
 
         // Check if audio file exists and has content
         do {
             let fileAttributes = try FileManager.default.attributesOfItem(atPath: audioURL.path)
             let fileSize = fileAttributes[.size] as? Int64 ?? 0
-            print("[LOG] Audio file size: \(fileSize) bytes")
+            DebugLog.info("Audio file size: \(fileSize) bytes", context: "ContentView")
 
             if fileSize < 1000 { // Less than 1KB (essentially empty)
-                print("[LOG] Audio file too small (\(fileSize) bytes), skipping transcription")
+                DebugLog.info("Audio file too small (\(fileSize) bytes), skipping transcription", context: "ContentView")
                 errorMessage = "No audio detected"
                 shouldAutoPaste = false
                 if overlayManager.isOverlayMode {
@@ -481,7 +467,7 @@ struct ContentView: View {
                 return
             }
         } catch {
-            print("[LOG] Error checking audio file: \(error)")
+            DebugLog.info("Error checking audio file: \(error)", context: "ContentView")
             errorMessage = "Failed to verify recording"
             if overlayManager.isOverlayMode {
                 overlayManager.updateState(isRecording: false, isProcessing: false)
@@ -491,7 +477,7 @@ struct ContentView: View {
 
         // Get transcription API key
         guard let transcriptionApiKey = resolvedTranscriptionApiKey() else {
-            print("[LOG] stopRecordingAndTranscribe: no transcription API key found")
+            DebugLog.info("stopRecordingAndTranscribe: no transcription API key found", context: "ContentView")
             errorMessage = "Please set your \(transcriptionProviderManager.selectedProvider.displayName) transcription API key"
             showingAPIKeyAlert = true
             if overlayManager.isOverlayMode {
@@ -506,11 +492,11 @@ struct ContentView: View {
         if !enabledRules.isEmpty {
             llmApiKey = resolvedLLMApiKey()
             if llmApiKey == nil {
-                print("[LOG] Warning: LLM API key not found, skipping text correction")
+                DebugLog.info("Warning: LLM API key not found, skipping text correction", context: "ContentView")
             }
         }
 
-        print("[LOG] stopRecordingAndTranscribe: starting transcription, shouldAutoPaste: \(shouldAutoPaste)")
+        DebugLog.info("stopRecordingAndTranscribe: starting transcription, shouldAutoPaste: \(shouldAutoPaste)", context: "ContentView")
         isProcessing = true
 
         // Update overlay - stopped recording, now processing (only if in overlay mode)
@@ -522,16 +508,16 @@ struct ContentView: View {
             do {
                 let languageCode = languageManager.apiLanguageCode
 
-                print("[LOG] Calling transcription API...")
-                print("[LOG] Provider: \(transcriptionProviderManager.selectedProvider.displayName)")
-                print("[LOG] Endpoint: \(transcriptionProviderManager.effectiveEndpoint)")
-                print("[LOG] Model: \(transcriptionProviderManager.effectiveModel)")
-                print("[LOG] Using language: \(languageCode ?? "auto-detect")")
-                print("[LOG] Enabled rules count: \(enabledRules.count)")
+                DebugLog.info("Calling transcription API...", context: "ContentView")
+                DebugLog.info("Provider: \(transcriptionProviderManager.selectedProvider.displayName)", context: "ContentView")
+                DebugLog.info("Endpoint: \(transcriptionProviderManager.effectiveEndpoint)", context: "ContentView")
+                DebugLog.info("Model: \(transcriptionProviderManager.effectiveModel)", context: "ContentView")
+                DebugLog.info("Using language: \(languageCode ?? "auto-detect")", context: "ContentView")
+                DebugLog.info("App context: \(capturedAppContext ?? "none")", context: "ContentView")
+                DebugLog.info("Enabled rules count: \(enabledRules.count)", context: "ContentView")
 
-                // Create unified OpenAI client for transcription
-                // Note: We use transcription API key for transcription, and will create separate client for LLM if needed
-                let transcriptionConfig = OpenAIClient.Configuration(
+                // Create unified OpenAI client with both endpoints configured
+                let config = OpenAIClient.Configuration(
                     transcriptionEndpoint: transcriptionProviderManager.effectiveEndpoint,
                     transcriptionModel: transcriptionProviderManager.effectiveModel,
                     chatCompletionEndpoint: llmProviderManager.effectiveEndpoint,
@@ -539,28 +525,17 @@ struct ContentView: View {
                     apiKey: transcriptionApiKey
                 )
 
-                let openAIClient = OpenAIClient(config: transcriptionConfig)
+                let openAIClient = OpenAIClient(config: config)
 
-                // Transcribe first
-                var result = try await openAIClient.transcribe(
+                // Use transcribeAndFormat to handle both steps with proper timing
+                let result = try await openAIClient.transcribeAndFormat(
                     audioURL: audioURL,
-                    languageCode: languageCode,
-                    prompt: nil
+                    prompt: nil,
+                    formattingRules: enabledRules,
+                    languageCodes: languageCode,
+                    appContext: capturedAppContext,
+                    llmApiKey: llmApiKey
                 )
-
-                // Apply formatting rules if we have them and LLM key
-                if !enabledRules.isEmpty, let llmKey = llmApiKey {
-                    // Update config with LLM API key for chat completion
-                    let llmConfig = OpenAIClient.Configuration(
-                        transcriptionEndpoint: transcriptionProviderManager.effectiveEndpoint,
-                        transcriptionModel: transcriptionProviderManager.effectiveModel,
-                        chatCompletionEndpoint: llmProviderManager.effectiveEndpoint,
-                        chatCompletionModel: llmProviderManager.effectiveModel,
-                        apiKey: llmKey
-                    )
-                    openAIClient.updateConfig(llmConfig)
-                    result = try await openAIClient.applyFormattingRules(transcription: result, rules: enabledRules)
-                }
 
                 DebugLog.sensitive("Transcription received: \(result)", context: "ContentView")
                 await MainActor.run {
@@ -582,7 +557,7 @@ struct ContentView: View {
 
                     // Auto-paste if triggered by hotkey (but not during onboarding)
                     if shouldAutoPaste && !onboardingManager.showOnboarding {
-                        print("[LOG] Auto-pasting transcription result")
+                        DebugLog.info("Auto-pasting transcription result", context: "ContentView")
                         shouldAutoPaste = false
 
                         // Always attempt to paste - this will trigger the system to add us to Accessibility list
@@ -592,10 +567,10 @@ struct ContentView: View {
                         // Wait a moment for the paste to complete/fail
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                             let trusted = AXIsProcessTrusted()
-                            print("[LOG] Post-paste permission check: \(trusted)")
+                            DebugLog.info("Post-paste permission check: \(trusted)", context: "ContentView")
 
                             if !trusted {
-                                print("[LOG] ⚠️ Paste may have failed - accessibility permission not granted")
+                                DebugLog.info("⚠️ Paste may have failed - accessibility permission not granted", context: "ContentView")
 
                                 // Show alert to help user enable permission
                                 let alert = NSAlert()
@@ -614,11 +589,11 @@ struct ContentView: View {
                             }
                         }
                     } else {
-                        print("[LOG] Skipping auto-paste (shouldAutoPaste is false)")
+                        DebugLog.info("Skipping auto-paste (shouldAutoPaste is false)", context: "ContentView")
                     }
                 }
             } catch {
-                print("[LOG] Transcription error: \(error.localizedDescription)")
+                DebugLog.info("Transcription error: \(error.localizedDescription)", context: "ContentView")
                 await MainActor.run {
                     transcription = ""
                     isProcessing = false
