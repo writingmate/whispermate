@@ -26,7 +26,7 @@ class PromptRulesManager: ObservableObject {
         if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
            let decoded = try? JSONDecoder().decode([PromptRule].self, from: data) {
             rules = decoded
-            print("[PromptRulesManager LOG] Loaded \(rules.count) prompt rules")
+            DebugLog.info("Loaded \(rules.count) prompt rules", context: "PromptRulesManager LOG")
         } else {
             // Add default rules
             rules = [
@@ -34,14 +34,14 @@ class PromptRulesManager: ObservableObject {
                 PromptRule(text: "Always translate to English")
             ]
             saveRules()
-            print("[PromptRulesManager LOG] Created default prompt rules")
+            DebugLog.info("Created default prompt rules", context: "PromptRulesManager LOG")
         }
     }
 
     func saveRules() {
         if let encoded = try? JSONEncoder().encode(rules) {
             UserDefaults.standard.set(encoded, forKey: userDefaultsKey)
-            print("[PromptRulesManager LOG] Saved \(rules.count) prompt rules")
+            DebugLog.info("Saved \(rules.count) prompt rules", context: "PromptRulesManager LOG")
         }
     }
 
@@ -49,20 +49,20 @@ class PromptRulesManager: ObservableObject {
         let rule = PromptRule(text: text)
         rules.append(rule)
         saveRules()
-        print("[PromptRulesManager LOG] Added rule: \(text)")
+        DebugLog.info("Added rule: \(text)", context: "PromptRulesManager LOG")
     }
 
     func removeRule(_ rule: PromptRule) {
         rules.removeAll { $0.id == rule.id }
         saveRules()
-        print("[PromptRulesManager LOG] Removed rule: \(rule.text)")
+        DebugLog.info("Removed rule: \(rule.text)", context: "PromptRulesManager LOG")
     }
 
     func toggleRule(_ rule: PromptRule) {
         if let index = rules.firstIndex(where: { $0.id == rule.id }) {
             rules[index].isEnabled.toggle()
             saveRules()
-            print("[PromptRulesManager LOG] Toggled rule: \(rule.text) -> \(rules[index].isEnabled)")
+            DebugLog.info("Toggled rule: \(rule.text) -> \(rules[index].isEnabled)", context: "PromptRulesManager LOG")
         }
     }
 
@@ -70,7 +70,7 @@ class PromptRulesManager: ObservableObject {
         if let index = rules.firstIndex(where: { $0.id == rule.id }) {
             rules[index].text = newText
             saveRules()
-            print("[PromptRulesManager LOG] Updated rule: \(newText)")
+            DebugLog.info("Updated rule: \(newText)", context: "PromptRulesManager LOG")
         }
     }
 

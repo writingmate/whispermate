@@ -17,11 +17,11 @@ class AudioRecorder: NSObject, ObservableObject {
     }
 
     func startRecording() {
-        print("[AudioRecorder LOG] startRecording called - isRecording before: \(isRecording)")
+        DebugLog.info("startRecording called - isRecording before: \(isRecording)", context: "AudioRecorder LOG")
 
         // Guard against multiple recording sessions
         if audioRecorder?.isRecording == true {
-            print("[AudioRecorder LOG] ⚠️ Already recording - stopping previous session first")
+            DebugLog.info("⚠️ Already recording - stopping previous session first", context: "AudioRecorder LOG")
             _ = stopRecording()
         }
 
@@ -64,9 +64,9 @@ class AudioRecorder: NSObject, ObservableObject {
                 self.isRecording = true
             }
 
-            print("[AudioRecorder LOG] startRecording success - isRecording after: \(isRecording)")
+            DebugLog.info("startRecording success - isRecording after: \(isRecording)", context: "AudioRecorder LOG")
         } catch {
-            print("[AudioRecorder LOG] Failed to start recording: \(error)")
+            DebugLog.info("Failed to start recording: \(error)", context: "AudioRecorder LOG")
         }
     }
 
@@ -86,7 +86,7 @@ class AudioRecorder: NSObject, ObservableObject {
     }
 
     func stopRecording() -> URL? {
-        print("[AudioRecorder LOG] stopRecording called - isRecording before: \(isRecording)")
+        DebugLog.info("stopRecording called - isRecording before: \(isRecording)", context: "AudioRecorder LOG")
 
         // Stop timer
         levelTimer?.invalidate()
@@ -103,12 +103,12 @@ class AudioRecorder: NSObject, ObservableObject {
             self.audioLevel = 0.0
         }
 
-        print("[AudioRecorder LOG] stopRecording completed, recordingURL: \(String(describing: recordingURL))")
+        DebugLog.info("stopRecording completed, recordingURL: \(String(describing: recordingURL))", context: "AudioRecorder LOG")
         return recordingURL
     }
 
     deinit {
-        print("[AudioRecorder LOG] 🗑️ Deinit - cleaning up")
+        DebugLog.info("🗑️ Deinit - cleaning up", context: "AudioRecorder LOG")
 
         // Stop and clean up recording
         if audioRecorder?.isRecording == true {
@@ -121,6 +121,6 @@ class AudioRecorder: NSObject, ObservableObject {
         // Restore volume as a safety measure
         volumeManager.restoreVolume()
 
-        print("[AudioRecorder LOG] ✅ Cleanup complete")
+        DebugLog.info("✅ Cleanup complete", context: "AudioRecorder LOG")
     }
 }

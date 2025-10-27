@@ -51,7 +51,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         mainWindow = window
         statusBarManager.appWindow = window
-        print("[AppDelegate] Main window configured as borderless with shadow")
+        DebugLog.info("Main window configured as borderless with shadow", context: "AppDelegate")
     }
 }
 

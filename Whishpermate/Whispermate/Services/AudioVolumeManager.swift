@@ -9,24 +9,24 @@ class AudioVolumeManager {
     /// Lowers the system volume to a specific level and stores the original volume for restoration
     func lowerVolume() {
         guard let currentVolume = getSystemVolume() else {
-            print("[AudioVolumeManager] Failed to get current volume")
+            DebugLog.info("Failed to get current volume", context: "AudioVolumeManager")
             return
         }
 
         originalVolume = currentVolume
 
-        print("[AudioVolumeManager] Lowering volume from \(currentVolume) to \(targetVolumeLevel)")
+        DebugLog.info("Lowering volume from \(currentVolume) to \(targetVolumeLevel)", context: "AudioVolumeManager")
         setSystemVolume(targetVolumeLevel)
     }
 
     /// Restores the volume to the original level before it was lowered
     func restoreVolume() {
         guard let volume = originalVolume else {
-            print("[AudioVolumeManager] No original volume to restore")
+            DebugLog.info("No original volume to restore", context: "AudioVolumeManager")
             return
         }
 
-        print("[AudioVolumeManager] Restoring volume to \(volume)")
+        DebugLog.info("Restoring volume to \(volume)", context: "AudioVolumeManager")
         setSystemVolume(volume)
         originalVolume = nil
     }
@@ -53,7 +53,7 @@ class AudioVolumeManager {
         )
 
         guard status == noErr else {
-            print("[AudioVolumeManager] Error getting default output device: \(status)")
+            DebugLog.info("Error getting default output device: \(status)", context: "AudioVolumeManager")
             return nil
         }
 
@@ -84,7 +84,7 @@ class AudioVolumeManager {
         )
 
         guard status == noErr else {
-            print("[AudioVolumeManager] Error getting volume: \(status)")
+            DebugLog.info("Error getting volume: \(status)", context: "AudioVolumeManager")
             return nil
         }
 
@@ -115,7 +115,7 @@ class AudioVolumeManager {
         )
 
         if status != noErr {
-            print("[AudioVolumeManager] Error setting volume: \(status)")
+            DebugLog.info("Error setting volume: \(status)", context: "AudioVolumeManager")
         }
     }
 }
