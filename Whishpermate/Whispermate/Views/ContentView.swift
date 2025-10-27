@@ -237,25 +237,10 @@ struct ContentView: View {
 
                 DebugLog.info("shouldAutoPaste will be set to TRUE", context: "ContentView")
                 DebugLog.info("isRecording: \(audioRecorder.isRecording), isProcessing: \(isProcessing)", context: "ContentView")
-                DebugLog.info("Current mode: \(overlayManager.isOverlayMode ? "overlay" : "full")", context: "ContentView")
                 shouldAutoPaste = true
 
-                // Show appropriate UI based on current mode
-                if overlayManager.isOverlayMode {
-                    // In overlay mode - hide main window, show overlay
-                    if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-                        window.setIsVisible(false)
-                    }
-                    overlayManager.show()
-                } else {
-                    // In full mode - show main window, hide overlay
-                    overlayManager.hide()
-                    if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-                        window.setIsVisible(true)
-                        window.makeKeyAndOrderFront(nil)
-                    }
-                }
-
+                // Just start recording - don't change window visibility
+                // The app foreground/background state determines overlay vs main window
                 if !audioRecorder.isRecording && !isProcessing {
                     DebugLog.info("Starting recording...", context: "ContentView")
                     startRecording()
@@ -302,20 +287,7 @@ struct ContentView: View {
                     isContinuousRecording = true
                     shouldAutoPaste = true
 
-                    // Show appropriate UI based on current mode
-                    if overlayManager.isOverlayMode {
-                        if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-                            window.setIsVisible(false)
-                        }
-                        overlayManager.show()
-                    } else {
-                        overlayManager.hide()
-                        if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-                            window.setIsVisible(true)
-                            window.makeKeyAndOrderFront(nil)
-                        }
-                    }
-
+                    // Just start recording - don't change window visibility
                     startRecording()
                 } else {
                     DebugLog.info("Double-tap: Already recording or processing", context: "ContentView")
@@ -356,6 +328,7 @@ struct ContentView: View {
                 queue: .main
             ) { [self] _ in
                 DebugLog.info("🌙 App went to background - showing overlay", context: "ContentView")
+                overlayManager.isOverlayMode = true
                 overlayManager.show()
                 // Hide main window when going to background
                 if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
@@ -369,6 +342,7 @@ struct ContentView: View {
                 queue: .main
             ) { [self] _ in
                 DebugLog.info("☀️ App came to foreground - hiding overlay", context: "ContentView")
+                overlayManager.isOverlayMode = false
                 overlayManager.hide()
                 // Show main window when coming to foreground
                 if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
@@ -392,17 +366,8 @@ struct ContentView: View {
     private func handleRecordButton() {
         DebugLog.info("handleRecordButton called - isRecording: \(audioRecorder.isRecording), isProcessing: \(isProcessing)", context: "ContentView")
 
-        // Using button means we're in main window mode, not overlay mode
-        overlayManager.isOverlayMode = false
-
-        // Hide overlay when using button
-        overlayManager.hide()
-
-        // Show main window
-        if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-            window.setIsVisible(true)
-            window.makeKeyAndOrderFront(nil)
-        }
+        // Button is only used in main window (when app is in foreground)
+        // No need to manage overlay mode here
 
         if audioRecorder.isRecording {
             DebugLog.info("handleRecordButton: stopping recording", context: "ContentView")
