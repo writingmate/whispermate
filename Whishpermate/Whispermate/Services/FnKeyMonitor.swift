@@ -13,16 +13,16 @@ class FnKeyMonitor {
     /// Start monitoring the Fn key state
     /// - Parameter pollInterval: How often to check the key state (default: 0.016 seconds = ~60Hz)
     func startMonitoring(pollInterval: TimeInterval = 0.016) {
-        print("[FnKeyMonitor] ========================================")
-        print("[FnKeyMonitor] STARTING Fn key monitoring")
-        print("[FnKeyMonitor] Poll interval: \(pollInterval)s (~\(Int(1.0/pollInterval))Hz)")
-        print("[FnKeyMonitor] Fn keyCode: 0x3F (63)")
+        DebugLog.info("========================================", context: "FnKeyMonitor")
+        DebugLog.info("STARTING Fn key monitoring", context: "FnKeyMonitor")
+        DebugLog.info("Poll interval: \(pollInterval)s (~\(Int(1.0/pollInterval))Hz)", context: "FnKeyMonitor")
+        DebugLog.info("Fn keyCode: 0x3F (63)", context: "FnKeyMonitor")
 
         // Test if we can read the Fn key state right now
         let currentFnState = CGKeyCode.kVK_Function.isPressed
-        print("[FnKeyMonitor] Current Fn key state (at start): \(currentFnState)")
-        print("[FnKeyMonitor] CGEventSource test: \(CGEventSource.keyState(.combinedSessionState, key: CGKeyCode.kVK_Function))")
-        print("[FnKeyMonitor] ========================================")
+        DebugLog.info("Current Fn key state (at start): \(currentFnState)", context: "FnKeyMonitor")
+        DebugLog.info("CGEventSource test: \(CGEventSource.keyState(.combinedSessionState, key: CGKeyCode.kVK_Function))", context: "FnKeyMonitor")
+        DebugLog.info("========================================", context: "FnKeyMonitor")
 
         stopMonitoring() // Stop any existing timer
 
@@ -34,15 +34,15 @@ class FnKeyMonitor {
         // Ensure timer fires even during UI interactions
         if let timer = timer {
             RunLoop.current.add(timer, forMode: .common)
-            print("[FnKeyMonitor] Timer created and added to RunLoop in .common mode")
+            DebugLog.info("Timer created and added to RunLoop in .common mode", context: "FnKeyMonitor")
         } else {
-            print("[FnKeyMonitor] ERROR: Failed to create timer!")
+            DebugLog.info("ERROR: Failed to create timer!", context: "FnKeyMonitor")
         }
     }
 
     /// Stop monitoring the Fn key
     func stopMonitoring() {
-        print("[FnKeyMonitor] Stopping Fn key monitoring")
+        DebugLog.info("Stopping Fn key monitoring", context: "FnKeyMonitor")
         timer?.invalidate()
         timer = nil
         previousFnState = false
@@ -67,7 +67,7 @@ class FnKeyMonitor {
 
         // If we've seen true for too long, assume it's stuck and reset
         if consecutiveTrueCount >= stuckThreshold {
-            print("[FnKeyMonitor] ⚠️ Fn key appears stuck at 'true' - resetting state")
+            DebugLog.info("⚠️ Fn key appears stuck at 'true' - resetting state", context: "FnKeyMonitor")
             previousFnState = false
             consecutiveTrueCount = 0
             return
@@ -75,24 +75,24 @@ class FnKeyMonitor {
 
         // Show polling is happening (every 60 polls = ~1 second at 60Hz)
         if pollCount % 60 == 0 {
-            print("[FnKeyMonitor] Polling active... (count: \(pollCount), current Fn state: \(isFnPressed))")
+            DebugLog.info("Polling active... (count: \(pollCount), current Fn state: \(isFnPressed))", context: "FnKeyMonitor")
         }
 
         // Detect state transitions
         if isFnPressed && !previousFnState {
             // Fn key was just pressed
-            print("[FnKeyMonitor] ⚡️ STATE CHANGE: Fn key PRESSED ⚡️")
-            print("[FnKeyMonitor] Calling onFnPressed callback...")
+            DebugLog.info("⚡️ STATE CHANGE: Fn key PRESSED ⚡️", context: "FnKeyMonitor")
+            DebugLog.info("Calling onFnPressed callback...", context: "FnKeyMonitor")
             previousFnState = true
             onFnPressed?()
-            print("[FnKeyMonitor] onFnPressed callback completed")
+            DebugLog.info("onFnPressed callback completed", context: "FnKeyMonitor")
         } else if !isFnPressed && previousFnState {
             // Fn key was just released
-            print("[FnKeyMonitor] ⚡️ STATE CHANGE: Fn key RELEASED ⚡️")
-            print("[FnKeyMonitor] Calling onFnReleased callback...")
+            DebugLog.info("⚡️ STATE CHANGE: Fn key RELEASED ⚡️", context: "FnKeyMonitor")
+            DebugLog.info("Calling onFnReleased callback...", context: "FnKeyMonitor")
             previousFnState = false
             onFnReleased?()
-            print("[FnKeyMonitor] onFnReleased callback completed")
+            DebugLog.info("onFnReleased callback completed", context: "FnKeyMonitor")
         }
     }
 

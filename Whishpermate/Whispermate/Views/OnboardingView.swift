@@ -3,7 +3,9 @@ import SwiftUI
 struct OnboardingView: View {
     @ObservedObject var onboardingManager: OnboardingManager
     @ObservedObject var hotkeyManager: HotkeyManager
+    @ObservedObject var languageManager: LanguageManager
     @ObservedObject var promptRulesManager: PromptRulesManager
+    @ObservedObject var llmProviderManager: LLMProviderManager
 
     @State private var isCheckingAccessibility = false
     @State private var newRuleText = ""
@@ -11,6 +13,7 @@ struct OnboardingView: View {
     @State private var processedText = ""
     @State private var isProcessingExample = false
     @State private var fnKeyMonitor: FnKeyMonitor?
+    @State private var showCustomHotkeyPicker = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -71,24 +74,24 @@ struct OnboardingView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 // Find the sheet window - it's a titled window that's not the main borderless window
                 let windows = NSApplication.shared.windows
-                print("[OnboardingView] Found \(windows.count) windows")
+                DebugLog.info("Found \(windows.count) windows", context: "OnboardingView")
 
                 for (index, window) in windows.enumerated() {
-                    print("[OnboardingView] Window \(index): visible=\(window.isVisible), level=\(window.level.rawValue), styleMask=\(window.styleMask.rawValue), title=\(window.title)")
+                    DebugLog.info("Window \(index): visible=\(window.isVisible), level=\(window.level.rawValue), styleMask=\(window.styleMask.rawValue), title=\(window.title)", context: "OnboardingView")
                 }
 
                 if let sheetWindow = windows.first(where: { $0.isVisible && $0.styleMask.contains(.titled) }) {
-                    print("[OnboardingView] Found sheet window: \(sheetWindow.title)")
+                    DebugLog.info("Found sheet window: \(sheetWindow.title)", context: "OnboardingView")
                     if let screen = NSScreen.main {
                         let screenFrame = screen.visibleFrame
                         let windowFrame = sheetWindow.frame
                         let x = screenFrame.midX - windowFrame.width / 2
                         let y = screenFrame.midY - windowFrame.height / 2
-                        print("[OnboardingView] Centering window at x=\(x), y=\(y)")
+                        DebugLog.info("Centering window at x=\(x), y=\(y)", context: "OnboardingView")
                         sheetWindow.setFrameOrigin(NSPoint(x: x, y: y))
                     }
                 } else {
-                    print("[OnboardingView] ⚠️ Could not find sheet window to center")
+                    DebugLog.info("⚠️ Could not find sheet window to center", context: "OnboardingView")
                 }
             }
 
@@ -131,44 +134,126 @@ struct OnboardingView: View {
                     .frame(height: 1)
             }
 
-        case .hotkey:
+        case .language:
             VStack(spacing: 12) {
-                // Fn key button (square)
-                Text("Fn")
-                    .font(.system(size: 40, weight: .semibold))
-                    .foregroundStyle(hotkeyManager.currentHotkey?.keyCode == 63 ? .green : .primary)
-                    .frame(width: 100, height: 100)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(nsColor: .controlBackgroundColor))
-                            .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(hotkeyManager.currentHotkey?.keyCode == 63 ? Color.green : Color.clear, lineWidth: 3)
-                    )
-
-                if hotkeyManager.currentHotkey?.keyCode == 63 {
-                    HStack(spacing: 6) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
-                        Text("Fn key detected")
-                            .font(.system(size: 12))
-                            .foregroundStyle(.green)
+                // Language grid
+                LazyVGrid(columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ], spacing: 8) {
+                    ForEach(Language.allCases) { language in
+                        Button(action: {
+                            languageManager.toggleLanguage(language)
+                        }) {
+                            HStack(spacing: 6) {
+                                Text(language.flag)
+                                    .font(.system(size: 20))
+                                Text(language.displayName)
+                                    .font(.system(size: 12))
+                                    .lineLimit(1)
+                                Spacer()
+                                if languageManager.isSelected(language) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.system(size: 14))
+                                        .foregroundStyle(.green)
+                                }
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 8)
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(languageManager.isSelected(language)
+                                        ? Color.accentColor.opacity(0.1)
+                                        : Color(nsColor: .controlBackgroundColor))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .stroke(languageManager.isSelected(language)
+                                        ? Color.accentColor
+                                        : Color.clear, lineWidth: 2)
+                            )
+                        }
+                        .buttonStyle(.plain)
                     }
-                } else {
-                    Text("Press Fn")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
                 }
+                .padding(.horizontal, 40)
             }
-            .onAppear {
-                // Start monitoring for Fn key press
-                startFnKeyMonitoring()
-            }
-            .onDisappear {
-                // Stop monitoring when leaving this step
-                stopFnKeyMonitoring()
+
+        case .hotkey:
+            if showCustomHotkeyPicker {
+                // Custom hotkey selection view
+                VStack(spacing: 16) {
+                    Text("Set your preferred hotkey")
+                        .font(.system(size: 14, weight: .medium))
+
+                    HotkeyRecorderView(hotkeyManager: hotkeyManager)
+                        .frame(maxWidth: 300)
+
+                    Button(action: {
+                        showCustomHotkeyPicker = false
+                        stopFnKeyMonitoring()
+                    }) {
+                        Text("Back to Fn key")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 40)
+            } else {
+                // Default view with Fn key option
+                VStack(spacing: 12) {
+                    // Fn key option (visual representation)
+                    Text("Fn")
+                        .font(.system(size: 40, weight: .semibold))
+                        .foregroundStyle(hotkeyManager.currentHotkey?.keyCode == 63 ? .green : .primary)
+                        .frame(width: 100, height: 100)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color(nsColor: .controlBackgroundColor))
+                                .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(hotkeyManager.currentHotkey?.keyCode == 63 ? Color.green : Color.clear, lineWidth: 3)
+                        )
+
+                    if hotkeyManager.currentHotkey?.keyCode == 63 {
+                        HStack(spacing: 6) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                            Text("Fn key detected")
+                                .font(.system(size: 12))
+                                .foregroundStyle(.green)
+                        }
+                    } else {
+                        Text("Press Fn to use it")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    // Small text link to select custom hotkey
+                    Button(action: {
+                        showCustomHotkeyPicker = true
+                        stopFnKeyMonitoring()
+                    }) {
+                        Text("Use a different hotkey")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 4)
+                }
+                .onAppear {
+                    // Start monitoring for Fn key press
+                    startFnKeyMonitoring()
+                }
+                .onDisappear {
+                    // Stop monitoring when leaving this step
+                    stopFnKeyMonitoring()
+                }
             }
 
         case .prompts:
@@ -327,6 +412,22 @@ struct OnboardingView: View {
             }
             .buttonStyle(.plain)
 
+        case .language:
+            Button(action: {
+                onboardingManager.moveToNextStep()
+            }) {
+                Text("Continue")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(Color.accentColor)
+                    )
+            }
+            .buttonStyle(.plain)
+
         case .hotkey:
             Button(action: {
                 onboardingManager.moveToNextStep()
@@ -346,7 +447,6 @@ struct OnboardingView: View {
 
         case .prompts:
             Button(action: {
-                onboardingManager.markPromptsAsSeen()
                 onboardingManager.completeOnboarding()
             }) {
                 Text("Get Started")
@@ -375,10 +475,10 @@ struct OnboardingView: View {
     }
 
     private func startFnKeyMonitoring() {
-        print("[OnboardingView] Starting Fn key monitoring")
+        DebugLog.info("Starting Fn key monitoring", context: "OnboardingView")
         fnKeyMonitor = FnKeyMonitor()
         fnKeyMonitor?.onFnPressed = { [self] in
-            print("[OnboardingView] Fn key pressed - setting hotkey")
+            DebugLog.info("Fn key pressed - setting hotkey", context: "OnboardingView")
             hotkeyManager.setHotkey(Hotkey(keyCode: 63, modifiers: .function))
             stopFnKeyMonitoring()
         }
@@ -386,7 +486,7 @@ struct OnboardingView: View {
     }
 
     private func stopFnKeyMonitoring() {
-        print("[OnboardingView] Stopping Fn key monitoring")
+        DebugLog.info("Stopping Fn key monitoring", context: "OnboardingView")
         fnKeyMonitor?.stopMonitoring()
         fnKeyMonitor = nil
     }
@@ -422,8 +522,8 @@ struct OnboardingView: View {
             // Get enabled rules
             let enabledRules = promptRulesManager.rules.filter { $0.isEnabled }.map { $0.text }
 
-            // Get LLM API key
-            let llmProvider = LLMProvider.groq // Default to Groq for demo
+            // Get LLM provider settings
+            let llmProvider = llmProviderManager.selectedProvider
             guard let llmApiKey = KeychainHelper.get(key: llmProvider.apiKeyName) ?? SecretsLoader.llmKey(for: llmProvider) else {
                 await MainActor.run {
                     processedText = "⚠️ No LLM API key configured. The rules will be applied during actual transcription."
@@ -432,10 +532,10 @@ struct OnboardingView: View {
                 return
             }
 
-            // Create OpenAI client for LLM processing
+            // Create OpenAI client for LLM processing using configured provider
             let clientConfig = OpenAIClient.Configuration(
-                chatCompletionEndpoint: "https://api.groq.com/openai/v1/chat/completions",
-                chatCompletionModel: "llama-3.3-70b-versatile",
+                chatCompletionEndpoint: llmProviderManager.effectiveEndpoint,
+                chatCompletionModel: llmProviderManager.effectiveModel,
                 apiKey: llmApiKey
             )
 

@@ -47,10 +47,10 @@ struct HotkeyRecorderView: View {
     }
 
     private func startRecording() {
-        print("[HotkeyRecorder LOG] ========================================")
-        print("[HotkeyRecorder LOG] Starting hotkey recording mode")
-        print("[HotkeyRecorder LOG] Waiting for key press or modifier change...")
-        print("[HotkeyRecorder LOG] ========================================")
+        DebugLog.info("[HotkeyRecorder LOG] ========================================", context: "HotkeyRecorderView")
+        DebugLog.info("[HotkeyRecorder LOG] Starting hotkey recording mode", context: "HotkeyRecorderView")
+        DebugLog.info("[HotkeyRecorder LOG] Waiting for key press or modifier change...", context: "HotkeyRecorderView")
+        DebugLog.info("[HotkeyRecorder LOG] ========================================", context: "HotkeyRecorderView")
         isRecording = true
     }
 }
@@ -60,16 +60,16 @@ struct HotkeyEventHandler: NSViewRepresentable {
     let hotkeyManager: HotkeyManager
 
     func makeNSView(context: Context) -> NSView {
-        print("[HotkeyRecorder LOG] Creating KeyEventView")
+        DebugLog.info("[HotkeyRecorder LOG] Creating KeyEventView", context: "HotkeyRecorderView")
         let view = KeyEventView()
         view.onKeyDown = { event in
-            print("[HotkeyRecorder LOG] keyDown event received")
-            print("[HotkeyRecorder LOG]   - isRecording: \(isRecording)")
+            DebugLog.info("[HotkeyRecorder LOG] keyDown event received", context: "HotkeyRecorderView")
+            DebugLog.info("[HotkeyRecorder LOG]   - isRecording: \(isRecording)", context: "HotkeyRecorderView")
             if isRecording {
                 let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-                print("[HotkeyRecorder LOG]   - keyCode: \(event.keyCode)")
-                print("[HotkeyRecorder LOG]   - modifiers: \(modifiers.rawValue)")
-                print("[HotkeyRecorder LOG]   - modifiers description: \(modifiers)")
+                DebugLog.info("[HotkeyRecorder LOG]   - keyCode: \(event.keyCode)", context: "HotkeyRecorderView")
+                DebugLog.info("[HotkeyRecorder LOG]   - modifiers: \(modifiers.rawValue)", context: "HotkeyRecorderView")
+                DebugLog.info("[HotkeyRecorder LOG]   - modifiers description: \(modifiers)", context: "HotkeyRecorderView")
 
                 // Check if it's a function key (F1-F20, keyCode 122-145, or individual codes)
                 let functionKeys: [UInt16] = [
@@ -80,55 +80,55 @@ struct HotkeyEventHandler: NSViewRepresentable {
 
                 // Allow: modifiers present, OR function key without modifiers
                 if !modifiers.isEmpty {
-                    print("[HotkeyRecorder LOG]   - Modifiers not empty, setting hotkey")
+                    DebugLog.info("[HotkeyRecorder LOG]   - Modifiers not empty, setting hotkey", context: "HotkeyRecorderView")
                     let hotkey = Hotkey(keyCode: event.keyCode, modifiers: modifiers)
                     hotkeyManager.setHotkey(hotkey)
                     isRecording = false
                 } else if isFunctionKey {
-                    print("[HotkeyRecorder LOG]   - Function key detected, setting hotkey")
+                    DebugLog.info("[HotkeyRecorder LOG]   - Function key detected, setting hotkey", context: "HotkeyRecorderView")
                     let hotkey = Hotkey(keyCode: event.keyCode, modifiers: [])
                     hotkeyManager.setHotkey(hotkey)
                     isRecording = false
                 } else {
-                    print("[HotkeyRecorder LOG]   - Not a valid hotkey (need modifiers or function key)")
+                    DebugLog.info("[HotkeyRecorder LOG]   - Not a valid hotkey (need modifiers or function key)", context: "HotkeyRecorderView")
                 }
             }
         }
         view.onFlagsChanged = { event in
-            print("[HotkeyRecorder LOG] ⚡️ flagsChanged event received ⚡️")
-            print("[HotkeyRecorder LOG]   - isRecording: \(isRecording)")
+            DebugLog.info("[HotkeyRecorder LOG] ⚡️ flagsChanged event received ⚡️", context: "HotkeyRecorderView")
+            DebugLog.info("[HotkeyRecorder LOG]   - isRecording: \(isRecording)", context: "HotkeyRecorderView")
             if isRecording {
                 let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-                print("[HotkeyRecorder LOG]   - Raw modifierFlags: \(event.modifierFlags.rawValue)")
-                print("[HotkeyRecorder LOG]   - Masked modifiers: \(modifiers.rawValue)")
-                print("[HotkeyRecorder LOG]   - Modifiers description: \(modifiers)")
-                print("[HotkeyRecorder LOG]   - Contains .function: \(modifiers.contains(.function))")
-                print("[HotkeyRecorder LOG]   - NSEvent.ModifierFlags.function value: \(NSEvent.ModifierFlags.function.rawValue)")
+                DebugLog.info("[HotkeyRecorder LOG]   - Raw modifierFlags: \(event.modifierFlags.rawValue)", context: "HotkeyRecorderView")
+                DebugLog.info("[HotkeyRecorder LOG]   - Masked modifiers: \(modifiers.rawValue)", context: "HotkeyRecorderView")
+                DebugLog.info("[HotkeyRecorder LOG]   - Modifiers description: \(modifiers)", context: "HotkeyRecorderView")
+                DebugLog.info("[HotkeyRecorder LOG]   - Contains .function: \(modifiers.contains(.function))", context: "HotkeyRecorderView")
+                DebugLog.info("[HotkeyRecorder LOG]   - NSEvent.ModifierFlags.function value: \(NSEvent.ModifierFlags.function.rawValue)", context: "HotkeyRecorderView")
 
                 // Check if only Fn key is pressed (no other modifiers)
                 if modifiers == .function {
-                    print("[HotkeyRecorder LOG] ✅ MATCH: Detected Fn key ONLY - setting hotkey")
+                    DebugLog.info("[HotkeyRecorder LOG] ✅ MATCH: Detected Fn key ONLY - setting hotkey", context: "HotkeyRecorderView")
                     // Use a special keyCode for Fn-only hotkey
                     let hotkey = Hotkey(keyCode: 63, modifiers: .function)
                     hotkeyManager.setHotkey(hotkey)
                     isRecording = false
                 } else if modifiers.contains(.function) {
-                    print("[HotkeyRecorder LOG] ⚠️ Fn detected but with other modifiers: \(modifiers)")
+                    DebugLog.info("[HotkeyRecorder LOG] ⚠️ Fn detected but with other modifiers: \(modifiers)", context: "HotkeyRecorderView")
                 } else {
-                    print("[HotkeyRecorder LOG] ❌ Modifiers do not contain Fn: \(modifiers)")
+                    DebugLog.info("[HotkeyRecorder LOG] ❌ Modifiers do not contain Fn: \(modifiers)", context: "HotkeyRecorderView")
                 }
             }
         }
-        print("[HotkeyRecorder LOG] KeyEventView created with handlers attached")
+        DebugLog.info("[HotkeyRecorder LOG] KeyEventView created with handlers attached", context: "HotkeyRecorderView")
         return view
     }
 
     func updateNSView(_ nsView: NSView, context: Context) {
         if isRecording {
-            print("[HotkeyRecorder LOG] updateNSView: Making view first responder")
+            DebugLog.info("[HotkeyRecorder LOG] updateNSView: Making view first responder", context: "HotkeyRecorderView")
             let didBecomeFirstResponder = nsView.window?.makeFirstResponder(nsView)
-            print("[HotkeyRecorder LOG] updateNSView: First responder result: \(didBecomeFirstResponder ?? false)")
-            print("[HotkeyRecorder LOG] updateNSView: Current first responder: \(nsView.window?.firstResponder?.description ?? "none")")
+            DebugLog.info("[HotkeyRecorder LOG] updateNSView: First responder result: \(didBecomeFirstResponder ?? false)", context: "HotkeyRecorderView")
+            DebugLog.info("updateNSView: Current first responder: \(nsView.window?.firstResponder?.description ?? "none")", context: "HotkeyRecorderView")
         }
     }
 }
@@ -138,24 +138,24 @@ class KeyEventView: NSView {
     var onFlagsChanged: ((NSEvent) -> Void)?
 
     override var acceptsFirstResponder: Bool {
-        print("[KeyEventView LOG] acceptsFirstResponder queried, returning true")
+        DebugLog.info("[KeyEventView LOG] acceptsFirstResponder queried, returning true", context: "HotkeyRecorderView")
         return true
     }
 
     override func keyDown(with event: NSEvent) {
-        print("[KeyEventView LOG] keyDown method called in NSView")
+        DebugLog.info("[KeyEventView LOG] keyDown method called in NSView", context: "HotkeyRecorderView")
         onKeyDown?(event)
     }
 
     override func flagsChanged(with event: NSEvent) {
-        print("[KeyEventView LOG] flagsChanged method called in NSView")
+        DebugLog.info("[KeyEventView LOG] flagsChanged method called in NSView", context: "HotkeyRecorderView")
         onFlagsChanged?(event)
     }
 
     override func mouseDown(with event: NSEvent) {
-        print("[KeyEventView LOG] mouseDown - accepting click to become first responder")
+        DebugLog.info("[KeyEventView LOG] mouseDown - accepting click to become first responder", context: "HotkeyRecorderView")
         // Accept clicks to become first responder
         let result = window?.makeFirstResponder(self)
-        print("[KeyEventView LOG] makeFirstResponder result: \(result ?? false)")
+        DebugLog.info("[KeyEventView LOG] makeFirstResponder result: \(result ?? false)", context: "HotkeyRecorderView")
     }
 }

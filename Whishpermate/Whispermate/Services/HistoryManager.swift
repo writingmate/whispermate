@@ -51,7 +51,7 @@ class HistoryManager: ObservableObject {
             let data = try Data(contentsOf: fileURL)
             recordings = try JSONDecoder().decode([Recording].self, from: data)
         } catch {
-            print("Failed to load recordings: \(error)")
+            DebugLog.info("Failed to load recordings: \(error)", context: "HistoryManager")
         }
     }
 
@@ -60,7 +60,7 @@ class HistoryManager: ObservableObject {
             let data = try JSONEncoder().encode(recordings)
             try data.write(to: fileURL, options: .atomic)
         } catch {
-            print("Failed to save recordings: \(error)")
+            DebugLog.info("Failed to save recordings: \(error)", context: "HistoryManager")
         }
     }
 

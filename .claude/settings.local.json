@@ -55,7 +55,16 @@
       "Bash(lipo -info:*)",
       "Bash(spctl:*)",
       "Bash(hdiutil attach:*)",
-      "Bash(hdiutil detach:*)"
+      "Bash(hdiutil detach:*)",
+      "WebSearch",
+      "Bash(find:*)",
+      "Bash(awk:*)",
+      "Bash(for f in Whispermate/**/*.swift)",
+      "Bash(do [[ -f \"$f\" ]])",
+      "Bash(done)",
+      "Bash(/usr/libexec/PlistBuddy:*)",
+      "Bash(xcrun agvtool:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []
