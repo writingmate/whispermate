@@ -5,6 +5,7 @@ import AppKit
 extension NSNotification.Name {
     static let showHistory = NSNotification.Name("ShowHistory")
     static let showSettings = NSNotification.Name("ShowSettings")
+    static let showOnboarding = NSNotification.Name("ShowOnboarding")
 }
 
 class StatusBarManager {
@@ -17,7 +18,7 @@ class StatusBarManager {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
         guard let button = statusItem?.button else {
-            print("[StatusBarManager] Failed to create status bar button")
+            DebugLog.info("Failed to create status bar button", context: "StatusBarManager")
             return
         }
 
@@ -66,6 +67,17 @@ class StatusBarManager {
 
         menu?.addItem(NSMenuItem.separator())
 
+        // Onboarding
+        let onboardingItem = NSMenuItem(
+            title: "Show Onboarding",
+            action: #selector(showOnboarding),
+            keyEquivalent: ""
+        )
+        onboardingItem.target = self
+        menu?.addItem(onboardingItem)
+
+        menu?.addItem(NSMenuItem.separator())
+
         // Quit
         let quitItem = NSMenuItem(
             title: "Quit WhisperMate",
@@ -77,7 +89,7 @@ class StatusBarManager {
 
         statusItem?.menu = menu
 
-        print("[StatusBarManager] Menu bar icon created successfully")
+        DebugLog.info("Menu bar icon created successfully", context: "StatusBarManager")
     }
 
     @objc private func toggleWindow() {
@@ -92,7 +104,7 @@ class StatusBarManager {
                 window.makeKeyAndOrderFront(nil)
             }
         } else {
-            print("[StatusBarManager] Warning: Could not find app window to toggle")
+            DebugLog.info("Warning: Could not find app window to toggle", context: "StatusBarManager")
         }
     }
 
@@ -108,6 +120,13 @@ class StatusBarManager {
         let window = appWindow ?? NSApplication.shared.windows.first(where: { $0.level == .normal })
         window?.makeKeyAndOrderFront(nil)
         NotificationCenter.default.post(name: .showSettings, object: nil)
+    }
+
+    @objc private func showOnboarding() {
+        NSApplication.shared.activate(ignoringOtherApps: true)
+        let window = appWindow ?? NSApplication.shared.windows.first(where: { $0.level == .normal })
+        window?.makeKeyAndOrderFront(nil)
+        NotificationCenter.default.post(name: .showOnboarding, object: nil)
     }
 
     @objc private func quit() {

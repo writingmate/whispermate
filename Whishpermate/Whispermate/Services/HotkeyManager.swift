@@ -7,6 +7,7 @@ class HotkeyManager: ObservableObject {
     private var globalMonitor: Any?
     private var localMonitor: Any?
     private var keyUpMonitor: Any?
+    private var globalKeyUpMonitor: Any?
     private var previousFunctionKeyState = false
     private var fnKeyMonitor: FnKeyMonitor?
     private var deferRegistration = false
@@ -69,17 +70,17 @@ class HotkeyManager: ObservableObject {
 
     private func registerHotkey() {
         guard let hotkey = currentHotkey else {
-            print("[HotkeyManager LOG] registerHotkey: No hotkey configured")
+            DebugLog.info("registerHotkey: No hotkey configured", context: "HotkeyManager LOG")
             unregisterHotkey()
             return
         }
 
-        print("[HotkeyManager LOG] registerHotkey: keyCode=\(hotkey.keyCode), modifiers=\(hotkey.modifiers.rawValue)")
-        print("[HotkeyManager LOG] registerHotkey: displayString=\(hotkey.displayString)")
+        DebugLog.info("registerHotkey: keyCode=\(hotkey.keyCode), modifiers=\(hotkey.modifiers.rawValue)", context: "HotkeyManager LOG")
+        DebugLog.info("registerHotkey: displayString=\(hotkey.displayString)", context: "HotkeyManager LOG")
 
         // If the Fn monitor is already running for the same hotkey, don't restart it
         if hotkey.modifiers == .function && hotkey.keyCode == 63 && fnKeyMonitor != nil {
-            print("[HotkeyManager LOG] Fn key monitor already running, skipping re-registration")
+            DebugLog.info("Fn key monitor already running, skipping re-registration", context: "HotkeyManager LOG")
             return
         }
 
@@ -87,50 +88,55 @@ class HotkeyManager: ObservableObject {
 
         // If hotkey is just Fn key, use polling-based monitoring
         if hotkey.modifiers == .function && hotkey.keyCode == 63 {
-            print("[HotkeyManager LOG] ========================================")
-            print("[HotkeyManager LOG] Using Fn-only path (POLLING mode)")
-            print("[HotkeyManager LOG] This works globally, even in background!")
-            print("[HotkeyManager LOG] Creating FnKeyMonitor...")
+            DebugLog.info("========================================", context: "HotkeyManager LOG")
+            DebugLog.info("Using Fn-only path (POLLING mode)", context: "HotkeyManager LOG")
+            DebugLog.info("This works globally, even in background!", context: "HotkeyManager LOG")
+            DebugLog.info("Creating FnKeyMonitor...", context: "HotkeyManager LOG")
 
             // Use polling-based Fn key monitor
             fnKeyMonitor = FnKeyMonitor()
-            print("[HotkeyManager LOG] FnKeyMonitor created")
-            print("[HotkeyManager LOG] Setting up onFnPressed callback...")
+            DebugLog.info("FnKeyMonitor created", context: "HotkeyManager LOG")
+            DebugLog.info("Setting up onFnPressed callback...", context: "HotkeyManager LOG")
             fnKeyMonitor?.onFnPressed = { [weak self] in
-                print("[HotkeyManager LOG] 🔥 Fn key pressed (polling) - calling onHotkeyPressed 🔥")
+                DebugLog.info("🔥 Fn key pressed (polling) - calling onHotkeyPressed 🔥", context: "HotkeyManager LOG")
                 self?.onHotkeyPressed?()
-                print("[HotkeyManager LOG] onHotkeyPressed callback returned")
+                DebugLog.info("onHotkeyPressed callback returned", context: "HotkeyManager LOG")
             }
-            print("[HotkeyManager LOG] Setting up onFnReleased callback...")
+            DebugLog.info("Setting up onFnReleased callback...", context: "HotkeyManager LOG")
             fnKeyMonitor?.onFnReleased = { [weak self] in
-                print("[HotkeyManager LOG] 🔥 Fn key released (polling) - calling onHotkeyReleased 🔥")
+                DebugLog.info("🔥 Fn key released (polling) - calling onHotkeyReleased 🔥", context: "HotkeyManager LOG")
                 self?.onHotkeyReleased?()
-                print("[HotkeyManager LOG] onHotkeyReleased callback returned")
+                DebugLog.info("onHotkeyReleased callback returned", context: "HotkeyManager LOG")
             }
-            print("[HotkeyManager LOG] Callbacks configured, starting monitoring...")
+            DebugLog.info("Callbacks configured, starting monitoring...", context: "HotkeyManager LOG")
             fnKeyMonitor?.startMonitoring()
-            print("[HotkeyManager LOG] ========================================")
+            DebugLog.info("========================================", context: "HotkeyManager LOG")
         } else {
-            print("[HotkeyManager LOG] Using regular key path (keyDown + keyUp events)")
-            print("[HotkeyManager LOG] Registering global and local monitors for keyDown and keyUp")
+            DebugLog.info("Using regular key path (keyDown + keyUp events)", context: "HotkeyManager LOG")
+            DebugLog.info("Registering global and local monitors for keyDown and keyUp", context: "HotkeyManager LOG")
 
             // Monitor keyDown events
             globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-                print("[HotkeyManager LOG] Global keyDown monitor triggered")
+                DebugLog.info("Global keyDown monitor triggered", context: "HotkeyManager LOG")
                 self?.handleKeyDownEvent(event)
             }
 
             localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-                print("[HotkeyManager LOG] Local keyDown monitor triggered")
+                DebugLog.info("Local keyDown monitor triggered", context: "HotkeyManager LOG")
                 if self?.handleKeyDownEvent(event) == true {
                     return nil // Consume the event
                 }
                 return event
             }
 
-            // Monitor keyUp events
+            // Monitor keyUp events (both global and local)
+            globalKeyUpMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyUp) { [weak self] event in
+                DebugLog.info("Global keyUp monitor triggered", context: "HotkeyManager LOG")
+                self?.handleKeyUpEvent(event)
+            }
+
             keyUpMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyUp) { [weak self] event in
-                print("[HotkeyManager LOG] Local keyUp monitor triggered")
+                DebugLog.info("Local keyUp monitor triggered", context: "HotkeyManager LOG")
                 if self?.handleKeyUpEvent(event) == true {
                     return nil // Consume the event
                 }
@@ -140,27 +146,33 @@ class HotkeyManager: ObservableObject {
     }
 
     private func unregisterHotkey() {
-        print("[HotkeyManager LOG] unregisterHotkey called")
+        DebugLog.info("unregisterHotkey called", context: "HotkeyManager LOG")
         if let monitor = globalMonitor {
-            print("[HotkeyManager LOG] Removing global monitor")
+            DebugLog.info("Removing global monitor", context: "HotkeyManager LOG")
             NSEvent.removeMonitor(monitor)
             globalMonitor = nil
         }
 
         if let monitor = localMonitor {
-            print("[HotkeyManager LOG] Removing local monitor")
+            DebugLog.info("Removing local monitor", context: "HotkeyManager LOG")
             NSEvent.removeMonitor(monitor)
             localMonitor = nil
         }
 
+        if let monitor = globalKeyUpMonitor {
+            DebugLog.info("Removing global keyUp monitor", context: "HotkeyManager LOG")
+            NSEvent.removeMonitor(monitor)
+            globalKeyUpMonitor = nil
+        }
+
         if let monitor = keyUpMonitor {
-            print("[HotkeyManager LOG] Removing keyUp monitor")
+            DebugLog.info("Removing keyUp monitor", context: "HotkeyManager LOG")
             NSEvent.removeMonitor(monitor)
             keyUpMonitor = nil
         }
 
         if let fnMonitor = fnKeyMonitor {
-            print("[HotkeyManager LOG] Stopping Fn key monitor")
+            DebugLog.info("Stopping Fn key monitor", context: "HotkeyManager LOG")
             fnMonitor.stopMonitoring()
             fnKeyMonitor = nil
         }
@@ -172,11 +184,11 @@ class HotkeyManager: ObservableObject {
     private func handleKeyDownEvent(_ event: NSEvent) -> Bool {
         guard let hotkey = currentHotkey else { return false }
 
-        print("[HotkeyManager LOG] handleKeyDownEvent: keyCode=\(event.keyCode), modifiers=\(event.modifierFlags.rawValue), isARepeat=\(event.isARepeat)")
+        DebugLog.info("handleKeyDownEvent: keyCode=\(event.keyCode), modifiers=\(event.modifierFlags.rawValue), isARepeat=\(event.isARepeat)", context: "HotkeyManager LOG")
 
         // Ignore key repeat events
         if event.isARepeat {
-            print("[HotkeyManager LOG] handleKeyDownEvent: Ignoring key repeat event")
+            DebugLog.info("handleKeyDownEvent: Ignoring key repeat event", context: "HotkeyManager LOG")
             return false
         }
 
@@ -187,7 +199,7 @@ class HotkeyManager: ObservableObject {
             // Check for double-tap
             let now = Date()
             if let lastTap = lastTapTime, now.timeIntervalSince(lastTap) < doubleTapInterval {
-                print("[HotkeyManager LOG] handleKeyDownEvent: DOUBLE-TAP detected - calling onDoubleTap")
+                DebugLog.info("handleKeyDownEvent: DOUBLE-TAP detected - calling onDoubleTap", context: "HotkeyManager LOG")
                 lastTapTime = nil // Reset for next sequence
                 isHoldingKey = false // Don't track as hold
                 onDoubleTap?()
@@ -195,7 +207,7 @@ class HotkeyManager: ObservableObject {
             }
 
             // Single tap - start hold-to-record
-            print("[HotkeyManager LOG] handleKeyDownEvent: MATCH - calling onHotkeyPressed (START recording)")
+            DebugLog.info("handleKeyDownEvent: MATCH - calling onHotkeyPressed (START recording)", context: "HotkeyManager LOG")
             lastTapTime = now // Track this tap for potential double-tap
             isHoldingKey = true
             onHotkeyPressed?()
@@ -209,17 +221,17 @@ class HotkeyManager: ObservableObject {
     private func handleKeyUpEvent(_ event: NSEvent) -> Bool {
         guard let hotkey = currentHotkey else { return false }
 
-        print("[HotkeyManager LOG] handleKeyUpEvent: keyCode=\(event.keyCode), modifiers=\(event.modifierFlags.rawValue)")
+        DebugLog.info("handleKeyUpEvent: keyCode=\(event.keyCode), modifiers=\(event.modifierFlags.rawValue)", context: "HotkeyManager LOG")
 
         // Check if the key code matches (modifiers may not be present on keyUp)
         if event.keyCode == hotkey.keyCode {
             // Only call onHotkeyReleased if we're in hold-to-record mode
             if isHoldingKey {
-                print("[HotkeyManager LOG] handleKeyUpEvent: MATCH - calling onHotkeyReleased (STOP recording)")
+                DebugLog.info("handleKeyUpEvent: MATCH - calling onHotkeyReleased (STOP recording)", context: "HotkeyManager LOG")
                 isHoldingKey = false
                 onHotkeyReleased?()
             } else {
-                print("[HotkeyManager LOG] handleKeyUpEvent: Key released but not in hold mode (continuous recording)")
+                DebugLog.info("handleKeyUpEvent: Key released but not in hold mode (continuous recording)", context: "HotkeyManager LOG")
             }
             return true
         }

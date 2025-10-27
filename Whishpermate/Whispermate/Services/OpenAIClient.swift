@@ -57,7 +57,6 @@ class OpenAIClient {
 
     func transcribe(
         audioURL: URL,
-        languageCode: String? = nil,
         prompt: String? = nil,
         model: String? = nil
     ) async throws -> String {
@@ -67,8 +66,9 @@ class OpenAIClient {
             throw OpenAIError.invalidURL
         }
 
+        let startTime = CFAbsoluteTimeGetCurrent()
         DebugLog.api("Starting transcription", endpoint: config.transcriptionEndpoint)
-        DebugLog.info("Model: \(effectiveModel), Language: \(languageCode ?? "auto-detect")", context: "OpenAIClient")
+        DebugLog.info("Model: \(effectiveModel), Language: auto-detect", context: "OpenAIClient")
 
         // Create multipart form data
         let boundary = UUID().uuidString
@@ -101,12 +101,10 @@ class OpenAIClient {
         body.append("Content-Disposition: form-data; name=\"model\"\r\n\r\n".data(using: .utf8)!)
         body.append("\(effectiveModel)\r\n".data(using: .utf8)!)
 
-        // Add language parameter (optional)
-        if let languageCode = languageCode {
-            body.append("--\(boundary)\r\n".data(using: .utf8)!)
-            body.append("Content-Disposition: form-data; name=\"language\"\r\n\r\n".data(using: .utf8)!)
-            body.append("\(languageCode)\r\n".data(using: .utf8)!)
-        }
+        // Add temperature parameter (optional - set to 0 for deterministic results)
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"temperature\"\r\n\r\n".data(using: .utf8)!)
+        body.append("0\r\n".data(using: .utf8)!)
 
         // Add prompt parameter (optional)
         if let prompt = prompt, !prompt.isEmpty {
@@ -146,7 +144,11 @@ class OpenAIClient {
                 throw OpenAIError.invalidResponse
             }
 
-            DebugLog.info("Transcription successful", context: "OpenAIClient")
+            let endTime = CFAbsoluteTimeGetCurrent()
+            let duration = endTime - startTime
+            DebugLog.info("Transcription successful in \(String(format: "%.2f", duration))s", context: "OpenAIClient")
+            print("⏱️ [Transcription] \(String(format: "%.2f", duration))s - \(effectiveModel)")
+
             return text.trimmingCharacters(in: .whitespacesAndNewlines)
         } catch let error as OpenAIError {
             throw error
@@ -160,7 +162,7 @@ class OpenAIClient {
 
     func chatCompletion(
         messages: [[String: String]],
-        temperature: Double = 0.3,
+        temperature: Double = 0.0,
         maxTokens: Int = 1000,
         model: String? = nil
     ) async throws -> String {
@@ -170,6 +172,7 @@ class OpenAIClient {
             throw OpenAIError.invalidURL
         }
 
+        let startTime = CFAbsoluteTimeGetCurrent()
         DebugLog.api("Chat completion request", endpoint: config.chatCompletionEndpoint)
         DebugLog.info("Model: \(effectiveModel)", context: "OpenAIClient")
 
@@ -205,11 +208,11 @@ class OpenAIClient {
                 throw OpenAIError.invalidResponse
             }
 
-            print("[OpenAIClient] Response status: \(httpResponse.statusCode)")
+            DebugLog.api("Response status: \(httpResponse.statusCode)")
 
             if httpResponse.statusCode != 200 {
                 let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-                print("[OpenAIClient] Error: \(errorMessage)")
+                DebugLog.error("API Error: \(errorMessage)", context: "OpenAIClient")
                 throw OpenAIError.apiError("HTTP \(httpResponse.statusCode): \(errorMessage)")
             }
 
@@ -223,7 +226,11 @@ class OpenAIClient {
             }
 
             let result = content.trimmingCharacters(in: .whitespacesAndNewlines)
-            DebugLog.info("Chat completion successful", context: "OpenAIClient")
+
+            let endTime = CFAbsoluteTimeGetCurrent()
+            let duration = endTime - startTime
+            DebugLog.info("Chat completion successful in \(String(format: "%.2f", duration))s", context: "OpenAIClient")
+            print("⏱️ [Chat Completion] \(String(format: "%.2f", duration))s - \(effectiveModel)")
 
             return result
         } catch let error as OpenAIError {
@@ -239,14 +246,17 @@ class OpenAIClient {
     /// Transcribe audio and optionally apply formatting rules
     func transcribeAndFormat(
         audioURL: URL,
-        languageCode: String? = nil,
         prompt: String? = nil,
-        formattingRules: [String] = []
+        formattingRules: [String] = [],
+        languageCodes: String? = nil,
+        appContext: String? = nil,
+        llmApiKey: String? = nil
     ) async throws -> String {
+        let startTime = CFAbsoluteTimeGetCurrent()
+
         // Step 1: Transcribe
         let rawTranscription = try await transcribe(
             audioURL: audioURL,
-            languageCode: languageCode,
             prompt: prompt
         )
 
@@ -262,15 +272,29 @@ class OpenAIClient {
             return rawTranscription
         }
 
-        return try await applyFormattingRules(transcription: rawTranscription, rules: formattingRules)
+        // Switch to LLM API key if provided
+        if let llmKey = llmApiKey {
+            var newConfig = config
+            newConfig.apiKey = llmKey
+            updateConfig(newConfig)
+        }
+
+        let result = try await applyFormattingRules(transcription: rawTranscription, rules: formattingRules, languageCodes: languageCodes, appContext: appContext)
+
+        let endTime = CFAbsoluteTimeGetCurrent()
+        let totalDuration = endTime - startTime
+        DebugLog.info("Transcribe & format completed in \(String(format: "%.2f", totalDuration))s", context: "OpenAIClient")
+        print("⏱️ [Total Pipeline] \(String(format: "%.2f", totalDuration))s")
+
+        return result
     }
 
     /// Apply formatting rules to transcription using chat completion
-    func applyFormattingRules(transcription: String, rules: [String]) async throws -> String {
+    func applyFormattingRules(transcription: String, rules: [String], languageCodes: String? = nil, appContext: String? = nil) async throws -> String {
         // Check if transcription is empty or whitespace-only
         let trimmedTranscription = transcription.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedTranscription.isEmpty else {
-            print("[OpenAIClient] ⚠️ Empty transcription - skipping formatting rules")
+            DebugLog.warning("Empty transcription - skipping formatting rules", context: "OpenAIClient")
             return transcription
         }
 
@@ -280,6 +304,14 @@ class OpenAIClient {
 
         IMPORTANT: Only output the corrected text. Do not add any explanations, comments, or extra content.
         """
+
+        if let appContext = appContext {
+            systemPrompt += "\n\nContext: The user is currently in \(appContext). Consider this context when formatting the text."
+        }
+
+        if let languageCodes = languageCodes {
+            systemPrompt += "\n\nThe text may contain content in the following languages: \(languageCodes). Preserve the original language(s) when correcting."
+        }
 
         if !rules.isEmpty {
             systemPrompt += "\n\nApply these rules:\n"
