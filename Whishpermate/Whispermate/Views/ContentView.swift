@@ -11,7 +11,8 @@ struct ContentView: View {
     @StateObject private var languageManager = LanguageManager()
     @StateObject private var transcriptionProviderManager = TranscriptionProviderManager()
     @StateObject private var llmProviderManager = LLMProviderManager()
-    @StateObject private var promptRulesManager = PromptRulesManager()
+    @ObservedObject private var promptRulesManager = PromptRulesManager.shared
+    @StateObject private var vadSettingsManager = VADSettingsManager()
     @State private var transcription = ""
     @State private var isProcessing = false
     @State private var showingAPIKeyAlert = false
@@ -146,7 +147,6 @@ struct ContentView: View {
                 .padding(.bottom, 8)
                 }
                 .background(Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .frame(width: 400)
             }
         }
@@ -475,9 +475,62 @@ struct ContentView: View {
             return
         }
 
+        // VAD Gatekeeper: Check for speech before making HTTP request
+        if vadSettingsManager.vadEnabled {
+            DebugLog.info("🎤 VAD enabled - analyzing audio for speech...", context: "ContentView")
+
+            // Show brief processing state during VAD analysis
+            isProcessing = true
+            if overlayManager.isOverlayMode {
+                overlayManager.updateState(isRecording: false, isProcessing: true)
+            }
+
+            Task {
+                do {
+                    let hasSpeech = try await VoiceActivityDetector.hasSpeech(
+                        in: audioURL,
+                        settings: vadSettingsManager
+                    )
+
+                    await MainActor.run {
+                        if !hasSpeech {
+                            DebugLog.info("🔇 No speech detected - skipping transcription", context: "ContentView")
+                            errorMessage = "No speech detected"
+                            shouldAutoPaste = false
+                            isProcessing = false
+
+                            if overlayManager.isOverlayMode {
+                                overlayManager.updateState(isRecording: false, isProcessing: false)
+                            }
+
+                            // Clean up the audio file
+                            try? FileManager.default.removeItem(at: audioURL)
+                            return
+                        }
+
+                        DebugLog.info("✅ Speech detected - proceeding with transcription", context: "ContentView")
+                        // Continue with transcription
+                        continueWithTranscription(audioURL: audioURL)
+                    }
+                } catch {
+                    DebugLog.info("⚠️ VAD error: \(error.localizedDescription), proceeding with transcription anyway", context: "ContentView")
+                    await MainActor.run {
+                        // If VAD fails, continue with transcription rather than blocking
+                        continueWithTranscription(audioURL: audioURL)
+                    }
+                }
+            }
+            return
+        }
+
+        // Continue with transcription (no VAD check or VAD is disabled)
+        continueWithTranscription(audioURL: audioURL)
+    }
+
+    private func continueWithTranscription(audioURL: URL) {
         // Get transcription API key
         guard let transcriptionApiKey = resolvedTranscriptionApiKey() else {
-            DebugLog.info("stopRecordingAndTranscribe: no transcription API key found", context: "ContentView")
+            DebugLog.info("continueWithTranscription: no transcription API key found", context: "ContentView")
             errorMessage = "Please set your \(transcriptionProviderManager.selectedProvider.displayName) transcription API key"
             showingAPIKeyAlert = true
             if overlayManager.isOverlayMode {
@@ -496,7 +549,7 @@ struct ContentView: View {
             }
         }
 
-        DebugLog.info("stopRecordingAndTranscribe: starting transcription, shouldAutoPaste: \(shouldAutoPaste)", context: "ContentView")
+        DebugLog.info("continueWithTranscription: starting transcription, shouldAutoPaste: \(shouldAutoPaste)", context: "ContentView")
         isProcessing = true
 
         // Update overlay - stopped recording, now processing (only if in overlay mode)

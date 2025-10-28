@@ -5,7 +5,7 @@ struct SettingsWindowView: View {
     @StateObject private var languageManager = LanguageManager()
     @StateObject private var transcriptionProviderManager = TranscriptionProviderManager()
     @StateObject private var llmProviderManager = LLMProviderManager()
-    @StateObject private var promptRulesManager = PromptRulesManager()
+    @ObservedObject private var promptRulesManager = PromptRulesManager.shared
     @Environment(\.dismiss) var dismiss
 
     var body: some View {

@@ -25,6 +25,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
+        let dockMenu = NSMenu()
+
+        // Settings menu item
+        let settingsItem = NSMenuItem(
+            title: "Settings",
+            action: #selector(openSettings),
+            keyEquivalent: ""
+        )
+        settingsItem.target = self
+        dockMenu.addItem(settingsItem)
+
+        return dockMenu
+    }
+
+    @objc private func openSettings() {
+        NSApplication.shared.activate(ignoringOtherApps: true)
+        NotificationCenter.default.post(name: .showSettings, object: nil)
+    }
+
     private func configureMainWindow() {
         guard let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) else {
             // Window not ready yet, try again shortly
@@ -37,21 +57,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Only configure once
         guard mainWindow == nil else { return }
 
-        // Configure window to be completely borderless
+        // Configure window to be borderless but with proper rounded corners
         window.styleMask = [.borderless, .fullSizeContentView]
-        window.titlebarAppearsTransparent = true
-        window.titleVisibility = .hidden
         window.isMovableByWindowBackground = true
         window.backgroundColor = .clear
-        window.hasShadow = true  // Explicitly enable shadow
-        window.invalidateShadow()  // Force shadow recalculation
+        window.hasShadow = true
+
+        // Use the system's corner radius for Tahoe/Sequoia
+        if #available(macOS 13.0, *) {
+            window.contentView?.wantsLayer = true
+            window.contentView?.layer?.cornerRadius = 12.0
+            window.contentView?.layer?.masksToBounds = true
+        }
 
         // Prevent window from being released when closed
         window.isReleasedWhenClosed = false
 
         mainWindow = window
         statusBarManager.appWindow = window
-        DebugLog.info("Main window configured as borderless with shadow", context: "AppDelegate")
+
+        // Hide window on launch - app starts in menu bar only mode
+        window.setIsVisible(false)
+
+        DebugLog.info("Main window configured as borderless with native corner radius and hidden on launch", context: "AppDelegate")
     }
 }
 
@@ -88,6 +116,9 @@ struct WhishpermateApp: App {
             SettingsWindowView()
         }
         .windowResizability(.contentSize)
+        .windowStyle(.titleBar)
+        .defaultPosition(.center)
+        .defaultSize(width: 700, height: 550)
 
         // History window
         Window("History", id: "history") {

@@ -117,15 +117,11 @@ class StatusBarManager {
 
     @objc private func showSettings() {
         NSApplication.shared.activate(ignoringOtherApps: true)
-        let window = appWindow ?? NSApplication.shared.windows.first(where: { $0.level == .normal })
-        window?.makeKeyAndOrderFront(nil)
         NotificationCenter.default.post(name: .showSettings, object: nil)
     }
 
     @objc private func showOnboarding() {
         NSApplication.shared.activate(ignoringOtherApps: true)
-        let window = appWindow ?? NSApplication.shared.windows.first(where: { $0.level == .normal })
-        window?.makeKeyAndOrderFront(nil)
         NotificationCenter.default.post(name: .showOnboarding, object: nil)
     }
 

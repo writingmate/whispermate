@@ -114,6 +114,8 @@ struct SettingsView: View {
             .background(Color(nsColor: .textBackgroundColor))
         }
         .frame(width: 700, height: 550)
+        .background(Color(nsColor: .windowBackgroundColor))
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .onAppear {
             loadAudioDevices()
         }
@@ -474,6 +476,7 @@ struct SettingsView: View {
         }
     }
 
+
     // MARK: - Text Rules Section
     private var rulesSection: some View {
         VStack(alignment: .leading, spacing: 24) {
@@ -626,6 +629,6 @@ struct SettingsView: View {
         languageManager: LanguageManager(),
         transcriptionProviderManager: TranscriptionProviderManager(),
         llmProviderManager: LLMProviderManager(),
-        promptRulesManager: PromptRulesManager()
+        promptRulesManager: PromptRulesManager.shared
     )
 }
