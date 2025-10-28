@@ -11,6 +11,14 @@ enum OpenAIError: Error {
 /// Unified OpenAI-compatible client that works with Groq, OpenAI, and any OpenAI-compatible API
 /// Single client configured once and used everywhere
 class OpenAIClient {
+    // Custom URLSession with 5 second timeout - fail fast
+    private static let urlSession: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 5.0  // 5 seconds max
+        config.timeoutIntervalForResource = 5.0  // 5 seconds max
+        return URLSession(configuration: config)
+    }()
+
     // MARK: - Configuration
 
     struct Configuration {
@@ -125,7 +133,7 @@ class OpenAIClient {
 
         // Send request
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await Self.urlSession.data(for: request)
 
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw OpenAIError.invalidResponse
@@ -202,7 +210,7 @@ class OpenAIClient {
 
         // Send request
         do {
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let (data, response) = try await Self.urlSession.data(for: request)
 
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw OpenAIError.invalidResponse

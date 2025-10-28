@@ -83,10 +83,10 @@ class OnboardingManager: ObservableObject {
                 DebugLog.info("All permissions granted, skipping onboarding", context: "OnboardingManager")
             }
         } else {
-            // First time launch
+            // First time launch - always show onboarding
             DebugLog.info("First launch, showing onboarding", context: "OnboardingManager")
             showOnboarding = true
-            currentStep = findFirstIncompleteStep()
+            currentStep = .microphone
         }
     }
 
