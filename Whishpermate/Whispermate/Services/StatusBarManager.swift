@@ -1,6 +1,13 @@
 import SwiftUI
 import AppKit
 
+// MARK: - Window Identifiers
+struct WindowIdentifiers {
+    static let main = NSUserInterfaceItemIdentifier("main-window")
+    static let settings = NSUserInterfaceItemIdentifier("settings-window")
+    static let history = NSUserInterfaceItemIdentifier("history-window")
+}
+
 // MARK: - Notification Names
 extension NSNotification.Name {
     static let showHistory = NSNotification.Name("ShowHistory")

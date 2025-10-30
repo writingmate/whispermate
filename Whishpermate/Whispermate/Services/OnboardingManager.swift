@@ -49,15 +49,18 @@ enum OnboardingStep: Int, CaseIterable {
 }
 
 class OnboardingManager: ObservableObject {
+    static let shared = OnboardingManager()
+
     @Published var showOnboarding: Bool = false
     @Published var currentStep: OnboardingStep = .microphone
     @Published var accessibilityGranted: Bool = false
 
     private let onboardingCompletedKey = "has_completed_onboarding"
 
-    init() {
+    private init() {
         accessibilityGranted = AXIsProcessTrusted()
-        checkOnboardingStatus()
+        // Don't call checkOnboardingStatus() here - let the view call it in onAppear
+        // This ensures the onChange modifier is registered before the state changes
     }
 
     func updateAccessibilityStatus() {

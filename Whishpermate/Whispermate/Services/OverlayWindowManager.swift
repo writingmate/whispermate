@@ -2,7 +2,14 @@ import AppKit
 import SwiftUI
 internal import Combine
 
+enum OverlayPosition: String, CaseIterable, Codable {
+    case top = "Top"
+    case bottom = "Bottom"
+}
+
 class OverlayWindowManager: ObservableObject {
+    static let shared = OverlayWindowManager()
+
     private var overlayWindow: NSWindow?
     private var screenChangeObserver: Any?
 
@@ -28,6 +35,51 @@ class OverlayWindowManager: ObservableObject {
     @Published var isOverlayMode = true {  // Start in overlay mode by default
         didSet {
             print("[OverlayWindowManager LOG] ⚡️ isOverlayMode changed: \(oldValue) -> \(isOverlayMode)")
+        }
+    }
+
+    @Published var position: OverlayPosition = {
+        if let savedRawValue = UserDefaults.standard.string(forKey: "overlayPosition"),
+           let savedPosition = OverlayPosition(rawValue: savedRawValue) {
+            return savedPosition
+        }
+        return .bottom
+    }() {
+        didSet {
+            UserDefaults.standard.set(position.rawValue, forKey: "overlayPosition")
+
+            // Defer state changes to avoid publishing during view updates
+            DispatchQueue.main.async { [weak self] in
+                self?.repositionWindow()
+
+                // Briefly show overlay so user can see the new position
+                self?.showAlways()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                    // Hide after 2 seconds if not recording/processing
+                    if !(self?.isRecording ?? false) && !(self?.isProcessing ?? false) {
+                        self?.hide()
+                    }
+                }
+            }
+        }
+    }
+
+    @Published var hideIdleState: Bool = {
+        return UserDefaults.standard.bool(forKey: "hideIdleState")
+    }() {
+        didSet {
+            UserDefaults.standard.set(hideIdleState, forKey: "hideIdleState")
+
+            // Defer state changes to avoid publishing during view updates
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                // Update overlay visibility based on new setting
+                if self.hideIdleState && !self.isRecording && !self.isProcessing {
+                    self.hide()
+                } else if !self.hideIdleState && !self.isRecording && !self.isProcessing {
+                    self.show()
+                }
+            }
         }
     }
 
@@ -60,9 +112,18 @@ class OverlayWindowManager: ObservableObject {
             self.isRecording = isRecording
             self.isProcessing = isProcessing
 
-            // Always keep the overlay visible (it just changes size/state)
-            if self.overlayWindow == nil {
-                print("[OverlayWindowManager LOG] updateState - overlay window is nil, showing...")
+            // Show overlay when recording/processing, respect hideIdleState when idle
+            if isRecording || isProcessing {
+                // Always show when actively recording/processing
+                if self.overlayWindow == nil {
+                    print("[OverlayWindowManager LOG] updateState - overlay window is nil, showing...")
+                }
+                self.show()
+            } else if self.hideIdleState {
+                // Hide when idle if hideIdleState is enabled
+                self.hide()
+            } else {
+                // Show idle state
                 self.show()
             }
         }
@@ -111,9 +172,8 @@ class OverlayWindowManager: ObservableObject {
         let screenFrame = screen.visibleFrame
         let (windowWidth, windowHeight) = getWindowSize()
 
-        // Position at bottom center (very close to bottom)
-        let xPos = screenFrame.origin.x + (screenFrame.width - windowWidth) / 2
-        let yPos = screenFrame.origin.y + 0 // 0 points from bottom - at the very edge!
+        // Calculate position based on selected position
+        let (xPos, yPos) = calculatePosition(for: position, screenFrame: screenFrame, windowWidth: windowWidth, windowHeight: windowHeight)
 
         let windowFrame = NSRect(x: xPos, y: yPos, width: windowWidth, height: windowHeight)
 
@@ -169,9 +229,8 @@ class OverlayWindowManager: ObservableObject {
         let screenFrame = screen.visibleFrame
         let (windowWidth, windowHeight) = getWindowSize()
 
-        // Position at bottom center
-        let xPos = screenFrame.origin.x + (screenFrame.width - windowWidth) / 2
-        let yPos = screenFrame.origin.y + 0
+        // Calculate position based on selected position
+        let (xPos, yPos) = calculatePosition(for: position, screenFrame: screenFrame, windowWidth: windowWidth, windowHeight: windowHeight)
 
         let newFrame = NSRect(x: xPos, y: yPos, width: windowWidth, height: windowHeight)
         window.setFrame(newFrame, display: true)
@@ -179,13 +238,50 @@ class OverlayWindowManager: ObservableObject {
         print("[OverlayWindowManager LOG] ✅ Repositioned to: (\(xPos), \(yPos))")
     }
 
-    private func getWindowSize() -> (width: CGFloat, height: CGFloat) {
-        // Large size for recording/processing states
-        if isRecording || isProcessing {
-            return (210, 52)
+    private func calculatePosition(for position: OverlayPosition, screenFrame: NSRect, windowWidth: CGFloat, windowHeight: CGFloat) -> (x: CGFloat, y: CGFloat) {
+        let padding: CGFloat = 0  // Distance from edge
+
+        switch position {
+        case .bottom:
+            let x = screenFrame.origin.x + (screenFrame.width - windowWidth) / 2
+            let y = screenFrame.origin.y + padding
+            return (x, y)
+        case .top:
+            let x = screenFrame.origin.x + (screenFrame.width - windowWidth) / 2
+            let y = screenFrame.origin.y + screenFrame.height - windowHeight - padding
+            return (x, y)
         }
-        // Small size for idle state
-        return (70, 42)
+    }
+
+    private func getWindowSize() -> (width: CGFloat, height: CGFloat) {
+        // Window size constants that match RecordingOverlayView
+        let activeStateWidth: CGFloat = 180
+        let activeStateHeight: CGFloat = 24
+        let activePadding: CGFloat = 15
+
+        let idleStateWidth: CGFloat = 21
+        let idleStateHeight: CGFloat = 1
+        let idlePaddingHover: CGFloat = 8
+        let expandButtonSize: CGFloat = 17
+        let itemSpacing: CGFloat = 6
+
+        let edgeMargin: CGFloat = 2  // Bottom/top margin
+        let verticalPaddingActive: CGFloat = 4.5
+        let verticalPaddingIdle: CGFloat = 3
+
+        if isRecording || isProcessing {
+            // Active state: content + padding
+            let width = activeStateWidth + (activePadding * 2)
+            let height = activeStateHeight + (verticalPaddingActive * 2) + (edgeMargin * 2)
+            return (width, height)
+        } else {
+            // Idle state: need room for hover animation (button appears)
+            // Hover: idleWidth + hoverPadding*2 + spacing + buttonSize
+            let maxWidth = idleStateWidth + (idlePaddingHover * 2) + itemSpacing + expandButtonSize
+            let width = maxWidth + 10  // Extra room for smooth animation
+            let height = max(idleStateHeight, expandButtonSize) + (verticalPaddingIdle * 2) + (edgeMargin * 2)
+            return (width, height)
+        }
     }
 
     private func updateWindowSize() {
@@ -196,9 +292,8 @@ class OverlayWindowManager: ObservableObject {
         let screenFrame = screen.visibleFrame
         let (windowWidth, windowHeight) = getWindowSize()
 
-        // Keep centered at bottom
-        let xPos = screenFrame.origin.x + (screenFrame.width - windowWidth) / 2
-        let yPos = screenFrame.origin.y + 0
+        // Calculate position based on selected position
+        let (xPos, yPos) = calculatePosition(for: position, screenFrame: screenFrame, windowWidth: windowWidth, windowHeight: windowHeight)
 
         let newFrame = NSRect(x: xPos, y: yPos, width: windowWidth, height: windowHeight)
 

@@ -1,0 +1,12 @@
+{
+  "MLModelVersionStringKey" : "6.0.0",
+  "MLModelDescriptionKey" : "Silero VAD Unified Model (STFT + Encoder + Decoder)",
+  "MLModelCreatorDefinedKey" : {
+    "com.github.apple.coremltools.conversion_date" : "2025-09-15",
+    "com.github.apple.coremltools.source" : "torch==2.7.0",
+    "com.github.apple.coremltools.version" : "9.0b1",
+    "com.github.apple.coremltools.source_dialect" : "TorchScript"
+  },
+  "MLModelAuthorKey" : "Fluid Infernece + Silero Team",
+  "MLModelLicenseKey" : "--"
+}

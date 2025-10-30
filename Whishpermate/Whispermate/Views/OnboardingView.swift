@@ -58,6 +58,17 @@ struct OnboardingView: View {
                 .padding(.bottom, 20)
             }
             .frame(maxHeight: .infinity)
+            .mask(
+                LinearGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: .black, location: 0),
+                        .init(color: .black, location: 0.92),
+                        .init(color: .clear, location: 1)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
 
             // Bottom action button
             bottomButton
@@ -122,13 +133,18 @@ struct OnboardingView: View {
 
         case .accessibility:
             if onboardingManager.isAccessibilityGranted() {
-                HStack(spacing: 4) {
+                VStack(spacing: 12) {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
+                        .font(.system(size: 48))
+                        .foregroundStyle(Color(nsColor: .systemGreen))
+                        .scaleEffect(onboardingManager.accessibilityGranted ? 1.0 : 0.5)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.6), value: onboardingManager.accessibilityGranted)
+
                     Text("Permission granted")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.green)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(Color(nsColor: .systemGreen))
                 }
+                .padding(.vertical, 20)
             } else {
                 Spacer()
                     .frame(height: 1)
@@ -138,41 +154,39 @@ struct OnboardingView: View {
             VStack(spacing: 12) {
                 // Language grid
                 LazyVGrid(columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
+                    GridItem(.adaptive(minimum: 140))
                 ], spacing: 8) {
                     ForEach(Language.allCases) { language in
                         Button(action: {
                             languageManager.toggleLanguage(language)
                         }) {
-                            HStack(spacing: 6) {
+                            HStack(spacing: 8) {
                                 Text(language.flag)
-                                    .font(.system(size: 20))
+                                    .font(.system(size: 16))
+
                                 Text(language.displayName)
-                                    .font(.system(size: 12))
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(languageManager.isSelected(language) ? .white : .primary)
                                     .lineLimit(1)
+
                                 Spacer()
+
                                 if languageManager.isSelected(language) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.system(size: 14))
-                                        .foregroundStyle(.green)
+                                    Image(systemName: "checkmark")
+                                        .font(.system(size: 11, weight: .bold))
+                                        .foregroundStyle(.white)
                                 }
                             }
-                            .padding(.horizontal, 10)
+                            .padding(.horizontal, 12)
                             .padding(.vertical, 8)
                             .frame(maxWidth: .infinity)
                             .background(
                                 RoundedRectangle(cornerRadius: 6)
-                                    .fill(languageManager.isSelected(language)
-                                        ? Color.accentColor.opacity(0.1)
-                                        : Color(nsColor: .controlBackgroundColor))
+                                    .fill(languageManager.isSelected(language) ? Color.accentColor : Color(nsColor: .controlBackgroundColor))
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: 6)
-                                    .stroke(languageManager.isSelected(language)
-                                        ? Color.accentColor
-                                        : Color.clear, lineWidth: 2)
+                                    .stroke(Color(nsColor: .separatorColor), lineWidth: languageManager.isSelected(language) ? 0 : 0.5)
                             )
                         }
                         .buttonStyle(.plain)
@@ -208,25 +222,25 @@ struct OnboardingView: View {
                     // Fn key option (visual representation)
                     Text("Fn")
                         .font(.system(size: 40, weight: .semibold))
-                        .foregroundStyle(hotkeyManager.currentHotkey?.keyCode == 63 ? .green : .primary)
+                        .foregroundStyle(hotkeyManager.currentHotkey?.keyCode == 63 ? Color(nsColor: .systemGreen) : .primary)
                         .frame(width: 100, height: 100)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(nsColor: .controlBackgroundColor))
+                                .fill(Color.quaternarySystemFill)
                                 .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(hotkeyManager.currentHotkey?.keyCode == 63 ? Color.green : Color.clear, lineWidth: 3)
+                                .stroke(hotkeyManager.currentHotkey?.keyCode == 63 ? Color(nsColor: .systemGreen) : Color.clear, lineWidth: 3)
                         )
 
                     if hotkeyManager.currentHotkey?.keyCode == 63 {
                         HStack(spacing: 6) {
                             Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(.green)
+                                .foregroundStyle(Color(nsColor: .systemGreen))
                             Text("Fn key detected")
                                 .font(.system(size: 12))
-                                .foregroundStyle(.green)
+                                .foregroundStyle(Color(nsColor: .systemGreen))
                         }
                     } else {
                         Text("Press Fn to use it")
@@ -258,67 +272,11 @@ struct OnboardingView: View {
 
         case .prompts:
             VStack(spacing: 16) {
-                // Show current rules
-                VStack(alignment: .leading, spacing: 8) {
-                    ForEach(promptRulesManager.rules) { rule in
-                        HStack(spacing: 10) {
-                            Button(action: {
-                                promptRulesManager.toggleRule(rule)
-                            }) {
-                                Image(systemName: rule.isEnabled ? "checkmark.square.fill" : "square")
-                                    .foregroundStyle(rule.isEnabled ? Color.accentColor : .secondary)
-                            }
-                            .buttonStyle(.plain)
-
-                            Text(rule.text)
-                                .font(.system(size: 12))
-                                .foregroundStyle(rule.isEnabled ? .primary : .secondary)
-                                .strikethrough(!rule.isEnabled)
-
-                            Spacer()
-
-                            Button(action: {
-                                promptRulesManager.removeRule(rule)
-                            }) {
-                                Image(systemName: "trash")
-                                    .font(.system(size: 11))
-                                    .foregroundStyle(.red)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(Color(nsColor: .controlBackgroundColor))
-                        )
-                    }
-
-                    // Add new rule
-                    HStack(spacing: 8) {
-                        TextField("Add custom rule...", text: $newRuleText)
-                            .textFieldStyle(.roundedBorder)
-                            .font(.system(size: 12))
-                            .onSubmit {
-                                if !newRuleText.isEmpty {
-                                    promptRulesManager.addRule(newRuleText)
-                                    newRuleText = ""
-                                }
-                            }
-
-                        Button(action: {
-                            if !newRuleText.isEmpty {
-                                promptRulesManager.addRule(newRuleText)
-                                newRuleText = ""
-                            }
-                        }) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 18))
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(newRuleText.isEmpty)
-                    }
-                }
+                // Rules table
+                RulesTable(
+                    promptRulesManager: promptRulesManager,
+                    newRuleText: $newRuleText
+                )
 
                 // Live preview section with divider
                 HStack {
@@ -386,7 +344,7 @@ struct OnboardingView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
                     .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        Capsule()
                             .fill(Color.accentColor)
                     )
             }
@@ -406,8 +364,8 @@ struct OnboardingView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
                     .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(onboardingManager.isAccessibilityGranted() ? Color.accentColor : Color.orange)
+                        Capsule()
+                            .fill(onboardingManager.isAccessibilityGranted() ? Color.accentColor : Color(nsColor: .systemOrange))
                     )
             }
             .buttonStyle(.plain)
@@ -422,7 +380,7 @@ struct OnboardingView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
                     .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        Capsule()
                             .fill(Color.accentColor)
                     )
             }
@@ -438,7 +396,7 @@ struct OnboardingView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
                     .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        Capsule()
                             .fill(hotkeyManager.currentHotkey != nil ? Color.accentColor : Color.gray)
                     )
             }
@@ -455,7 +413,7 @@ struct OnboardingView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
                     .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        Capsule()
                             .fill(Color.accentColor)
                     )
             }

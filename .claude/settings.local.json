@@ -84,7 +84,9 @@
       "Bash(ls:*)",
       "Read(//Volumes/**)",
       "Bash(hdiutil convert:*)",
-      "Bash(ditto:*)"
+      "Bash(ditto:*)",
+      "Bash(gh release view:*)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []
