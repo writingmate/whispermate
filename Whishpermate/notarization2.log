@@ -1,0 +1,11 @@
+Conducting pre-submission checks for WhisperMate-v0.0.10.dmg and initiating connection to the Apple notary service...
+Submission ID received
+  id: 7fa30eb5-b81f-40a5-bbb5-ac3ff681dec0
+Successfully uploaded file
+  id: 7fa30eb5-b81f-40a5-bbb5-ac3ff681dec0
+  path: /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMate-v0.0.10.dmg
+Waiting for processing to complete.
+Current status: In Progress...Current status: In Progress....Current status: In Progress.....Current status: In Progress......Current status: Invalid.......Processing complete
+  id: 7fa30eb5-b81f-40a5-bbb5-ac3ff681dec0
+  status: Invalid
+

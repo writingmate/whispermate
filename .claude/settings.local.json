@@ -86,7 +86,10 @@
       "Bash(hdiutil convert:*)",
       "Bash(ditto:*)",
       "Bash(gh release view:*)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(VERSION=\"0.0.10\" xcodebuild:*)",
+      "Bash(VERSION=\"0.0.10\")",
+      "Bash(WhisperMate-v0.0.10.dmg)"
     ],
     "deny": [],
     "ask": []
