@@ -16,7 +16,6 @@ struct ContentView: View {
     @State private var transcription = ""
     @State private var isProcessing = false
     @State private var showingAPIKeyAlert = false
-    @State private var showOnboarding = false
     @State private var apiKey = ""
     @Environment(\.openWindow) private var openWindow
     @State private var errorMessage = ""
@@ -26,6 +25,7 @@ struct ContentView: View {
     @State private var capturedAppContext: String?
     @State private var showCopiedNotification = false
     @State private var isHoveringWindow = false
+    @State private var hasCheckedOnboarding = false
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -121,29 +121,21 @@ struct ContentView: View {
             .padding(.trailing, 6)
         }
         .ignoresSafeArea(.all, edges: .top)
-        .sheet(isPresented: $showOnboarding) {
-            OnboardingView(
-                onboardingManager: onboardingManager,
-                hotkeyManager: hotkeyManager,
-                languageManager: languageManager,
-                promptRulesManager: promptRulesManager,
-                llmProviderManager: llmProviderManager
-            )
-            .interactiveDismissDisabled(true)
-        }
         .onChange(of: onboardingManager.showOnboarding) { newValue in
             DebugLog.info("Onboarding state changed to \(newValue)", context: "ContentView")
 
-            // If showing onboarding, ensure main window is visible first
             if newValue {
-                if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-                    window.setIsVisible(true)
-                    window.makeKeyAndOrderFront(nil)
+                // Hide main window before opening onboarding
+                if let mainWindow = NSApplication.shared.windows.first(where: { $0.identifier == WindowIdentifiers.main }) {
+                    DebugLog.info("Hiding main window before opening onboarding", context: "ContentView")
+                    mainWindow.setIsVisible(false)
                 }
-            }
 
-            // Update local state synchronously to avoid KVO issues on Ventura
-            showOnboarding = newValue
+                // Open onboarding window
+                DebugLog.info("Opening onboarding window", context: "ContentView")
+                openWindow(id: "onboarding")
+            }
+            // Note: Window closing is handled by the onboardingComplete notification
         }
         .alert("Enter API Key", isPresented: $showingAPIKeyAlert) {
             TextField("API Key", text: $apiKey)
@@ -168,10 +160,14 @@ struct ContentView: View {
         .onAppear {
             DebugLog.info("ContentView onAppear - checking onboarding status", context: "ContentView")
 
-            // Check onboarding status - onChange will handle syncing showOnboarding
-            onboardingManager.checkOnboardingStatus()
-
-            DebugLog.info("Initial onboarding state: \(onboardingManager.showOnboarding)", context: "ContentView")
+            // Only check onboarding status once on first launch
+            if !hasCheckedOnboarding {
+                onboardingManager.checkOnboardingStatus()
+                hasCheckedOnboarding = true
+                DebugLog.info("Initial onboarding state: \(onboardingManager.showOnboarding)", context: "ContentView")
+            } else {
+                DebugLog.info("Skipping onboarding check (already checked)", context: "ContentView")
+            }
 
             // Set up CMD+C keyboard shortcut handler
             NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [self] event in
@@ -245,9 +241,17 @@ struct ContentView: View {
                     return
                 }
 
-                DebugLog.info("shouldAutoPaste will be set to TRUE", context: "ContentView")
+                // Only auto-paste when in overlay mode (app is in background)
+                // When main window is visible, just display the transcription without pasting
+                if overlayManager.isOverlayMode {
+                    DebugLog.info("Overlay mode active - will auto-paste", context: "ContentView")
+                    shouldAutoPaste = true
+                } else {
+                    DebugLog.info("Main window active - will NOT auto-paste", context: "ContentView")
+                    shouldAutoPaste = false
+                }
+
                 DebugLog.info("isRecording: \(audioRecorder.isRecording), isProcessing: \(isProcessing)", context: "ContentView")
-                shouldAutoPaste = true
 
                 // Just start recording - don't change window visibility
                 // The app foreground/background state determines overlay vs main window
@@ -295,7 +299,15 @@ struct ContentView: View {
                 } else if !audioRecorder.isRecording && !isProcessing {
                     DebugLog.info("Double-tap: Starting continuous recording", context: "ContentView")
                     isContinuousRecording = true
-                    shouldAutoPaste = true
+
+                    // Only auto-paste when in overlay mode
+                    if overlayManager.isOverlayMode {
+                        DebugLog.info("Overlay mode active - will auto-paste continuous recording", context: "ContentView")
+                        shouldAutoPaste = true
+                    } else {
+                        DebugLog.info("Main window active - will NOT auto-paste continuous recording", context: "ContentView")
+                        shouldAutoPaste = false
+                    }
 
                     // Just start recording - don't change window visibility
                     startRecording()
@@ -331,6 +343,41 @@ struct ContentView: View {
                 onboardingManager.reopenOnboarding()
             }
 
+            NotificationCenter.default.addObserver(
+                forName: .onboardingComplete,
+                object: nil,
+                queue: .main
+            ) { _ in
+                DebugLog.info("Received onboardingComplete notification", context: "ContentView")
+
+                // Close onboarding window
+                let windows = NSApplication.shared.windows
+                DebugLog.info("Looking for onboarding window to close. Total windows: \(windows.count)", context: "ContentView")
+
+                for (index, window) in windows.enumerated() {
+                    DebugLog.info("Window \(index): title='\(window.title)', id=\(window.identifier?.rawValue ?? "nil")", context: "ContentView")
+                }
+
+                if let onboardingWindow = windows.first(where: {
+                    $0.title == "Welcome to Whispermate" || $0.identifier?.rawValue == "onboarding"
+                }) {
+                    DebugLog.info("Found onboarding window, closing it", context: "ContentView")
+                    onboardingWindow.close()
+                } else {
+                    DebugLog.info("⚠️ Could not find onboarding window to close", context: "ContentView")
+                }
+
+                // Show and activate main window
+                if let mainWindow = NSApplication.shared.windows.first(where: { $0.identifier == WindowIdentifiers.main }) {
+                    DebugLog.info("Found main window, showing and activating", context: "ContentView")
+                    mainWindow.setIsVisible(true)
+                    mainWindow.makeKeyAndOrderFront(nil)
+                    NSApplication.shared.activate(ignoringOtherApps: true)
+                } else {
+                    DebugLog.info("⚠️ Could not find main window", context: "ContentView")
+                }
+            }
+
             // Set up app state observers for overlay management
             NotificationCenter.default.addObserver(
                 forName: NSApplication.didResignActiveNotification,
@@ -354,6 +401,13 @@ struct ContentView: View {
                 DebugLog.info("☀️ App came to foreground - hiding overlay", context: "ContentView")
                 overlayManager.isOverlayMode = false
                 overlayManager.hide()
+
+                // Don't show main window if onboarding is active
+                if onboardingManager.showOnboarding {
+                    DebugLog.info("Onboarding active - keeping main window hidden", context: "ContentView")
+                    return
+                }
+
                 // Show main window when coming to foreground
                 if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
                     window.setIsVisible(true)
