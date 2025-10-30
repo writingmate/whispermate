@@ -437,6 +437,9 @@ struct OnboardingView: View {
     private func checkMicrophonePeriodically() {
         guard isCheckingMicrophone else { return }
 
+        // Update microphone status (this will trigger view refresh via @Published property)
+        onboardingManager.updateMicrophoneStatus()
+
         // Check if microphone is now granted
         if onboardingManager.isMicrophoneGranted() {
             // Permission granted! Stop checking
