@@ -54,17 +54,23 @@ class OnboardingManager: ObservableObject {
     @Published var showOnboarding: Bool = false
     @Published var currentStep: OnboardingStep = .microphone
     @Published var accessibilityGranted: Bool = false
+    @Published var microphoneGranted: Bool = false
 
     private let onboardingCompletedKey = "has_completed_onboarding"
 
     private init() {
         accessibilityGranted = AXIsProcessTrusted()
+        microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
         // Don't call checkOnboardingStatus() here - let the view call it in onAppear
         // This ensures the onChange modifier is registered before the state changes
     }
 
     func updateAccessibilityStatus() {
         accessibilityGranted = AXIsProcessTrusted()
+    }
+
+    func updateMicrophoneStatus() {
+        microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
     }
 
     func checkOnboardingStatus() {
