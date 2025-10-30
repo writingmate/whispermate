@@ -146,19 +146,64 @@ class OnboardingManager: ObservableObject {
     }
 
     func completeOnboarding() {
+        // Guard against multiple calls
+        guard showOnboarding else {
+            DebugLog.info("Onboarding already completed, ignoring duplicate call", context: "OnboardingManager")
+            return
+        }
+
         DebugLog.info("✅ Onboarding complete!", context: "OnboardingManager")
         UserDefaults.standard.set(true, forKey: onboardingCompletedKey)
         showOnboarding = false
+
+        // Post notification to close onboarding window and show main window
+        NotificationCenter.default.post(name: .onboardingComplete, object: nil)
     }
 
     func requestMicrophonePermission() {
-        AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
-            DispatchQueue.main.async {
-                DebugLog.info("Microphone permission: \(granted)", context: "OnboardingManager")
-                if granted {
-                    self?.moveToNextStep()
+        let currentStatus = AVCaptureDevice.authorizationStatus(for: .audio)
+        DebugLog.info("Current microphone permission status: \(currentStatus.rawValue)", context: "OnboardingManager")
+
+        switch currentStatus {
+        case .authorized:
+            // Already authorized, move to next step
+            DebugLog.info("Microphone already authorized", context: "OnboardingManager")
+            moveToNextStep()
+
+        case .notDetermined:
+            // First time, request permission
+            DebugLog.info("Requesting microphone permission for the first time", context: "OnboardingManager")
+            AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
+                DispatchQueue.main.async {
+                    DebugLog.info("Microphone permission result: \(granted)", context: "OnboardingManager")
+                    if granted {
+                        self?.moveToNextStep()
+                    }
                 }
             }
+
+        case .denied, .restricted:
+            // Permission was denied or restricted, show alert to open System Settings
+            DebugLog.info("Microphone permission denied or restricted, showing alert", context: "OnboardingManager")
+            DispatchQueue.main.async {
+                let alert = NSAlert()
+                alert.messageText = "Microphone Access Required"
+                alert.informativeText = "WhisperMate needs microphone access to record audio.\n\nPlease grant permission in System Settings:\n1. Open System Settings (button below)\n2. Go to Privacy & Security > Microphone\n3. Enable WhisperMate"
+                alert.alertStyle = .warning
+                alert.addButton(withTitle: "Open System Settings")
+                alert.addButton(withTitle: "Cancel")
+
+                let response = alert.runModal()
+                if response == .alertFirstButtonReturn {
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+            }
+
+        @unknown default:
+            DebugLog.info("Unknown microphone permission status", context: "OnboardingManager")
+            break
         }
     }
 
