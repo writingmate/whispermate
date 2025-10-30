@@ -1,0 +1,30 @@
+{
+  "Inputs" : {
+    "hidden_state" : {
+      "MLFeatureShortDescription" : "--"
+    },
+    "audio_input" : {
+      "MLFeatureShortDescription" : "--"
+    },
+    "cell_state" : {
+      "MLFeatureShortDescription" : "--"
+    }
+  },
+  "Outputs" : {
+    "new_cell_state" : {
+      "MLFeatureShortDescription" : "--"
+    },
+    "new_hidden_state" : {
+      "MLFeatureShortDescription" : "--"
+    },
+    "vad_output" : {
+      "MLFeatureShortDescription" : "--"
+    }
+  },
+  "TrainingInputs" : {
+
+  },
+  "States" : {
+
+  }
+}

@@ -2,6 +2,8 @@ import AppKit
 internal import Combine
 
 class HotkeyManager: ObservableObject {
+    static let shared = HotkeyManager()
+
     @Published var currentHotkey: Hotkey?
 
     private var globalMonitor: Any?
@@ -11,6 +13,8 @@ class HotkeyManager: ObservableObject {
     private var previousFunctionKeyState = false
     private var fnKeyMonitor: FnKeyMonitor?
     private var deferRegistration = false
+    private var eventTap: CFMachPort?
+    private var eventTapRunLoopSource: CFRunLoopSource?
 
     // Double-tap detection
     private var lastTapTime: Date?
@@ -21,7 +25,7 @@ class HotkeyManager: ObservableObject {
     var onHotkeyReleased: (() -> Void)?
     var onDoubleTap: (() -> Void)?
 
-    init() {
+    private init() {
         loadHotkey()
     }
 
@@ -112,41 +116,84 @@ class HotkeyManager: ObservableObject {
             fnKeyMonitor?.startMonitoring()
             DebugLog.info("========================================", context: "HotkeyManager LOG")
         } else {
-            DebugLog.info("Using regular key path (keyDown + keyUp events)", context: "HotkeyManager LOG")
-            DebugLog.info("Registering global and local monitors for keyDown and keyUp", context: "HotkeyManager LOG")
+            DebugLog.info("Using regular key path with CGEventTap for global consumption", context: "HotkeyManager LOG")
 
-            // Monitor keyDown events
-            globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
-                DebugLog.info("Global keyDown monitor triggered", context: "HotkeyManager LOG")
-                self?.handleKeyDownEvent(event)
-            }
+            // Use CGEventTap which can consume events even when app is in background
+            // This requires accessibility permissions, which we request during onboarding
+            setupEventTap()
+        }
+    }
 
-            localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-                DebugLog.info("Local keyDown monitor triggered", context: "HotkeyManager LOG")
-                if self?.handleKeyDownEvent(event) == true {
+    private func setupEventTap() {
+        // Create event tap that intercepts key events
+        let eventMask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
+
+        // Capture self in the callback
+        let selfPtr = Unmanaged.passUnretained(self).toOpaque()
+
+        guard let tap = CGEvent.tapCreate(
+            tap: .cgSessionEventTap,
+            place: .headInsertEventTap,
+            options: .defaultTap,
+            eventsOfInterest: CGEventMask(eventMask),
+            callback: { (proxy, type, event, refcon) -> Unmanaged<CGEvent>? in
+                let manager = Unmanaged<HotkeyManager>.fromOpaque(refcon!).takeUnretainedValue()
+                return manager.handleCGEvent(proxy: proxy, type: type, event: event)
+            },
+            userInfo: selfPtr
+        ) else {
+            DebugLog.info("Failed to create event tap - accessibility permission may not be granted", context: "HotkeyManager LOG")
+            return
+        }
+
+        eventTap = tap
+        eventTapRunLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
+        CFRunLoopAddSource(CFRunLoopGetCurrent(), eventTapRunLoopSource, .commonModes)
+        CGEvent.tapEnable(tap: tap, enable: true)
+
+        DebugLog.info("Event tap created and enabled", context: "HotkeyManager LOG")
+    }
+
+    private func handleCGEvent(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
+        guard currentHotkey != nil else {
+            return Unmanaged.passUnretained(event)
+        }
+
+        if type == .keyDown {
+            // Create NSEvent for compatibility with existing handler
+            if let nsEvent = NSEvent(cgEvent: event) {
+                let shouldConsume = handleKeyDownEvent(nsEvent)
+                if shouldConsume {
                     return nil // Consume the event
                 }
-                return event
             }
-
-            // Monitor keyUp events (both global and local)
-            globalKeyUpMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyUp) { [weak self] event in
-                DebugLog.info("Global keyUp monitor triggered", context: "HotkeyManager LOG")
-                self?.handleKeyUpEvent(event)
-            }
-
-            keyUpMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyUp) { [weak self] event in
-                DebugLog.info("Local keyUp monitor triggered", context: "HotkeyManager LOG")
-                if self?.handleKeyUpEvent(event) == true {
+        } else if type == .keyUp {
+            // Create NSEvent for compatibility with existing handler
+            if let nsEvent = NSEvent(cgEvent: event) {
+                let shouldConsume = handleKeyUpEvent(nsEvent)
+                if shouldConsume {
                     return nil // Consume the event
                 }
-                return event
             }
         }
+
+        return Unmanaged.passUnretained(event)
     }
 
     private func unregisterHotkey() {
         DebugLog.info("unregisterHotkey called", context: "HotkeyManager LOG")
+
+        // Disable and remove event tap
+        if let tap = eventTap {
+            DebugLog.info("Disabling event tap", context: "HotkeyManager LOG")
+            CGEvent.tapEnable(tap: tap, enable: false)
+            if let source = eventTapRunLoopSource {
+                CFRunLoopRemoveSource(CFRunLoopGetCurrent(), source, .commonModes)
+                eventTapRunLoopSource = nil
+            }
+            eventTap = nil
+        }
+
         if let monitor = globalMonitor {
             DebugLog.info("Removing global monitor", context: "HotkeyManager LOG")
             NSEvent.removeMonitor(monitor)
@@ -186,15 +233,27 @@ class HotkeyManager: ObservableObject {
 
         DebugLog.info("handleKeyDownEvent: keyCode=\(event.keyCode), modifiers=\(event.modifierFlags.rawValue), isARepeat=\(event.isARepeat)", context: "HotkeyManager LOG")
 
-        // Ignore key repeat events
+        // Consume key repeat events to prevent typing sounds
         if event.isARepeat {
             DebugLog.info("handleKeyDownEvent: Ignoring key repeat event", context: "HotkeyManager LOG")
-            return false
+            // Return true if this is our hotkey to consume the repeat event
+            return event.keyCode == hotkey.keyCode
         }
 
-        // Check if the key code and modifiers match
-        if event.keyCode == hotkey.keyCode &&
-           event.modifierFlags.intersection(.deviceIndependentFlagsMask) == hotkey.modifiers {
+        // Check if the key code matches and required modifiers are present
+        let eventModifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        let requiredModifiers = hotkey.modifiers
+
+        // For hotkeys with modifiers, check if all required modifiers are present
+        // For hotkeys without modifiers, check for exact match (no modifiers)
+        let modifiersMatch: Bool
+        if requiredModifiers.isEmpty {
+            modifiersMatch = eventModifiers.isEmpty
+        } else {
+            modifiersMatch = eventModifiers.intersection(requiredModifiers) == requiredModifiers
+        }
+
+        if event.keyCode == hotkey.keyCode && modifiersMatch {
 
             // Check for double-tap
             let now = Date()
@@ -233,6 +292,7 @@ class HotkeyManager: ObservableObject {
             } else {
                 DebugLog.info("handleKeyUpEvent: Key released but not in hold mode (continuous recording)", context: "HotkeyManager LOG")
             }
+            // Always consume the event to prevent system handling
             return true
         }
 

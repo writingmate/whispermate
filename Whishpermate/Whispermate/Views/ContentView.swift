@@ -4,10 +4,10 @@ import AppKit
 
 struct ContentView: View {
     @StateObject private var audioRecorder = AudioRecorder()
-    @StateObject private var hotkeyManager = HotkeyManager()
+    @ObservedObject private var hotkeyManager = HotkeyManager.shared
     @StateObject private var historyManager = HistoryManager()
-    @StateObject private var overlayManager = OverlayWindowManager()
-    @StateObject private var onboardingManager = OnboardingManager()
+    @ObservedObject private var overlayManager = OverlayWindowManager.shared
+    @ObservedObject private var onboardingManager = OnboardingManager.shared
     @StateObject private var languageManager = LanguageManager()
     @StateObject private var transcriptionProviderManager = TranscriptionProviderManager()
     @StateObject private var llmProviderManager = LLMProviderManager()
@@ -22,137 +22,105 @@ struct ContentView: View {
     @State private var errorMessage = ""
     @State private var recordingStartTime: Date?
     @State private var shouldAutoPaste = false
-    @State private var isDragging = false
-    @State private var windowPosition: CGPoint?
     @State private var isContinuousRecording = false
     @State private var capturedAppContext: String?
+    @State private var showCopiedNotification = false
+    @State private var isHoveringWindow = false
 
     var body: some View {
-        ZStack {
-            Color.clear  // Transparent background for entire window
+        ZStack(alignment: .topTrailing) {
+            // Main content VStack
+            VStack(spacing: 0) {
+                // Titlebar spacer
+                Color(nsColor: .windowBackgroundColor)
+                    .frame(height: 32)
 
-            GeometryReader { geometry in
-                // Outer container with rounded corners that expands/contracts
-                VStack(spacing: 0) {
-                // Top toolbar with contract and copy buttons
-                HStack(spacing: 8) {
+                // Content area - expands to fill space
+                ZStack {
+                    if audioRecorder.isRecording {
+                        AudioVisualizationView(audioLevel: audioRecorder.audioLevel, color: .accentColor)
+                            .frame(height: 100)
+                    } else if isProcessing {
+                        VStack(spacing: 12) {
+                            ProgressView()
+                                .controlSize(.large)
+                            Text("Transcribing...")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(.secondary)
+                        }
+                    } else if transcription.isEmpty {
+                        VStack(spacing: 8) {
+                            Image(systemName: "mic.circle")
+                                .font(.system(size: 48))
+                                .foregroundStyle(.tertiary)
+                            Text("Ready to record")
+                                .font(.system(size: 14))
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        TextEditor(text: $transcription)
+                            .font(.system(size: 14))
+                            .scrollContentBackground(.hidden)
+                            .background(Color.clear)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 12)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.horizontal, 16)
+
+                // Hotkey hint - fixed at bottom
+                HStack {
                     Spacer()
+                    if let hotkey = hotkeyManager.currentHotkey {
+                        Text("Press \(hotkey.displayString) to record")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.tertiary)
+                    } else {
+                        Text("Set a hotkey in settings")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.tertiary)
+                    }
+                    Spacer()
+                }
+                .padding(.bottom, 8)
+            }
+            .frame(width: 400)
+            .background(Color(nsColor: .windowBackgroundColor))
+            .onHover { hovering in
+                isHoveringWindow = hovering
+                if let window = NSApplication.shared.windows.first(where: { $0.identifier == WindowIdentifiers.main }) {
+                    window.standardWindowButton(.closeButton)?.alphaValue = hovering ? 1.0 : 0.0
+                    window.standardWindowButton(.miniaturizeButton)?.alphaValue = hovering ? 1.0 : 0.0
+                    window.standardWindowButton(.zoomButton)?.alphaValue = hovering ? 1.0 : 0.0
+                }
+            }
 
-                    // Copy button
-                    Button(action: {
-                        let pasteboard = NSPasteboard.general
-                        pasteboard.clearContents()
-                        pasteboard.setString(transcription, forType: .string)
-                    }) {
-                        Image(systemName: "doc.on.doc")
+            // Copy button overlay
+            Button(action: copyTranscription) {
+                Group {
+                    if #available(macOS 14.0, *) {
+                        Image(systemName: showCopiedNotification ? "checkmark" : "doc.on.doc")
                             .font(.system(size: 13))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(showCopiedNotification ? Color(nsColor: .systemGreen) : .secondary)
+                            .frame(width: 20, height: 20)
+                            .contentTransition(.symbolEffect(.replace))
+                    } else {
+                        Image(systemName: showCopiedNotification ? "checkmark" : "doc.on.doc")
+                            .font(.system(size: 13))
+                            .foregroundStyle(showCopiedNotification ? Color(nsColor: .systemGreen) : .secondary)
                             .frame(width: 20, height: 20)
                     }
-                    .buttonStyle(.plain)
-                    .help("Copy transcription")
-                    .opacity(transcription.isEmpty ? 0 : 1)
-
-                    // Contract button (only shown when NOT in overlay mode)
-                    if !overlayManager.isOverlayMode {
-                        Button(action: {
-                            overlayManager.contractToOverlay()
-                        }) {
-                            Image(systemName: "arrow.down.right.and.arrow.up.left")
-                                .font(.system(size: 13))
-                                .foregroundStyle(.secondary)
-                                .frame(width: 20, height: 20)
-                        }
-                        .buttonStyle(.plain)
-                        .help("Contract to overlay mode")
-                    }
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-                .padding(.bottom, 12)
-                .gesture(
-                    DragGesture()
-                        .onChanged { value in
-                            if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-                                if windowPosition == nil {
-                                    windowPosition = window.frame.origin
-                                }
-                                let newOrigin = CGPoint(
-                                    x: windowPosition!.x + value.translation.width,
-                                    y: windowPosition!.y - value.translation.height
-                                )
-                                window.setFrameOrigin(newOrigin)
-                            }
-                        }
-                        .onEnded { _ in
-                            windowPosition = nil
-                        }
-                )
-
-                // State-aware content area
-                VStack(spacing: 0) {
-                    // Main content area
-                    ZStack {
-                        if audioRecorder.isRecording {
-                            // Recording state: Show waveform visualization (large)
-                            AudioVisualizationView(audioLevel: audioRecorder.audioLevel, color: .accentColor)
-                                .frame(height: 100)
-                        } else if isProcessing {
-                            // Transcribing state: Show spinner
-                            VStack(spacing: 12) {
-                                ProgressView()
-                                    .controlSize(.large)
-                                Text("Transcribing...")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundStyle(.secondary)
-                            }
-                        } else if transcription.isEmpty {
-                            // Idle state: Show instructions
-                            VStack(spacing: 8) {
-                                Image(systemName: "mic.circle")
-                                    .font(.system(size: 48))
-                                    .foregroundStyle(.tertiary)
-                                Text("Ready to record")
-                                    .font(.system(size: 14))
-                                    .foregroundStyle(.secondary)
-                            }
-                        } else {
-                            // Result state: Show transcribed text
-                            TextEditor(text: $transcription)
-                                .font(.system(size: 14))
-                                .scrollContentBackground(.hidden)
-                                .background(Color.clear)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-                    // Hotkey hint (always visible at bottom)
-                    HStack {
-                        Spacer()
-                        if let hotkey = hotkeyManager.currentHotkey {
-                            Text("Press \(hotkey.displayString) to record")
-                                .font(.system(size: 11))
-                                .foregroundStyle(.tertiary)
-                        } else {
-                            Text("Set a hotkey in settings")
-                                .font(.system(size: 11))
-                                .foregroundStyle(.tertiary)
-                        }
-                        Spacer()
-                    }
-                    .padding(.bottom, 8)
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 0)
-                .padding(.bottom, 8)
-                }
-                .background(Color.white)
-                .frame(width: 400)
             }
+            .buttonStyle(.plain)
+            .help(showCopiedNotification ? "Copied!" : "Copy transcription")
+            .opacity(transcription.isEmpty ? 0 : 1)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showCopiedNotification)
+            .padding(.top, 6)
+            .padding(.trailing, 6)
         }
-        .frame(width: 400)
-        .frame(height: 320)
-        .background(Color.clear)
+        .ignoresSafeArea(.all, edges: .top)
         .sheet(isPresented: $showOnboarding) {
             OnboardingView(
                 onboardingManager: onboardingManager,
@@ -165,7 +133,20 @@ struct ContentView: View {
         }
         .onChange(of: onboardingManager.showOnboarding) { newValue in
             DebugLog.info("Onboarding state changed to \(newValue)", context: "ContentView")
-            showOnboarding = newValue
+
+            // If showing onboarding, ensure main window is visible first
+            if newValue {
+                DispatchQueue.main.async {
+                    if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
+                        window.setIsVisible(true)
+                        window.makeKeyAndOrderFront(nil)
+                    }
+                    // Only update local state once, after window is visible
+                    showOnboarding = newValue
+                }
+            } else {
+                showOnboarding = newValue
+            }
         }
         .alert("Enter API Key", isPresented: $showingAPIKeyAlert) {
             TextField("API Key", text: $apiKey)
@@ -190,11 +171,43 @@ struct ContentView: View {
         .onAppear {
             DebugLog.info("ContentView onAppear - checking onboarding status", context: "ContentView")
 
-            // Check onboarding status and sync state once
+            // Check onboarding status - onChange will handle syncing showOnboarding
             onboardingManager.checkOnboardingStatus()
-            showOnboarding = onboardingManager.showOnboarding
 
-            DebugLog.info("Initial onboarding state: \(showOnboarding)", context: "ContentView")
+            DebugLog.info("Initial onboarding state: \(onboardingManager.showOnboarding)", context: "ContentView")
+
+            // Set up CMD+C keyboard shortcut handler
+            NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [self] event in
+                guard event.modifierFlags.contains(.command) && event.charactersIgnoringModifiers == "c" else {
+                    return event
+                }
+
+                // Debug: Log event window information
+                if let eventWindow = event.window {
+                    DebugLog.info("CMD+C - event.window identifier: \(eventWindow.identifier?.rawValue ?? "nil"), title: '\(eventWindow.title)'", context: "ContentView")
+                } else {
+                    DebugLog.info("CMD+C - event.window is nil", context: "ContentView")
+                }
+
+                // Check which window received this event
+                guard let eventWindow = event.window,
+                      eventWindow.identifier == WindowIdentifiers.main else {
+                    DebugLog.info("CMD+C not from main window, ignoring", context: "ContentView")
+                    return event
+                }
+
+                DebugLog.info("CMD+C pressed in main ContentView window - attempting copy", context: "ContentView")
+
+                if !transcription.isEmpty {
+                    copyTranscription()
+                    DebugLog.info("Transcription copied successfully", context: "ContentView")
+                    return nil  // Prevent event propagation to avoid beep
+                } else {
+                    DebugLog.info("No transcription to copy", context: "ContentView")
+                }
+
+                return event
+            }
 
             // Migrate old keychain items if needed (for smooth upgrade)
             let transcriptionProvider = transcriptionProviderManager.selectedProvider
@@ -688,6 +701,26 @@ struct ContentView: View {
         }
         DebugLog.warning("No LLM key found for provider: \(provider.displayName)", context: "ContentView")
         return nil
+    }
+
+    // MARK: - Copy Function
+    func copyTranscription() {
+        guard !transcription.isEmpty else { return }
+
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(transcription, forType: .string)
+        DebugLog.info("Transcription copied via button", context: "ContentView")
+
+        // Show copied notification
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+            showCopiedNotification = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showCopiedNotification = false
+            }
+        }
     }
 }
 

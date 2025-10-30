@@ -24,19 +24,21 @@ class PasteHelper {
 
         if !trusted {
             DebugLog.info("⚠️ WARNING: Accessibility permissions not granted!", context: "PasteHelper")
-            // Prompt user to grant accessibility
-            let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true]
-            let enabled = AXIsProcessTrustedWithOptions(options)
-            DebugLog.info("Prompted for accessibility - enabled: \(enabled)", context: "PasteHelper")
+            // Just copy to clipboard without pasting (prevents beep)
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setString(text, forType: .string)
+            DebugLog.info("⚠️ Only copied to clipboard (no paste - permissions needed)", context: "PasteHelper")
+            return
+        }
 
-            if !enabled {
-                // Just copy to clipboard without pasting
-                let pasteboard = NSPasteboard.general
-                pasteboard.clearContents()
-                pasteboard.setString(text, forType: .string)
-                DebugLog.info("⚠️ Only copied to clipboard (no paste - permissions needed)", context: "PasteHelper")
-                return
-            }
+        // Check if there's a valid focused element to paste into
+        guard getFocusedTextElement() != nil else {
+            DebugLog.info("⚠️ No focused text element, only copying to clipboard (prevents beep)", context: "PasteHelper")
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setString(text, forType: .string)
+            return
         }
 
         // Check if we need to add a space before pasting
