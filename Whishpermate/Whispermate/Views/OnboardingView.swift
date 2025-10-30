@@ -8,6 +8,7 @@ struct OnboardingView: View {
     @ObservedObject var llmProviderManager: LLMProviderManager
 
     @State private var isCheckingAccessibility = false
+    @State private var isCheckingMicrophone = false
     @State private var newRuleText = ""
     @State private var exampleText = "I have two apples and three oranges"
     @State private var processedText = ""
@@ -81,40 +82,22 @@ struct OnboardingView: View {
             // Defer hotkey registration during onboarding
             hotkeyManager.setDeferRegistration(true)
 
-            // Center the onboarding window on screen
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                // Find the sheet window - it's a titled window that's not the main borderless window
-                let windows = NSApplication.shared.windows
-                DebugLog.info("Found \(windows.count) windows", context: "OnboardingView")
-
-                for (index, window) in windows.enumerated() {
-                    DebugLog.info("Window \(index): visible=\(window.isVisible), level=\(window.level.rawValue), styleMask=\(window.styleMask.rawValue), title=\(window.title)", context: "OnboardingView")
-                }
-
-                if let sheetWindow = windows.first(where: { $0.isVisible && $0.styleMask.contains(.titled) }) {
-                    DebugLog.info("Found sheet window: \(sheetWindow.title)", context: "OnboardingView")
-                    if let screen = NSScreen.main {
-                        let screenFrame = screen.visibleFrame
-                        let windowFrame = sheetWindow.frame
-                        let x = screenFrame.midX - windowFrame.width / 2
-                        let y = screenFrame.midY - windowFrame.height / 2
-                        DebugLog.info("Centering window at x=\(x), y=\(y)", context: "OnboardingView")
-                        sheetWindow.setFrameOrigin(NSPoint(x: x, y: y))
-                    }
-                } else {
-                    DebugLog.info("⚠️ Could not find sheet window to center", context: "OnboardingView")
-                }
-            }
-
-            // Start polling for accessibility permission if on that step
-            if onboardingManager.currentStep == .accessibility {
+            // Start polling for permissions based on current step
+            if onboardingManager.currentStep == .microphone {
+                startMicrophoneCheck()
+            } else if onboardingManager.currentStep == .accessibility {
                 startAccessibilityCheck()
             }
         }
         .onChange(of: onboardingManager.currentStep) { newStep in
-            if newStep == .accessibility {
+            if newStep == .microphone {
+                startMicrophoneCheck()
+                stopAccessibilityCheck()
+            } else if newStep == .accessibility {
+                stopMicrophoneCheck()
                 startAccessibilityCheck()
             } else {
+                stopMicrophoneCheck()
                 stopAccessibilityCheck()
             }
         }
@@ -128,8 +111,23 @@ struct OnboardingView: View {
     private var stepContent: some View {
         switch onboardingManager.currentStep {
         case .microphone:
-            Spacer()
-                .frame(height: 1)
+            if onboardingManager.isMicrophoneGranted() {
+                VStack(spacing: 12) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 48))
+                        .foregroundStyle(Color(nsColor: .systemGreen))
+                        .scaleEffect(1.0)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.6), value: true)
+
+                    Text("Permission granted")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(Color(nsColor: .systemGreen))
+                }
+                .padding(.vertical, 20)
+            } else {
+                Spacer()
+                    .frame(height: 1)
+            }
 
         case .accessibility:
             if onboardingManager.isAccessibilityGranted() {
@@ -336,9 +334,13 @@ struct OnboardingView: View {
         switch onboardingManager.currentStep {
         case .microphone:
             Button(action: {
-                onboardingManager.requestMicrophonePermission()
+                if onboardingManager.isMicrophoneGranted() {
+                    onboardingManager.moveToNextStep()
+                } else {
+                    onboardingManager.requestMicrophonePermission()
+                }
             }) {
-                Text("Enable Microphone")
+                Text(onboardingManager.isMicrophoneGranted() ? "Continue" : "Enable Microphone")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
@@ -421,7 +423,32 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Accessibility Checking
+    // MARK: - Permission Checking
+
+    private func startMicrophoneCheck() {
+        isCheckingMicrophone = true
+        checkMicrophonePeriodically()
+    }
+
+    private func stopMicrophoneCheck() {
+        isCheckingMicrophone = false
+    }
+
+    private func checkMicrophonePeriodically() {
+        guard isCheckingMicrophone else { return }
+
+        // Check if microphone is now granted
+        if onboardingManager.isMicrophoneGranted() {
+            // Permission granted! Stop checking
+            isCheckingMicrophone = false
+            return
+        }
+
+        // Check again in 0.5 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.checkMicrophonePeriodically()
+        }
+    }
 
     private func startAccessibilityCheck() {
         isCheckingAccessibility = true
