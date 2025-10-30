@@ -136,17 +136,14 @@ struct ContentView: View {
 
             // If showing onboarding, ensure main window is visible first
             if newValue {
-                DispatchQueue.main.async {
-                    if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-                        window.setIsVisible(true)
-                        window.makeKeyAndOrderFront(nil)
-                    }
-                    // Only update local state once, after window is visible
-                    showOnboarding = newValue
+                if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
+                    window.setIsVisible(true)
+                    window.makeKeyAndOrderFront(nil)
                 }
-            } else {
-                showOnboarding = newValue
             }
+
+            // Update local state synchronously to avoid KVO issues on Ventura
+            showOnboarding = newValue
         }
         .alert("Enter API Key", isPresented: $showingAPIKeyAlert) {
             TextField("API Key", text: $apiKey)
