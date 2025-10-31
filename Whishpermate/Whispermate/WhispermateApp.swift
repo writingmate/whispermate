@@ -19,6 +19,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         // Configure window immediately - no async delay
         configureMainWindow()
+
+        // Check for updates on launch (silently, no alert if up to date)
+        Task { @MainActor in
+            await UpdateChecker.shared.checkForUpdates(showAlertIfNoUpdate: false)
+        }
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -200,5 +205,21 @@ struct WhishpermateApp: App {
             HistoryWindowView()
         }
         .windowResizability(.contentSize)
+
+        // Onboarding window
+        Window("Welcome to Whispermate", id: "onboarding") {
+            OnboardingView(
+                onboardingManager: OnboardingManager.shared,
+                hotkeyManager: HotkeyManager.shared,
+                languageManager: LanguageManager(),
+                promptRulesManager: PromptRulesManager.shared,
+                llmProviderManager: LLMProviderManager()
+            )
+        }
+        .windowResizability(.contentSize)
+        .windowStyle(.hiddenTitleBar)
+        .defaultPosition(.center)
+        .defaultSize(width: 560, height: 520)
+        .commandsRemoved()
     }
 }
