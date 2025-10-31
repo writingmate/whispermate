@@ -13,6 +13,7 @@ extension NSNotification.Name {
     static let showHistory = NSNotification.Name("ShowHistory")
     static let showSettings = NSNotification.Name("ShowSettings")
     static let showOnboarding = NSNotification.Name("ShowOnboarding")
+    static let onboardingComplete = NSNotification.Name("OnboardingComplete")
 }
 
 class StatusBarManager {
@@ -85,6 +86,17 @@ class StatusBarManager {
 
         menu?.addItem(NSMenuItem.separator())
 
+        // Check for Updates
+        let updateItem = NSMenuItem(
+            title: "Check for Updates...",
+            action: #selector(checkForUpdates),
+            keyEquivalent: ""
+        )
+        updateItem.target = self
+        menu?.addItem(updateItem)
+
+        menu?.addItem(NSMenuItem.separator())
+
         // Quit
         let quitItem = NSMenuItem(
             title: "Quit WhisperMate",
@@ -130,6 +142,12 @@ class StatusBarManager {
     @objc private func showOnboarding() {
         NSApplication.shared.activate(ignoringOtherApps: true)
         NotificationCenter.default.post(name: .showOnboarding, object: nil)
+    }
+
+    @objc private func checkForUpdates() {
+        Task { @MainActor in
+            await UpdateChecker.shared.checkForUpdates(showAlertIfNoUpdate: true)
+        }
     }
 
     @objc private func quit() {
