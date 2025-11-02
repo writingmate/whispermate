@@ -211,27 +211,9 @@ class UpdateChecker: ObservableObject {
             markdownContent += "\n\n**What's new:**\n\n\(updateInfo.latestRelease.body)"
         }
 
-        // Convert markdown to attributed string
-        if #available(macOS 12.0, *),
-           let attributedString = try? AttributedString(markdown: markdownContent) {
-            // Create a text view to display the attributed string
-            let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: 400, height: 0))
-            textView.textStorage?.setAttributedString(NSAttributedString(attributedString))
-            textView.isEditable = false
-            textView.isSelectable = true
-            textView.backgroundColor = .clear
-            textView.drawsBackground = false
-
-            // Calculate required height
-            textView.sizeToFit()
-            let height = min(textView.frame.height, 300)
-            textView.frame = NSRect(x: 0, y: 0, width: 400, height: height)
-
-            alert.accessoryView = textView
-        } else {
-            // Fallback to plain text if markdown parsing fails
-            alert.informativeText = markdownContent
-        }
+        // Just use plain informative text with the markdown content
+        // NSAlert doesn't natively support markdown, so we'll show the raw formatted text
+        alert.informativeText = markdownContent
 
         alert.alertStyle = .informational
         alert.addButton(withTitle: "Download")
