@@ -13,7 +13,9 @@ enum SecretsLoader {
         switch provider {
         case .groq:
             return secretsDictionary?["GroqTranscriptionKey"] as? String
-        case .openai, .custom:
+        case .custom:
+            return secretsDictionary?["CustomTranscriptionKey"] as? String
+        case .openai:
             return nil
         }
     }
