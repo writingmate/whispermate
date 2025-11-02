@@ -14,11 +14,13 @@ struct PromptRule: Identifiable, Codable {
 }
 
 class PromptRulesManager: ObservableObject {
+    static let shared = PromptRulesManager()
+
     @Published var rules: [PromptRule] = []
 
     private let userDefaultsKey = "prompt_rules"
 
-    init() {
+    private init() {
         loadRules()
     }
 

@@ -26,7 +26,8 @@ class AudioRecorder: NSObject, ObservableObject {
         }
 
         // Lower system volume for better recording quality
-        volumeManager.lowerVolume()
+        // Disabled: This mutes audio playback during recording
+        // volumeManager.lowerVolume()
 
         let fileManager = FileManager.default
         let tempDirectory = fileManager.temporaryDirectory
@@ -95,7 +96,8 @@ class AudioRecorder: NSObject, ObservableObject {
         audioRecorder?.stop()
 
         // Restore system volume
-        volumeManager.restoreVolume()
+        // Disabled: Volume lowering is disabled
+        // volumeManager.restoreVolume()
 
         // Update UI state on main thread
         DispatchQueue.main.async {
@@ -119,7 +121,8 @@ class AudioRecorder: NSObject, ObservableObject {
         audioRecorder = nil
 
         // Restore volume as a safety measure
-        volumeManager.restoreVolume()
+        // Disabled: Volume lowering is disabled
+        // volumeManager.restoreVolume()
 
         DebugLog.info("✅ Cleanup complete", context: "AudioRecorder LOG")
     }
