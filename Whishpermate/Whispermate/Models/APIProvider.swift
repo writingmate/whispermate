@@ -48,7 +48,7 @@ enum TranscriptionProvider: String, CaseIterable, Identifiable {
 }
 
 class TranscriptionProviderManager: ObservableObject {
-    @Published var selectedProvider: TranscriptionProvider = .groq
+    @Published var selectedProvider: TranscriptionProvider = .custom
     @Published var customEndpoint: String = ""
     @Published var customModel: String = ""
 
@@ -64,6 +64,9 @@ class TranscriptionProviderManager: ObservableObject {
         if let savedProvider = UserDefaults.standard.string(forKey: providerKey),
            let provider = TranscriptionProvider(rawValue: savedProvider) {
             selectedProvider = provider
+        } else {
+            // Default to custom provider if no saved preference
+            selectedProvider = .custom
         }
         customEndpoint = UserDefaults.standard.string(forKey: endpointKey) ?? ""
         customModel = UserDefaults.standard.string(forKey: modelKey) ?? ""
