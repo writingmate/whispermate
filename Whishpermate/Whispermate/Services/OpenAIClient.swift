@@ -262,39 +262,42 @@ class OpenAIClient {
     ) async throws -> String {
         let startTime = CFAbsoluteTimeGetCurrent()
 
-        // Step 1: Transcribe
+        // Build prompt with formatting rules if provided
+        var combinedPrompt = prompt ?? ""
+
+        if !formattingRules.isEmpty {
+            let rulesText = formattingRules.joined(separator: "\n")
+            if combinedPrompt.isEmpty {
+                combinedPrompt = rulesText
+            } else {
+                combinedPrompt += "\n\n" + rulesText
+            }
+
+            if let appContext = appContext {
+                combinedPrompt += "\n\nContext: The user is currently in \(appContext)."
+            }
+        }
+
+        // Transcribe with formatting rules in prompt
+        // The custom API will handle two-stage processing (Whisper + LLM refinement)
         let rawTranscription = try await transcribe(
             audioURL: audioURL,
-            prompt: prompt
+            prompt: combinedPrompt.isEmpty ? nil : combinedPrompt
         )
 
         // Check if transcription is empty
         let trimmed = rawTranscription.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
-            DebugLog.warning("Empty transcription - skipping formatting", context: "OpenAIClient")
+            DebugLog.warning("Empty transcription", context: "OpenAIClient")
             return rawTranscription
         }
-
-        // Step 2: Apply formatting rules (if any)
-        guard !formattingRules.isEmpty else {
-            return rawTranscription
-        }
-
-        // Switch to LLM API key if provided
-        if let llmKey = llmApiKey {
-            var newConfig = config
-            newConfig.apiKey = llmKey
-            updateConfig(newConfig)
-        }
-
-        let result = try await applyFormattingRules(transcription: rawTranscription, rules: formattingRules, languageCodes: languageCodes, appContext: appContext)
 
         let endTime = CFAbsoluteTimeGetCurrent()
         let totalDuration = endTime - startTime
-        DebugLog.info("Transcribe & format completed in \(String(format: "%.2f", totalDuration))s", context: "OpenAIClient")
+        DebugLog.info("Transcription completed in \(String(format: "%.2f", totalDuration))s", context: "OpenAIClient")
         print("⏱️ [Total Pipeline] \(String(format: "%.2f", totalDuration))s")
 
-        return result
+        return rawTranscription
     }
 
     /// Apply formatting rules to transcription using chat completion
