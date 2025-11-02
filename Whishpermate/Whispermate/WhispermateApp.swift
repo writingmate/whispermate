@@ -183,6 +183,14 @@ struct WhishpermateApp: App {
 
             // Add custom commands
             CommandGroup(after: .appInfo) {
+                Button("Check for Updates...") {
+                    Task { @MainActor in
+                        await UpdateChecker.shared.checkForUpdates(showAlertIfNoUpdate: true)
+                    }
+                }
+
+                Divider()
+
                 Button("History") {
                     NotificationCenter.default.post(name: .showHistory, object: nil)
                 }
