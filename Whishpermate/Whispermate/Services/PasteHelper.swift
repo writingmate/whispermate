@@ -24,19 +24,18 @@ class PasteHelper {
 
         if !trusted {
             DebugLog.info("⚠️ WARNING: Accessibility permissions not granted!", context: "PasteHelper")
-            // Prompt user to grant accessibility
-            let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true]
-            let enabled = AXIsProcessTrustedWithOptions(options)
-            DebugLog.info("Prompted for accessibility - enabled: \(enabled)", context: "PasteHelper")
+            // Just copy to clipboard without pasting (prevents beep)
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setString(text, forType: .string)
+            DebugLog.info("⚠️ Only copied to clipboard (no paste - permissions needed)", context: "PasteHelper")
+            return
+        }
 
-            if !enabled {
-                // Just copy to clipboard without pasting
-                let pasteboard = NSPasteboard.general
-                pasteboard.clearContents()
-                pasteboard.setString(text, forType: .string)
-                DebugLog.info("⚠️ Only copied to clipboard (no paste - permissions needed)", context: "PasteHelper")
-                return
-            }
+        // Note: We proceed with paste even if we can't detect a focused element
+        // because web contenteditable fields (Gmail, etc.) often don't report via Accessibility API
+        if getFocusedTextElement() == nil {
+            DebugLog.info("⚠️ No focused text element detected (may be web contenteditable), will attempt paste anyway", context: "PasteHelper")
         }
 
         // Check if we need to add a space before pasting
@@ -53,7 +52,10 @@ class PasteHelper {
                 }
             }
         } else {
-            DebugLog.info("ℹ️ Could not get focused element, pasting without space check", context: "PasteHelper")
+            // For web contenteditable fields, we can't detect existing text, so add a leading space
+            // to be safe (user can delete if not needed)
+            textToPaste = " " + text
+            DebugLog.info("ℹ️ Could not get focused element (web field?), adding leading space to be safe", context: "PasteHelper")
         }
 
         let pasteboard = NSPasteboard.general
@@ -89,7 +91,8 @@ class PasteHelper {
                 simulatePaste()
 
                 // Restore original clipboard content after a short delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                // Increased to 200ms to give web apps (Chrome, Firefox) time to process paste
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                     if let original = originalContent {
                         pasteboard.clearContents()
                         pasteboard.setString(original, forType: .string)
@@ -104,7 +107,8 @@ class PasteHelper {
                 simulatePaste()
 
                 // Restore original clipboard content after a short delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                // Increased to 200ms to give web apps (Chrome, Firefox) time to process paste
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                     if let original = originalContent {
                         pasteboard.clearContents()
                         pasteboard.setString(original, forType: .string)

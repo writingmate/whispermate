@@ -49,19 +49,28 @@ enum OnboardingStep: Int, CaseIterable {
 }
 
 class OnboardingManager: ObservableObject {
+    static let shared = OnboardingManager()
+
     @Published var showOnboarding: Bool = false
     @Published var currentStep: OnboardingStep = .microphone
     @Published var accessibilityGranted: Bool = false
+    @Published var microphoneGranted: Bool = false
 
     private let onboardingCompletedKey = "has_completed_onboarding"
 
-    init() {
+    private init() {
         accessibilityGranted = AXIsProcessTrusted()
-        checkOnboardingStatus()
+        microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
+        // Don't call checkOnboardingStatus() here - let the view call it in onAppear
+        // This ensures the onChange modifier is registered before the state changes
     }
 
     func updateAccessibilityStatus() {
         accessibilityGranted = AXIsProcessTrusted()
+    }
+
+    func updateMicrophoneStatus() {
+        microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
     }
 
     func checkOnboardingStatus() {
@@ -83,10 +92,10 @@ class OnboardingManager: ObservableObject {
                 DebugLog.info("All permissions granted, skipping onboarding", context: "OnboardingManager")
             }
         } else {
-            // First time launch
+            // First time launch - always show onboarding
             DebugLog.info("First launch, showing onboarding", context: "OnboardingManager")
             showOnboarding = true
-            currentStep = findFirstIncompleteStep()
+            currentStep = .microphone
         }
     }
 
@@ -143,9 +152,18 @@ class OnboardingManager: ObservableObject {
     }
 
     func completeOnboarding() {
+        // Guard against multiple calls
+        guard showOnboarding else {
+            DebugLog.info("Onboarding already completed, ignoring duplicate call", context: "OnboardingManager")
+            return
+        }
+
         DebugLog.info("✅ Onboarding complete!", context: "OnboardingManager")
         UserDefaults.standard.set(true, forKey: onboardingCompletedKey)
         showOnboarding = false
+
+        // Post notification to close onboarding window and show main window
+        NotificationCenter.default.post(name: .onboardingComplete, object: nil)
     }
 
     func requestMicrophonePermission() {
