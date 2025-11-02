@@ -20,6 +20,14 @@ enum SecretsLoader {
         }
     }
 
+    static func customTranscriptionEndpoint() -> String? {
+        return secretsDictionary?["CustomTranscriptionEndpoint"] as? String
+    }
+
+    static func customTranscriptionModel() -> String? {
+        return secretsDictionary?["CustomTranscriptionModel"] as? String
+    }
+
     static func llmKey(for provider: LLMProvider) -> String? {
         switch provider {
         case .groq:
