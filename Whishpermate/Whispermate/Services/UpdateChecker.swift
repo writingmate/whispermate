@@ -196,16 +196,43 @@ class UpdateChecker: ObservableObject {
 
         let alert = NSAlert()
         alert.messageText = "Update Available"
-        alert.informativeText = """
+
+        // Build markdown content
+        var markdownContent = """
         A new version of WhisperMate is available!
 
-        Current version: \(updateInfo.currentVersion)
-        Latest version: \(updateInfo.latestRelease.version)
+        **Current version:** \(updateInfo.currentVersion)
+        **Latest version:** \(updateInfo.latestRelease.version)
 
-        Release date: \(updateInfo.latestRelease.formattedDate)
-
-        \(updateInfo.latestRelease.body.isEmpty ? "" : "What's new:\n\(updateInfo.latestRelease.body)")
+        **Release date:** \(updateInfo.latestRelease.formattedDate)
         """
+
+        if !updateInfo.latestRelease.body.isEmpty {
+            markdownContent += "\n\n**What's new:**\n\n\(updateInfo.latestRelease.body)"
+        }
+
+        // Convert markdown to attributed string
+        if #available(macOS 12.0, *),
+           let attributedString = try? AttributedString(markdown: markdownContent) {
+            // Create a text view to display the attributed string
+            let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: 400, height: 0))
+            textView.textStorage?.setAttributedString(NSAttributedString(attributedString))
+            textView.isEditable = false
+            textView.isSelectable = true
+            textView.backgroundColor = .clear
+            textView.drawsBackground = false
+
+            // Calculate required height
+            textView.sizeToFit()
+            let height = min(textView.frame.height, 300)
+            textView.frame = NSRect(x: 0, y: 0, width: 400, height: height)
+
+            alert.accessoryView = textView
+        } else {
+            // Fallback to plain text if markdown parsing fails
+            alert.informativeText = markdownContent
+        }
+
         alert.alertStyle = .informational
         alert.addButton(withTitle: "Download")
         alert.addButton(withTitle: "Later")
