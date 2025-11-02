@@ -87,6 +87,13 @@ class TranscriptionProviderManager: ObservableObject {
     }
 
     var effectiveEndpoint: String {
+        // For custom provider, check Secrets.plist first
+        if selectedProvider == .custom {
+            if let secretEndpoint = SecretsLoader.customTranscriptionEndpoint(), !secretEndpoint.isEmpty {
+                return secretEndpoint
+            }
+        }
+
         if !customEndpoint.isEmpty {
             return customEndpoint
         }
@@ -94,6 +101,13 @@ class TranscriptionProviderManager: ObservableObject {
     }
 
     var effectiveModel: String {
+        // For custom provider, check Secrets.plist first
+        if selectedProvider == .custom {
+            if let secretModel = SecretsLoader.customTranscriptionModel(), !secretModel.isEmpty {
+                return secretModel
+            }
+        }
+
         if !customModel.isEmpty {
             return customModel
         }
