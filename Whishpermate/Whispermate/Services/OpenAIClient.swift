@@ -11,11 +11,13 @@ enum OpenAIError: Error {
 /// Unified OpenAI-compatible client that works with Groq, OpenAI, and any OpenAI-compatible API
 /// Single client configured once and used everywhere
 class OpenAIClient {
-    // Custom URLSession with 5 second timeout - fail fast
+    // Custom URLSession optimized for persistent connections and SSL session reuse
     private static let urlSession: URLSession = {
         let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 5.0  // 5 seconds max
-        config.timeoutIntervalForResource = 5.0  // 5 seconds max
+        config.timeoutIntervalForRequest = 5.0  // Fail fast - 5 seconds max per request
+        config.timeoutIntervalForResource = 300.0  // Keep connection alive for 5 minutes
+        config.httpMaximumConnectionsPerHost = 6  // Allow multiple connections to same host
+        // URLSession automatically handles SSL session resumption and connection reuse
         return URLSession(configuration: config)
     }()
 
