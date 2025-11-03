@@ -1,0 +1,11 @@
+Conducting pre-submission checks for Whispermate-v0.0.19.zip and initiating connection to the Apple notary service...
+Submission ID received
+  id: 1990ba17-1571-4a75-8f04-71a305cf9e39
+Successfully uploaded file
+  id: 1990ba17-1571-4a75-8f04-71a305cf9e39
+  path: /Users/avysotsky/Projects/vood/whispermate/Whishpermate/Whispermate-v0.0.19.zip
+Waiting for processing to complete.
+Current status: In Progress...Current status: In Progress....Current status: In Progress.....Current status: Accepted......Processing complete
+  id: 1990ba17-1571-4a75-8f04-71a305cf9e39
+  status: Accepted
+
