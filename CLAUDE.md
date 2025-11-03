@@ -1,3 +1,4 @@
 - do not build dmg and tag unless i ask, commit periodically but don't bump the version
 - use HIG best practices as much as possible, don't design custom componets
 - be very conservative with versions, keep it in 0.0.6 unless explicitly told
+- The Release build needs hardened runtime and shouldn't include the get-task-allow entitlement.
