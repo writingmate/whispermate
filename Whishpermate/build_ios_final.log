@@ -1,0 +1,92 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -scheme WhisperMateIOS -destination "generic/platform=iOS Simulator" -configuration Debug build
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  swift-nio-http2: https://github.com/apple/swift-nio-http2.git @ 1.38.0
+  swift-nio-extras: https://github.com/apple/swift-nio-extras.git @ 1.29.0
+  swift-certificates: https://github.com/apple/swift-certificates.git @ 1.15.0
+  swift-distributed-tracing: https://github.com/apple/swift-distributed-tracing.git @ 1.3.1
+  swift-http-structured-headers: https://github.com/apple/swift-http-structured-headers.git @ 1.5.0
+  swift-numerics: https://github.com/apple/swift-numerics.git @ 1.1.1
+  swift-http-types: https://github.com/apple/swift-http-types.git @ 1.5.1
+  swift-async-algorithms: https://github.com/apple/swift-async-algorithms.git @ 1.0.4
+  ClaudeCodeSDK: https://github.com/jamesrochabrun/ClaudeCodeSDK @ main (da2ceab)
+  swift-collections: https://github.com/apple/swift-collections.git @ 1.3.0
+  swift-crypto: https://github.com/apple/swift-crypto.git @ 4.0.0
+  swift-nio: https://github.com/apple/swift-nio.git @ 2.87.0
+  swift-service-lifecycle: https://github.com/swift-server/swift-service-lifecycle.git @ 2.9.0
+  async-http-client: https://github.com/swift-server/async-http-client.git @ 1.29.0
+  swift-nio-ssl: https://github.com/apple/swift-nio-ssl.git @ 2.35.0
+  swift-system: https://github.com/apple/swift-system.git @ 1.6.3
+  swift-log: https://github.com/apple/swift-log.git @ 1.6.4
+  swift-atomics: https://github.com/apple/swift-atomics.git @ 1.3.0
+  swift-algorithms: https://github.com/apple/swift-algorithms.git @ 1.2.1
+  swift-service-context: https://github.com/apple/swift-service-context.git @ 1.2.1
+  swift-nio-transport-services: https://github.com/apple/swift-nio-transport-services.git @ 1.25.2
+  swift-asn1: https://github.com/apple/swift-asn1.git @ 1.5.0
+  SwiftAnthropic: https://github.com/jamesrochabrun/SwiftAnthropic @ 2.1.9
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (3 targets)
+    Target 'WhisperMateIOS' in project 'Whispermate'
+        ➜ Explicit dependency on target 'WhisperMateKeyboard' in project 'Whispermate'
+        ➜ Explicit dependency on target 'WhisperMateShared' in project 'Whispermate'
+    Target 'WhisperMateKeyboard' in project 'Whispermate'
+        ➜ Explicit dependency on target 'WhisperMateShared' in project 'Whispermate'
+    Target 'WhisperMateShared' in project 'Whispermate' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateIOS/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+ReadFileContents /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/share/docc/features.json
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch x86_64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk -x c -c /dev/null
+
+Build description signature: 786f47574ff3ebbedb48861ff772b0cd
+Build description path: /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/XCBuildData/786f47574ff3ebbedb48861ff772b0cd.xcbuilddata
+error: Multiple commands produce '/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-iphonesimulator/WhisperMateIOS.app/Info.plist'
+    note: Target 'WhisperMateIOS' (project 'Whispermate') has copy command from '/Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateIOS/Info.plist' to '/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-iphonesimulator/WhisperMateIOS.app/Info.plist'
+    note: Target 'WhisperMateIOS' (project 'Whispermate') has process command with output '/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-iphonesimulator/WhisperMateIOS.app/Info.plist'
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk /Users/avysotsky/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.1-23B77-90cf18a4295e390e64c810bc6bd7acbc.sdkstatcache
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate/Whispermate.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.1.sdk -o /Users/avysotsky/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator26.1-23B77-90cf18a4295e390e64c810bc6bd7acbc.sdkstatcache
+
+CreateBuildDirectory /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate/Whispermate.xcodeproj
+    builtin-create-build-directory /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products
+
+/Users/avysotsky/Projects/vood/whispermate/Whishpermate/Whispermate.xcodeproj: warning: The Copy Bundle Resources build phase contains this target's Info.plist file '/Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateIOS/Info.plist'. (in target 'WhisperMateIOS' from project 'Whispermate')
+warning: duplicate output file '/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-iphonesimulator/WhisperMateIOS.app/Info.plist' on task: ProcessInfoPlistFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-iphonesimulator/WhisperMateIOS.app/Info.plist /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateIOS/Info.plist (in target 'WhisperMateIOS' from project 'Whispermate')
+** BUILD FAILED **
+
+
+The following build commands failed:
+	Building project Whispermate with scheme WhisperMateIOS and configuration Debug
+(1 failure)

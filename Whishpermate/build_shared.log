@@ -1,0 +1,516 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -scheme WhisperMateShared -sdk iphoneos -configuration Debug build
+
+Build settings from command line:
+    SDKROOT = iphoneos26.1
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  swift-collections: https://github.com/apple/swift-collections.git @ 1.3.0
+  swift-nio: https://github.com/apple/swift-nio.git @ 2.87.0
+  swift-service-lifecycle: https://github.com/swift-server/swift-service-lifecycle.git @ 2.9.0
+  swift-algorithms: https://github.com/apple/swift-algorithms.git @ 1.2.1
+  swift-atomics: https://github.com/apple/swift-atomics.git @ 1.3.0
+  swift-service-context: https://github.com/apple/swift-service-context.git @ 1.2.1
+  ClaudeCodeSDK: https://github.com/jamesrochabrun/ClaudeCodeSDK @ main (da2ceab)
+  swift-certificates: https://github.com/apple/swift-certificates.git @ 1.15.0
+  swift-nio-ssl: https://github.com/apple/swift-nio-ssl.git @ 2.35.0
+  swift-system: https://github.com/apple/swift-system.git @ 1.6.3
+  swift-log: https://github.com/apple/swift-log.git @ 1.6.4
+  swift-async-algorithms: https://github.com/apple/swift-async-algorithms.git @ 1.0.4
+  swift-numerics: https://github.com/apple/swift-numerics.git @ 1.1.1
+  swift-nio-transport-services: https://github.com/apple/swift-nio-transport-services.git @ 1.25.2
+  SwiftAnthropic: https://github.com/jamesrochabrun/SwiftAnthropic @ 2.1.9
+  swift-distributed-tracing: https://github.com/apple/swift-distributed-tracing.git @ 1.3.1
+  async-http-client: https://github.com/swift-server/async-http-client.git @ 1.29.0
+  swift-nio-http2: https://github.com/apple/swift-nio-http2.git @ 1.38.0
+  swift-http-structured-headers: https://github.com/apple/swift-http-structured-headers.git @ 1.5.0
+  swift-nio-extras: https://github.com/apple/swift-nio-extras.git @ 1.29.0
+  swift-http-types: https://github.com/apple/swift-http-types.git @ 1.5.1
+  swift-asn1: https://github.com/apple/swift-asn1.git @ 1.5.0
+  swift-crypto: https://github.com/apple/swift-crypto.git @ 4.0.0
+
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:macOS, arch:x86_64, variant:Mac Catalyst, id:6579DF92-C317-575B-819C-6A487D30A8DE, name:My Mac }
+{ platform:macOS, variant:Mac Catalyst, name:Any Mac }
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (1 target)
+    Target 'WhisperMateShared' in project 'Whispermate' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -arch x86_64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+ReadFileContents /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/share/docc/features.json
+
+Build description signature: ba2e6f1e0ac568427a526716c8c3efe9
+Build description path: /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/XCBuildData/ba2e6f1e0ac568427a526716c8c3efe9.xcbuilddata
+CreateBuildDirectory /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate/Whispermate.xcodeproj
+    builtin-create-build-directory /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst
+
+CreateBuildDirectory /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-maccatalyst
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate/Whispermate.xcodeproj
+    builtin-create-build-directory /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-maccatalyst
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk /Users/avysotsky/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx26.1-25B74-3ae1261907bdadc328169391a47051a6.sdkstatcache
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate/Whispermate.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk -o /Users/avysotsky/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx26.1-25B74-3ae1261907bdadc328169391a47051a6.sdkstatcache
+
+WriteAuxiliaryFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/Whispermate-611c36677b5c5761542169ea56f38331-VFS-maccatalyst/all-product-headers.yaml
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate/Whispermate.xcodeproj
+    write-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/Whispermate-611c36677b5c5761542169ea56f38331-VFS-maccatalyst/all-product-headers.yaml
+
+WriteAuxiliaryFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-project-headers.hmap (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    write-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-project-headers.hmap
+
+WriteAuxiliaryFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared.hmap (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    write-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared.hmap
+
+WriteAuxiliaryFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/empty-WhisperMateShared.plist (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    write-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/empty-WhisperMateShared.plist
+
+WriteAuxiliaryFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-generated-files.hmap (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    write-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-generated-files.hmap
+
+WriteAuxiliaryFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-own-target-headers.hmap (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    write-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-own-target-headers.hmap
+
+WriteAuxiliaryFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared.DependencyStaticMetadataFileList (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    write-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared.DependencyMetadataFileList (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    write-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared.DependencyMetadataFileList
+
+WriteAuxiliaryFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-all-target-headers.hmap (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    write-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-all-target-headers.hmap
+
+WriteAuxiliaryFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-all-non-framework-target-headers.hmap (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    write-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-all-non-framework-target-headers.hmap
+
+WriteAuxiliaryFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_const_extract_protocols.json (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    write-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.SwiftFileList (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    write-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.SwiftFileList
+
+WriteAuxiliaryFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.SwiftConstValuesFileList (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    write-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.LinkFileList (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    write-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.LinkFileList
+
+WriteAuxiliaryFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared-OutputFileMap.json (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    write-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared-OutputFileMap.json
+
+WriteAuxiliaryFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/7187679823f38a2a940e0043cdf9d637-common-args.resp (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    write-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+-target x86_64-apple-ios26.1-macabi '-std=gnu17' -fmodules -gmodules '-fmodules-cache-path=/Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex' -fpascal-strings -O0 -fno-common '-DDEBUG=1' -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk -fasm-blocks -g -iquote /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-generated-files.hmap -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-own-target-headers.hmap -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-all-target-headers.hmap -iquote /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-project-headers.hmap -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/include -isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/usr/include -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources-normal/x86_64 -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources/x86_64 -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources -F/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/System/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/System/Library/SubFrameworks
+
+SymLink /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/WhisperMateShared Versions/Current/WhisperMateShared (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    /bin/ln -sfh Versions/Current/WhisperMateShared /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/WhisperMateShared
+
+WriteAuxiliaryFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources/WhisperMateShared_vers.c (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    write-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources/WhisperMateShared_vers.c
+
+SymLink /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/Current A (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    /bin/ln -sfh A /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/Current
+
+SymLink /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Resources Versions/Current/Resources (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    /bin/ln -sfh Versions/Current/Resources /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Resources
+
+SymLink /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Modules Versions/Current/Modules (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    /bin/ln -sfh Versions/Current/Modules /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Modules
+
+MkDir /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    /bin/mkdir -p /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A
+
+MkDir /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    /bin/mkdir -p /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions
+
+MkDir /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    /bin/mkdir -p /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework
+
+MkDir /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/Resources (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    /bin/mkdir -p /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/Resources
+
+ProcessInfoPlistFile /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/Resources/Info.plist /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/empty-WhisperMateShared.plist (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    builtin-infoPlistUtility /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/empty-WhisperMateShared.plist -producttype com.apple.product-type.framework -expandbuildsettings -platform macosx -o /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/Resources/Info.plist
+
+SwiftDriver WhisperMateShared normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name WhisperMateShared -Onone -enforce-exclusivity\=checked @/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk -target x86_64-apple-ios26.1-macabi -g -module-cache-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Index.noindex/DataStore -enable-library-evolution -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst -F /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst -Fsystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/System/Library/Frameworks -Fsystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/System/Library/SubFrameworks -emit-localized-strings -emit-localized-strings-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/avysotsky/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx26.1-25B74-3ae1261907bdadc328169391a47051a6.sdkstatcache -output-file-map /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.swiftmodule -emit-module-interface-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.swiftinterface -emit-private-module-interface-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.private.swiftinterface -validate-clang-modules-once -clang-build-session-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_const_extract_protocols.json -Xcc -iquote -Xcc /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-generated-files.hmap -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-own-target-headers.hmap -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-all-target-headers.hmap -Xcc -iquote -Xcc /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-project-headers.hmap -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/include -Xcc -isystem -Xcc /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/usr/include -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources-normal/x86_64 -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources/x86_64 -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared-Swift.h -working-directory /Users/avysotsky/Projects/vood/whispermate/Whishpermate -experimental-emit-module-separately -disable-cmo
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_float-3BHLJONF9A806BSDO0PU3X6B7.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/ptrcheck-6PGYIWMQ6SMAXPBXBIM49TZZE.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_AvailabilityInternal-65L2X1D89X4SY2N4JOEDP0WB9.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/ptrauth-4QXNTIAZ14JCMDA8RUW5N25J7.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/SwiftShims-F1641GVU8V6OBQ4U084PSFOUA.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/DeveloperToolsSupport-34ZFRSZWQHLE8UC4DPC6H85HJ.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_stddef-8DT2861Z2J1805HB8OIU6PG49.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_stdbool-76R720G97QGBXDQRG0EBVKQCR.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_stdarg-6D5XB7MZ6NUGJL0TENKGXJUNP.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_SwiftConcurrencyShims-51EZUQ9VAX5P8SP4OET76BP1Y.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_DarwinFoundation1-56P2NUP7Y9RVOD7UU76LG4UEE.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_DarwinFoundation2-2AKR6IIF534A9WAEZTH81MSQQ.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_limits-DFE1AEY51Z7DX35MX0DLTADRT.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_tgmath-5J7PV5N9GP2AEI8HN6JJZA6V8.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/sys_types-5WM2K1M3G2OQESQNCQVFJS62G.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_stdint-V4KGOTLIDTJEM9QL86PKOPPM.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_DarwinFoundation3-CCOPWPQO3MLRAXEO9U4IB48GW.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/OpenGL-4HUMU9FFA7D4O3DD2ZH1XME53.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_stdatomic-CIYO9OTA4LQ3LAFUAVNPEDS8C.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/libDER-61MMD0OXI872IKNJVLAYFD4ZD.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_intrinsics-A5OQBIRX2VE1CUZ0W3T1TUZEC.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/_Builtin_inttypes-A8002NYMWPAP5JK6SPHOJVKPC.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Darwin-CU4JLZETUP77YVLL994T2PXFV.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/simd-7VLST1GV5FHCJH8XFAPKACSND.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/launch-C6U31WVDTSN7RWSQXN2ORYMVU.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CUPS-C5YCWY1O2Y0889BP0CLWRERY7.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/MachO-7NNZKZP2RBYFVSRNPDG6L7KP2.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/libkern-119HIMGXJTZ4X246KCO3RIQX2.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/ObjectiveC-2I28HD5OW1YSWVKC2X18DCA13.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/os_object-29SGW54Q2J5QXFXCJ6V2SB6G2.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/os_workgroup-3QS0XAATH88ZDKU3D644BHHIL.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Dispatch-8KHMXREJV4YWBYAURAMW0Z8Q2.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/XPC-CHNK0S33OE5RRNBEKK0Y5O9K.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/dnssd-971OOP09TQP2G4HH9KY97EAZ5.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreFoundation-E19J13DLMBNO21937NHL5FK33.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/os-E7RWXDEMSDG5VBZ4HNY2O8W92.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreAudioTypes-AVRQM54BVBL2UE7DR0ABMCYGM.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Security-MFV7P0MQESE04UTOFDKIUUZ0.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/ColorSync-31RONV0UHJ2XIVSYPRIKGA5EC.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CFNetwork-F5X4JQGV5HLABJ0W0EJ6S0W7.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/IOKit-7FBGM2IFH58M9AANT1W6RQJDC.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreGraphics-A952F6FMIXYUHIWRS7JDQV40O.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/DiskArbitration-888HM1PT1QFI5E9K7XJ9PCDA5.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreServices-17ECA6GB5744XW4VZFHL44GEG.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreText-56ZZM7847SVGN7E14QBL9CB9S.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/ImageIO-149S7B4QM0ZIAG6L0E7BF6LU.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Foundation-EMCHYX7DM9QLBRIJ5RQIQVZEG.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/UserNotifications-8O6VE8JXF4DL2I3KK0B54Z6AC.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreMIDI-4WILZ3F5P1XLNRA0VOB87UXJ2.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/OSLog-EGAUWG7R0NSLQ21PD1UN26FIJ.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreTransferable-DIK8AQCTIGD17OKL6W8GJ6H4B.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/DataDetection-60IOGGHRLIRY4W1CSEQ0VNR15.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/UIUtilities-1DTCDMMLOGFETHJRJCRJ3Q8SW.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreAudio-AKMHMFTXMLFFFT7JCDMXS4P7U.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/IOSurface-A8BRGQBG3IT9HVBITCXKFCKIA.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Network-D3ZK4CX34KBO6QWF47IPFTPA4.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Symbols-BLVO6UK0WEHUQHXIGTHPFBSP4.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Accessibility-6A5D8LOKRDAQQZNDTNB5SEZ8P.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreData-AW4PVBOSLI3FH5XCZJWRQ7AO2.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/ApplicationServices-1T81URASH4QG71XMPYX9QTHNK.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/FileProvider-8HPCVX2C4TPMX24HW3QA7RIET.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/UniformTypeIdentifiers-DKASHS09ONYMSJNW0D93BT1ZA.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Metal-5PMTKG10QS4D3URYX3A333H22.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/AVRouting-5BDOZWPB6QSYCK4CFC7TK0AEQ.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/AudioToolbox-YLHOPVI722TRRMAPVIBGFHYS.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreVideo-EWOTTUI5XQO6896TJQU6IH4O5.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/QuartzCore-4Z3HABB66YSIPCVBXILPPP9J7.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreMedia-AGQ2SYBX1XSQAXU79G6D2J816.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/CoreImage-82N0E48A05LBH9DNCZOIJ3H8N.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/SwiftUICore-2L1VVHGWB2IVKHDR87MFKQTTO.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/AppKit-1KTH3PG2RJFONJZP5YWIWK0JS.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/AVFAudio-1ENKRDIGGL5J7XZOBHU6Z3B7A.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/MediaToolbox-8P0712MNTYDMFCH34PT91V22H.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/AVFoundation-7GVV9IYN9F8FGFUI5SHUNRUVB.pcm
+
+SwiftExplicitDependencyGeneratePcm x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/UIKit-4RCFOGEQNPH6FJT4RWH2RZRXC.pcm
+
+SwiftEmitModule normal x86_64 Emitting\ module\ for\ WhisperMateShared (in target 'WhisperMateShared' from project 'Whispermate')
+
+EmitSwiftModule normal x86_64 (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    
+
+SwiftCompile normal x86_64 Compiling\ AudioRecorder.swift /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Services/AudioRecorder.swift (in target 'WhisperMateShared' from project 'Whispermate')
+SwiftCompile normal x86_64 /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Services/AudioRecorder.swift (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    
+
+SwiftCompile normal x86_64 Compiling\ SecretsLoader.swift /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Services/SecretsLoader.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftCompile normal x86_64 /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Services/SecretsLoader.swift (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    
+
+SwiftCompile normal x86_64 Compiling\ DebugLog.swift /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Services/DebugLog.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftCompile normal x86_64 /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Services/DebugLog.swift (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    
+
+SwiftCompile normal x86_64 Compiling\ HistoryManager.swift /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Storage/HistoryManager.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftCompile normal x86_64 /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Storage/HistoryManager.swift (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    
+
+SwiftCompile normal x86_64 Compiling\ WhisperMateShared.swift /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/WhisperMateShared.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftCompile normal x86_64 /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/WhisperMateShared.swift (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    
+
+SwiftCompile normal x86_64 Compiling\ APIProvider.swift,\ Language.swift /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Models/APIProvider.swift /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Models/Language.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftCompile normal x86_64 /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Models/APIProvider.swift (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    
+
+SwiftCompile normal x86_64 /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Models/Language.swift (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    
+
+SwiftCompile normal x86_64 Compiling\ OpenAIClient.swift /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Networking/OpenAIClient.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftCompile normal x86_64 /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Networking/OpenAIClient.swift (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    
+
+SwiftCompile normal x86_64 Compiling\ PromptRule.swift /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Models/PromptRule.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftCompile normal x86_64 /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Models/PromptRule.swift (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    
+
+SwiftCompile normal x86_64 Compiling\ KeychainHelper.swift /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Storage/KeychainHelper.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftCompile normal x86_64 /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Storage/KeychainHelper.swift (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    
+
+SwiftCompile normal x86_64 Compiling\ Recording.swift /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Models/Recording.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftCompile normal x86_64 /Users/avysotsky/Projects/vood/whispermate/Whishpermate/WhisperMateShared/Models/Recording.swift (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    
+
+SwiftDriverJobDiscovery normal x86_64 Emitting module for WhisperMateShared (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftDriver\ Compilation\ Requirements WhisperMateShared normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name WhisperMateShared -Onone -enforce-exclusivity\=checked @/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk -target x86_64-apple-ios26.1-macabi -g -module-cache-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Index.noindex/DataStore -enable-library-evolution -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst -F /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst -Fsystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/System/Library/Frameworks -Fsystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/System/Library/SubFrameworks -emit-localized-strings -emit-localized-strings-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/avysotsky/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx26.1-25B74-3ae1261907bdadc328169391a47051a6.sdkstatcache -output-file-map /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.swiftmodule -emit-module-interface-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.swiftinterface -emit-private-module-interface-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.private.swiftinterface -validate-clang-modules-once -clang-build-session-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_const_extract_protocols.json -Xcc -iquote -Xcc /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-generated-files.hmap -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-own-target-headers.hmap -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-all-target-headers.hmap -Xcc -iquote -Xcc /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-project-headers.hmap -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/include -Xcc -isystem -Xcc /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/usr/include -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources-normal/x86_64 -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources/x86_64 -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared-Swift.h -working-directory /Users/avysotsky/Projects/vood/whispermate/Whishpermate -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal x86_64 Compiling WhisperMateShared.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftMergeGeneratedHeaders /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources/WhisperMateShared-Swift.h /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared-Swift.h (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    builtin-swiftHeaderTool -arch x86_64 /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared-Swift.h -o /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources/WhisperMateShared-Swift.h
+
+Copy /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/Modules/WhisperMateShared.swiftmodule/x86_64-apple-ios-macabi.swiftmodule /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.swiftmodule (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.swiftmodule /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/Modules/WhisperMateShared.swiftmodule/x86_64-apple-ios-macabi.swiftmodule
+
+Copy /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/Modules/WhisperMateShared.swiftmodule/x86_64-apple-ios-macabi.swiftinterface /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.swiftinterface (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.swiftinterface /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/Modules/WhisperMateShared.swiftmodule/x86_64-apple-ios-macabi.swiftinterface
+
+Copy /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/Modules/WhisperMateShared.swiftmodule/x86_64-apple-ios-macabi.swiftdoc /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.swiftdoc (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.swiftdoc /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/Modules/WhisperMateShared.swiftmodule/x86_64-apple-ios-macabi.swiftdoc
+
+Copy /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/Modules/WhisperMateShared.swiftmodule/x86_64-apple-ios-macabi.private.swiftinterface /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.private.swiftinterface (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.private.swiftinterface /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/Modules/WhisperMateShared.swiftmodule/x86_64-apple-ios-macabi.private.swiftinterface
+
+Copy /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/Modules/WhisperMateShared.swiftmodule/x86_64-apple-ios-macabi.abi.json /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.abi.json (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.abi.json /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/Modules/WhisperMateShared.swiftmodule/x86_64-apple-ios-macabi.abi.json
+
+Copy /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/Modules/WhisperMateShared.swiftmodule/Project/x86_64-apple-ios-macabi.swiftsourceinfo /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.swiftsourceinfo (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.swiftsourceinfo /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/Modules/WhisperMateShared.swiftmodule/Project/x86_64-apple-ios-macabi.swiftsourceinfo
+
+ScanDependencies /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_vers.o /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources/WhisperMateShared_vers.c normal x86_64 c com.apple.compilers.llvm.clang.1_0.compiler (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    
+    Using response file: /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+    
+    builtin-ScanDependencies -o /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_vers.o.scan -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -x c -ivfsstatcache /Users/avysotsky/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx26.1-25B74-3ae1261907bdadc328169391a47051a6.sdkstatcache -fmessage-length\=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit\=0 -fno-color-diagnostics -fmodules-prune-interval\=86400 -fmodules-prune-after\=345600 -fbuild-session-file\=/Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -fmodules-validate-once-per-build-session -Wnon-modular-include-in-framework-module -Werror\=non-modular-include-in-framework-module -Wno-trigraphs -Wno-missing-field-initializers -Wno-missing-prototypes -Werror\=return-type -Wdocumentation -Wunreachable-code -Wquoted-include-in-framework-header -Werror\=deprecated-objc-isa-usage -Werror\=objc-root-class -Wno-missing-braces -Wparentheses -Wswitch -Wunused-function -Wno-unused-label -Wno-unused-parameter -Wunused-variable -Wunused-value -Wempty-body -Wuninitialized -Wconditional-uninitialized -Wno-unknown-pragmas -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wconstant-conversion -Wint-conversion -Wbool-conversion -Wenum-conversion -Wno-float-conversion -Wnon-literal-null-conversion -Wobjc-literal-conversion -Wshorten-64-to-32 -Wpointer-sign -Wno-newline-eof -Wno-implicit-fallthrough -fstrict-aliasing -Wdeprecated-declarations -Wno-sign-conversion -Winfinite-recursion -Wcomma -Wblock-capture-autoreleasing -Wstrict-prototypes -Wno-semicolon-before-method-body -Wunguarded-availability -index-store-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Index.noindex/DataStore @/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/7187679823f38a2a940e0043cdf9d637-common-args.resp -MMD -MT dependencies -MF /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_vers.d --serialize-diagnostics /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_vers.dia -c /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources/WhisperMateShared_vers.c -o /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_vers.o -index-unit-output-path /Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_vers.o
+
+SwiftDriverJobDiscovery normal x86_64 Compiling APIProvider.swift, Language.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+CompileC /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_vers.o /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources/WhisperMateShared_vers.c normal x86_64 c com.apple.compilers.llvm.clang.1_0.compiler (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    
+    Using response file: /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/7187679823f38a2a940e0043cdf9d637-common-args.resp
+    
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -x c -ivfsstatcache /Users/avysotsky/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx26.1-25B74-3ae1261907bdadc328169391a47051a6.sdkstatcache -fmessage-length\=0 -fdiagnostics-show-note-include-stack -fmacro-backtrace-limit\=0 -fno-color-diagnostics -fmodules-prune-interval\=86400 -fmodules-prune-after\=345600 -fbuild-session-file\=/Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -fmodules-validate-once-per-build-session -Wnon-modular-include-in-framework-module -Werror\=non-modular-include-in-framework-module -Wno-trigraphs -Wno-missing-field-initializers -Wno-missing-prototypes -Werror\=return-type -Wdocumentation -Wunreachable-code -Wquoted-include-in-framework-header -Werror\=deprecated-objc-isa-usage -Werror\=objc-root-class -Wno-missing-braces -Wparentheses -Wswitch -Wunused-function -Wno-unused-label -Wno-unused-parameter -Wunused-variable -Wunused-value -Wempty-body -Wuninitialized -Wconditional-uninitialized -Wno-unknown-pragmas -Wno-shadow -Wno-four-char-constants -Wno-conversion -Wconstant-conversion -Wint-conversion -Wbool-conversion -Wenum-conversion -Wno-float-conversion -Wnon-literal-null-conversion -Wobjc-literal-conversion -Wshorten-64-to-32 -Wpointer-sign -Wno-newline-eof -Wno-implicit-fallthrough -fstrict-aliasing -Wdeprecated-declarations -Wno-sign-conversion -Winfinite-recursion -Wcomma -Wblock-capture-autoreleasing -Wstrict-prototypes -Wno-semicolon-before-method-body -Wunguarded-availability -index-store-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Index.noindex/DataStore @/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/7187679823f38a2a940e0043cdf9d637-common-args.resp -MMD -MT dependencies -MF /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_vers.d --serialize-diagnostics /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_vers.dia -c /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources/WhisperMateShared_vers.c -o /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_vers.o -index-unit-output-path /Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_vers.o
+
+SwiftDriverJobDiscovery normal x86_64 Compiling DebugLog.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftDriverJobDiscovery normal x86_64 Compiling SecretsLoader.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftDriverJobDiscovery normal x86_64 Compiling KeychainHelper.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftDriverJobDiscovery normal x86_64 Compiling Recording.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftDriverJobDiscovery normal x86_64 Compiling HistoryManager.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftDriverJobDiscovery normal x86_64 Compiling PromptRule.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftDriverJobDiscovery normal x86_64 Compiling OpenAIClient.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftDriverJobDiscovery normal x86_64 Compiling AudioRecorder.swift (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftVerifyEmittedModuleInterface normal x86_64 Verifying\ emitted\ module\ interface\ WhisperMateShared.swiftinterface /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.swiftinterface (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftVerifyEmittedModuleInterface normal x86_64 Verifying\ emitted\ module\ interface\ WhisperMateShared.private.swiftinterface /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.private.swiftinterface (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftDriverJobDiscovery normal x86_64 Verifying emitted module interface WhisperMateShared.private.swiftinterface (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftDriverJobDiscovery normal x86_64 Verifying emitted module interface WhisperMateShared.swiftinterface (in target 'WhisperMateShared' from project 'Whispermate')
+
+SwiftDriver\ Compilation WhisperMateShared normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name WhisperMateShared -Onone -enforce-exclusivity\=checked @/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk -target x86_64-apple-ios26.1-macabi -g -module-cache-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Index.noindex/DataStore -enable-library-evolution -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst -F /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst -Fsystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/System/Library/Frameworks -Fsystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/System/Library/SubFrameworks -emit-localized-strings -emit-localized-strings-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64 -c -j10 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/avysotsky/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/macosx26.1-25B74-3ae1261907bdadc328169391a47051a6.sdkstatcache -output-file-map /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.swiftmodule -emit-module-interface-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.swiftinterface -emit-private-module-interface-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.private.swiftinterface -validate-clang-modules-once -clang-build-session-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_const_extract_protocols.json -Xcc -iquote -Xcc /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-generated-files.hmap -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-own-target-headers.hmap -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-all-target-headers.hmap -Xcc -iquote -Xcc /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared-project-headers.hmap -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/include -Xcc -isystem -Xcc /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/usr/include -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources-normal/x86_64 -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources/x86_64 -Xcc -I/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared-Swift.h -working-directory /Users/avysotsky/Projects/vood/whispermate/Whishpermate -experimental-emit-module-separately -disable-cmo
+
+Ld /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/WhisperMateShared normal (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target x86_64-apple-ios26.1-macabi -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk -O0 -L/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-maccatalyst -L/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst -L/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/usr/lib -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/maccatalyst -L/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/usr/lib -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/maccatalyst -F/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-maccatalyst -F/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/System/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/System/Library/SubFrameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/System/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/System/Library/SubFrameworks -filelist /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.LinkFileList -install_name @rpath/WhisperMateShared.framework/Versions/A/WhisperMateShared -Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -rpath -Xlinker @loader_path/Frameworks -Xlinker -object_path_lto -Xlinker /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -dependency_info -Xlinker /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_dependency_info.dat -fobjc-link-runtime -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/macosx -L/System/iOSSupport/usr/lib/swift -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.swiftmodule @/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared-linker-args.resp -compatibility_version 1 -current_version 1 -o /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/WhisperMateShared
+
+ExtractAppIntentsMetadata (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name WhisperMateShared --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk --xcode-version 17B55 --platform-family macOS --deployment-target 26.1 --bundle-identifier com.whispermate.shared --output /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/Resources --target-triple x86_64-apple-ios26.1-macabi --binary-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/WhisperMateShared --dependency-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared_dependency_info.dat --stringsdata-file /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.SwiftFileList --metadata-file-list /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared.DependencyMetadataFileList --static-metadata-file-list /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/WhisperMateShared.DependencyStaticMetadataFileList --swift-const-vals-list /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/Whispermate.build/Debug-maccatalyst/WhisperMateShared.build/Objects-normal/x86_64/WhisperMateShared.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2025-11-04 12:11:18.156 appintentsmetadataprocessor[81422:4125385] Starting appintentsmetadataprocessor export
+2025-11-04 12:11:18.163 appintentsmetadataprocessor[81422:4125385] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+GenerateTAPI /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/WhisperMateShared.tbd (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/tapi stubify -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk -F/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/System/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/System/Library/SubFrameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/System/Library/Frameworks -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/System/Library/SubFrameworks -L/Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst -L/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/usr/lib -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/maccatalyst -L/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk/System/iOSSupport/usr/lib -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/maccatalyst /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/WhisperMateShared -o /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/WhisperMateShared.tbd
+
+RegisterExecutionPolicyException /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    builtin-RegisterExecutionPolicyException /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework
+
+Touch /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    /usr/bin/touch -c /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Products/Debug-maccatalyst/WhisperMateShared.framework
+
+SymLink /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-maccatalyst/WhisperMateShared.framework/WhisperMateShared.tbd /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/WhisperMateShared.tbd (in target 'WhisperMateShared' from project 'Whispermate')
+    cd /Users/avysotsky/Projects/vood/whispermate/Whishpermate
+    /bin/ln -sfh /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-maccatalyst/WhisperMateShared.framework/Versions/A/WhisperMateShared.tbd /Users/avysotsky/Library/Developer/Xcode/DerivedData/Whispermate-cqyltmnrinbkgubfplhlbpjpdfyv/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-maccatalyst/WhisperMateShared.framework/WhisperMateShared.tbd
+
+** BUILD SUCCEEDED **
+

@@ -370,6 +370,72 @@ struct SettingsView: View {
                         .frame(width: 200, height: 28)
                 }
             }
+
+            SettingsCard {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Text Formatting Shortcut")
+                            .font(.system(size: 13))
+                        Text("Select text in any app and press ⌘⇧F to format it with your rules")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    Spacer()
+
+                    Toggle("", isOn: Binding(
+                        get: { UserDefaults.standard.bool(forKey: "textFormattingEnabled") },
+                        set: { UserDefaults.standard.set($0, forKey: "textFormattingEnabled") }
+                    ))
+                    .toggleStyle(.switch)
+                    .controlSize(.mini)
+                    .labelsHidden()
+                }
+            }
+
+            SettingsCard {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Send to AI Shortcut")
+                                .font(.system(size: 13))
+                            Text("Select text and press ⌘⇧T to open it in your AI chat")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+
+                        Spacer()
+
+                        Toggle("", isOn: Binding(
+                            get: { UserDefaults.standard.bool(forKey: "sendToAIEnabled") },
+                            set: { UserDefaults.standard.set($0, forKey: "sendToAIEnabled") }
+                        ))
+                        .toggleStyle(.switch)
+                        .controlSize(.mini)
+                        .labelsHidden()
+                    }
+
+                    Divider()
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("AI URL Template")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                        TextField("", text: Binding(
+                            get: { UserDefaults.standard.string(forKey: "aiPromptURL") ?? "https://chatgpt.com/?q={prompt}" },
+                            set: { UserDefaults.standard.set($0, forKey: "aiPromptURL") }
+                        ), prompt: Text("https://chatgpt.com/?q={prompt}"))
+                            .textFieldStyle(.roundedBorder)
+                            .font(.system(size: 11, design: .monospaced))
+
+                        Text("Use {prompt} as placeholder for selected text")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+            }
         }
     }
 

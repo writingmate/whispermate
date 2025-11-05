@@ -2,6 +2,45 @@ import SwiftUI
 import AVFoundation
 import AppKit
 
+enum AIApp: String, CaseIterable, Identifiable {
+    case writingmate = "Writingmate"
+    case claude = "Claude"
+    case chatgpt = "ChatGPT"
+    case perplexity = "Perplexity"
+//    case telegram = "Telegram"
+    case whatsapp = "WhatsApp"
+    case email = "Email"
+    case custom = "Custom"
+
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .writingmate: return "square.and.pencil"
+        case .claude: return "sparkles"
+        case .chatgpt: return "bubble.left.and.bubble.right"
+        case .perplexity: return "magnifyingglass.circle"
+//        case .telegram: return "paperplane"
+        case .whatsapp: return "message.fill"
+        case .email: return "envelope"
+        case .custom: return "gearshape"
+        }
+    }
+
+    var urlTemplate: String {
+        switch self {
+        case .writingmate: return "https://writingmate.ai/new?q={prompt}"
+        case .chatgpt: return "https://chatgpt.com/?q={prompt}"
+        case .perplexity: return "https://www.perplexity.ai/?q={prompt}"
+        case .claude: return "https://claude.ai/new?q={prompt}"
+//        case .telegram: return "tg://msg?text={prompt}"
+        case .whatsapp: return "whatsapp://send?text={prompt}"
+        case .email: return "mailto:?body={prompt}"
+        case .custom: return "" // Will be loaded from UserDefaults
+        }
+    }
+}
+
 struct ContentView: View {
     @StateObject private var audioRecorder = AudioRecorder()
     @ObservedObject private var hotkeyManager = HotkeyManager.shared
@@ -28,97 +67,109 @@ struct ContentView: View {
     @State private var hasCheckedOnboarding = false
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            // Main content VStack
-            VStack(spacing: 0) {
-                // Titlebar spacer
-                Color(nsColor: .windowBackgroundColor)
-                    .frame(height: 32)
+        VStack(spacing: 0) {
+            // Titlebar spacer
+            Color(nsColor: .windowBackgroundColor)
+                .frame(height: 32)
 
-                // Content area - expands to fill space
-                ZStack {
-                    if audioRecorder.isRecording {
-                        AudioVisualizationView(audioLevel: audioRecorder.audioLevel, color: .accentColor)
-                            .frame(height: 100)
-                    } else if isProcessing {
-                        VStack(spacing: 12) {
-                            ProgressView()
-                                .controlSize(.large)
-                            Text("Transcribing...")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundStyle(.secondary)
-                        }
-                    } else if transcription.isEmpty {
-                        VStack(spacing: 8) {
-                            Image(systemName: "mic.circle")
-                                .font(.system(size: 48))
-                                .foregroundStyle(.tertiary)
-                            Text("Ready to record")
-                                .font(.system(size: 14))
-                                .foregroundStyle(.secondary)
-                        }
-                    } else {
-                        TextEditor(text: $transcription)
+            // Content area - expands to fill space
+            ZStack {
+                if audioRecorder.isRecording {
+                    AudioVisualizationView(audioLevel: audioRecorder.audioLevel, color: .accentColor)
+                        .frame(height: 100)
+                } else if isProcessing {
+                    VStack(spacing: 12) {
+                        ProgressView()
+                            .controlSize(.large)
+                        Text("Transcribing...")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.secondary)
+                    }
+                } else if transcription.isEmpty {
+                    VStack(spacing: 8) {
+                        Image(systemName: "mic.circle")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.tertiary)
+                        Text("Ready to record")
                             .font(.system(size: 14))
-                            .scrollContentBackground(.hidden)
-                            .background(Color.clear)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 12)
+                            .foregroundStyle(.secondary)
                     }
+                } else {
+                    TextEditor(text: $transcription)
+                        .font(.system(size: 14))
+                        .scrollContentBackground(.hidden)
+                        .background(Color.clear)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 12)
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.horizontal, 16)
+
+            // Action buttons - subtle style
+            if !transcription.isEmpty {
+                HStack(spacing: 12) {
+                    Spacer()
+
+                    // Copy button
+                    Button(action: copyTranscription) {
+                        HStack(spacing: 4) {
+                            Image(systemName: showCopiedNotification ? "checkmark" : "doc.on.doc")
+                                .frame(width: 16)
+                            Text("Copy")
+                        }
+                    }
+                    .buttonStyle(.borderless)
+                    .controlSize(.regular)
+                    .foregroundStyle(showCopiedNotification ? .green : .secondary)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showCopiedNotification)
+
+                    // Send to AI dropdown menu
+                    Menu {
+                        ForEach(AIApp.allCases) { app in
+                            Button(action: { sendToAI(app: app) }) {
+                                Label(app.rawValue, systemImage: app.icon)
+                            }
+                        }
+                    } label: {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                    }
+                    .buttonStyle(.borderless)
+                    .menuIndicator(.hidden)
+                    .controlSize(.regular)
+                    .tint(.secondary)
+
+                    Spacer()
+                }
                 .padding(.horizontal, 16)
-
-                // Hotkey hint - fixed at bottom
-                HStack {
-                    Spacer()
-                    if let hotkey = hotkeyManager.currentHotkey {
-                        Text("Press \(hotkey.displayString) to record")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.tertiary)
-                    } else {
-                        Text("Set a hotkey in settings")
-                            .font(.system(size: 11))
-                            .foregroundStyle(.tertiary)
-                    }
-                    Spacer()
-                }
-                .padding(.bottom, 8)
-            }
-            .frame(width: 400)
-            .background(Color(nsColor: .windowBackgroundColor))
-            .onHover { hovering in
-                isHoveringWindow = hovering
-                if let window = NSApplication.shared.windows.first(where: { $0.identifier == WindowIdentifiers.main }) {
-                    window.standardWindowButton(.closeButton)?.alphaValue = hovering ? 1.0 : 0.0
-                    window.standardWindowButton(.miniaturizeButton)?.alphaValue = hovering ? 1.0 : 0.0
-                    window.standardWindowButton(.zoomButton)?.alphaValue = hovering ? 1.0 : 0.0
-                }
+                .padding(.bottom, 16)
             }
 
-            // Copy button overlay
-            Button(action: copyTranscription) {
-                Group {
-                    if #available(macOS 14.0, *) {
-                        Image(systemName: showCopiedNotification ? "checkmark" : "doc.on.doc")
-                            .font(.system(size: 13))
-                            .foregroundStyle(showCopiedNotification ? Color(nsColor: .systemGreen) : .secondary)
-                            .frame(width: 20, height: 20)
-                            .contentTransition(.symbolEffect(.replace))
-                    } else {
-                        Image(systemName: showCopiedNotification ? "checkmark" : "doc.on.doc")
-                            .font(.system(size: 13))
-                            .foregroundStyle(showCopiedNotification ? Color(nsColor: .systemGreen) : .secondary)
-                            .frame(width: 20, height: 20)
-                    }
+            // Hotkey hint - fixed at bottom
+            HStack {
+                Spacer()
+                if let hotkey = hotkeyManager.currentHotkey {
+                    Text("Press \(hotkey.displayString) to record")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.tertiary)
+                } else {
+                    Text("Set a hotkey in settings")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.tertiary)
                 }
+                Spacer()
             }
-            .buttonStyle(.plain)
-            .help(showCopiedNotification ? "Copied!" : "Copy transcription")
-            .opacity(transcription.isEmpty ? 0 : 1)
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: showCopiedNotification)
-            .padding(.top, 6)
-            .padding(.trailing, 6)
+            .padding(.bottom, 8)
+        }
+        .frame(width: 400)
+        .background(Color(nsColor: .windowBackgroundColor))
+        .onHover { hovering in
+            isHoveringWindow = hovering
+            if let window = NSApplication.shared.windows.first(where: { $0.identifier == WindowIdentifiers.main }) {
+                window.standardWindowButton(.closeButton)?.alphaValue = hovering ? 1.0 : 0.0
+                window.standardWindowButton(.miniaturizeButton)?.alphaValue = hovering ? 1.0 : 0.0
+                window.standardWindowButton(.zoomButton)?.alphaValue = hovering ? 1.0 : 0.0
+            }
         }
         .ignoresSafeArea(.all, edges: .top)
         .onChange(of: onboardingManager.showOnboarding) { newValue in
@@ -200,6 +251,51 @@ struct ContentView: View {
                 }
 
                 return event
+            }
+
+            // Set up global CMD+SHIFT+F shortcut for text formatting
+            NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { event in
+                // Check if text formatting is enabled
+                guard UserDefaults.standard.bool(forKey: "textFormattingEnabled") else { return }
+
+                // Check for Cmd+Shift+F
+                let hasCommand = event.modifierFlags.contains(.command)
+                let hasShift = event.modifierFlags.contains(.shift)
+                let isF = event.charactersIgnoringModifiers?.lowercased() == "f"
+
+                guard hasCommand && hasShift && isF else { return }
+
+                DebugLog.info("Text formatting shortcut triggered (Cmd+Shift+F)", context: "ContentView")
+
+                // Run formatting on background task
+                Task {
+                    await TextFormattingManager.shared.formatSelectedText()
+                }
+            }
+
+            // Set up global CMD+SHIFT+T shortcut for Send to AI
+            NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [self] event in
+                // Check if Send to AI is enabled
+                guard UserDefaults.standard.bool(forKey: "sendToAIEnabled") else { return }
+
+                // Check for Cmd+Shift+T
+                let hasCommand = event.modifierFlags.contains(.command)
+                let hasShift = event.modifierFlags.contains(.shift)
+                let isT = event.charactersIgnoringModifiers?.lowercased() == "t"
+
+                guard hasCommand && hasShift && isT else { return }
+
+                DebugLog.info("Send to AI shortcut triggered (Cmd+Shift+T)", context: "ContentView")
+
+                // Send current transcription to default app (Writingmate)
+                if !transcription.isEmpty {
+                    sendToAI(app: .writingmate)
+                } else {
+                    // Run Send to AI on background task (for selected text)
+                    Task {
+                        await SendToAIManager.shared.sendSelectedTextToAI()
+                    }
+                }
             }
 
             // Migrate old keychain items if needed (for smooth upgrade)
@@ -772,6 +868,38 @@ struct ContentView: View {
                 showCopiedNotification = false
             }
         }
+    }
+
+    func sendToAI(app: AIApp) {
+        guard !transcription.isEmpty else { return }
+
+        DebugLog.info("Send to \(app.rawValue) clicked", context: "ContentView")
+
+        // Get URL template
+        var urlTemplate = app.urlTemplate
+        if app == .custom {
+            // Load custom URL from UserDefaults
+            urlTemplate = UserDefaults.standard.string(forKey: "aiPromptURL") ?? "https://chatgpt.com/?q={prompt}"
+        }
+
+        // URL encode the transcription
+        guard let encodedPrompt = transcription.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            DebugLog.error("Failed to URL encode text", context: "ContentView")
+            return
+        }
+
+        // Replace {prompt} placeholder with encoded text
+        let urlString = urlTemplate.replacingOccurrences(of: "{prompt}", with: encodedPrompt)
+
+        guard let url = URL(string: urlString) else {
+            DebugLog.error("Invalid URL: \(urlString)", context: "ContentView")
+            return
+        }
+
+        DebugLog.info("Opening \(app.rawValue) URL: \(url.absoluteString)", context: "ContentView")
+
+        // Open URL in default browser or app
+        NSWorkspace.shared.open(url)
     }
 }
 
