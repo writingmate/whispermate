@@ -3,15 +3,16 @@
 default_platform(:ios)
 
 # Before all lanes - set up API Key authentication
-before_all do
-  # Use App Store Connect API key instead of username/password
-  app_store_connect_api_key(
-    key_id: ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"],
-    issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"],
-    key_filepath: ENV["APP_STORE_CONNECT_API_KEY_KEY"],
-    in_house: false
-  )
-end
+# Temporarily disabled due to OpenSSL incompatibility in fastlane 2.210.1
+# before_all do
+#   # Use App Store Connect API key instead of username/password
+#   app_store_connect_api_key(
+#     key_id: ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"],
+#     issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"],
+#     key_filepath: ENV["APP_STORE_CONNECT_API_KEY_KEY"],
+#     in_house: false
+#   )
+# end
 
 platform :ios do
   # Variables
@@ -56,12 +57,13 @@ platform :ios do
     )
 
     # Update provisioning profiles
-    match(
-      type: "appstore",
-      app_identifier: [app_identifier, "#{app_identifier}.keyboard"],
-      team_id: team_id,
-      readonly: true
-    )
+    # Using manually installed profiles instead
+    # match(
+    #   type: "appstore",
+    #   app_identifier: [app_identifier, "#{app_identifier}.keyboard"],
+    #   team_id: team_id,
+    #   readonly: true
+    # )
 
     # Build and sign
     gym(
@@ -69,7 +71,17 @@ platform :ios do
       export_method: "app-store",
       output_directory: "./build",
       output_name: "WhisperMate.ipa",
-      clean: true
+      clean: true,
+      xcargs: "DEVELOPMENT_TEAM=#{team_id} CODE_SIGN_STYLE=Manual",
+      export_team_id: team_id,
+      export_options: {
+        teamID: team_id,
+        signingStyle: "manual",
+        provisioningProfiles: {
+          "com.whispermate.ios" => "73de4d13-37e6-49ca-a9f0-35378e49c33d",
+          "com.whispermate.ios.keyboard" => "db6f8085-4d33-4b22-af3e-741fdf9c2c29"
+        }
+      }
     )
 
     UI.success("✅ Build complete!")
