@@ -7,11 +7,171 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		21F47DB7E11086285CECF079 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43FD8F8572774A3CAB680BE8 /* OnboardingView.swift */; };
+		2FA938F53EF9B74987D368A2 /* WhisperMateShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 87E126E5F783A66EE8C09AA7 /* WhisperMateShared.framework */; };
+		3948B9FDAD1808CFC81D3F14 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C156CCB36E17039DBB0B31AC /* Foundation.framework */; };
+		5AAACF59A6EBB27F83D9A1F3 /* WhisperMateApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F066CC73898BEDC3D1C8E7A /* WhisperMateApp.swift */; };
+		60F617CD5649DB8C1026DB48 /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B43A8A17227D69090D1799A /* KeyboardViewController.swift */; };
+		6EC7256035309FA6ECE926C2 /* Language.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07411C8F6170F2CDE6C1BE74 /* Language.swift */; };
+		7AB62183545713BCDA6AE7EB /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCDA54DB6038C8BA054FC2BB /* KeychainHelper.swift */; };
+		7E94743A1A6890392F58EC04 /* DebugLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30336B3D06310D0F50755B9F /* DebugLog.swift */; };
+		80EB1A509F3EF2F657960C28 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C156CCB36E17039DBB0B31AC /* Foundation.framework */; };
+		8FD7BB937AAFD7295734A964 /* OpenAIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4426C33FC2C552979D23DDC /* OpenAIClient.swift */; };
+		90885B14BAA61DEEA063B669 /* WhisperMateShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 87E126E5F783A66EE8C09AA7 /* WhisperMateShared.framework */; };
+		A2A44F4B9F018789A09CF37C /* WhisperMateKeyboard.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = AED2B5470D07D8FF6363D2C6 /* WhisperMateKeyboard.appex */; };
+		B79C70E4B4414EA4AF008828 /* SecretsLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7860C73CEBCB692E971B037 /* SecretsLoader.swift */; };
 		C1C136142EAC1C7A001D58D3 /* ClaudeCodeSDK in Frameworks */ = {isa = PBXBuildFile; productRef = C1C136132EAC1C7A001D58D3 /* ClaudeCodeSDK */; };
+		C1E7D30C2EBA92C900A07338 /* WhisperMateKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C1E7D3052EBA92C900A07338 /* WhisperMateKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		C1E7D3172EBA94A600A07338 /* WhisperMateShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1E7D2AD2EBA925200A07338 /* WhisperMateShared.framework */; };
+		C1E7D3182EBA94A600A07338 /* WhisperMateShared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C1E7D2AD2EBA925200A07338 /* WhisperMateShared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		C1E7D31C2EBA94EE00A07338 /* WhisperMateShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1E7D2AD2EBA925200A07338 /* WhisperMateShared.framework */; };
+		C1E7D31D2EBA94EE00A07338 /* WhisperMateShared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C1E7D2AD2EBA925200A07338 /* WhisperMateShared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		C1E7D3212EBA950800A07338 /* WhisperMateShared.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1E7D2AD2EBA925200A07338 /* WhisperMateShared.framework */; };
+		C1E7D3222EBA950800A07338 /* WhisperMateShared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C1E7D2AD2EBA925200A07338 /* WhisperMateShared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		C260104AE3BD9FD43536BA1D /* PromptRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC7D85E4302C28FDB3CF821 /* PromptRule.swift */; };
+		DE4118C1ED88A573BE5D7E31 /* APIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF582BE8000ED07877096C99 /* APIProvider.swift */; };
+		E671CB4F9F32AEF3B2F57E57 /* Recording.swift in Sources */ = {isa = PBXBuildFile; fileRef = 892656CDC14B3DC939E3E713 /* Recording.swift */; };
+		F45B473B7D440F0B88536BAD /* HistoryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D94A7E5A7707A450035CC4AD /* HistoryManager.swift */; };
+		F9064D99464B818F7CEA06FF /* AudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C996FC2EB543FB14701046FE /* AudioRecorder.swift */; };
+		FCD1590CC693480EA05F4096 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C156CCB36E17039DBB0B31AC /* Foundation.framework */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		263007B249BC3AA2D186CA78 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C18566CB2EA0D31000B46F55 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A729F7FF4C7458F8B03E4194;
+			remoteInfo = WhisperMateShared;
+		};
+		7D1DDFAEBC35F0A379ADF303 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C18566CB2EA0D31000B46F55 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A729F7FF4C7458F8B03E4194;
+			remoteInfo = WhisperMateShared;
+		};
+		7E4665371CDFB3BF3C6FF732 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C18566CB2EA0D31000B46F55 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D2FB733C79C0C6BE05560035;
+			remoteInfo = WhisperMateKeyboard;
+		};
+		C1E7D30A2EBA92C900A07338 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C18566CB2EA0D31000B46F55 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C1E7D3042EBA92C900A07338;
+			remoteInfo = WhisperMateKeyboard;
+		};
+		C1E7D3192EBA94A600A07338 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C18566CB2EA0D31000B46F55 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C1E7D2AC2EBA925200A07338;
+			remoteInfo = WhisperMateShared;
+		};
+		C1E7D31E2EBA94EE00A07338 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C18566CB2EA0D31000B46F55 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C1E7D2AC2EBA925200A07338;
+			remoteInfo = WhisperMateShared;
+		};
+		C1E7D3232EBA950800A07338 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C18566CB2EA0D31000B46F55 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C1E7D2AC2EBA925200A07338;
+			remoteInfo = WhisperMateShared;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B886ECA26AAF5923B44583D1 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				A2A44F4B9F018789A09CF37C /* WhisperMateKeyboard.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1E7D3112EBA92C900A07338 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				C1E7D30C2EBA92C900A07338 /* WhisperMateKeyboard.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1E7D31B2EBA94A600A07338 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				C1E7D3182EBA94A600A07338 /* WhisperMateShared.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1E7D3202EBA94EE00A07338 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				C1E7D31D2EBA94EE00A07338 /* WhisperMateShared.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1E7D3252EBA950800A07338 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				C1E7D3222EBA950800A07338 /* WhisperMateShared.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		07411C8F6170F2CDE6C1BE74 /* Language.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Language.swift; path = WhisperMateShared/Models/Language.swift; sourceTree = "<group>"; };
+		124ACEBBEE4FFD6B31B3BEB3 /* WhisperMateIOS.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; name = WhisperMateIOS.entitlements; path = WhisperMateIOS/WhisperMateIOS.entitlements; sourceTree = "<group>"; };
+		2AC7D85E4302C28FDB3CF821 /* PromptRule.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PromptRule.swift; path = WhisperMateShared/Models/PromptRule.swift; sourceTree = "<group>"; };
+		30336B3D06310D0F50755B9F /* DebugLog.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DebugLog.swift; path = WhisperMateShared/Services/DebugLog.swift; sourceTree = "<group>"; };
+		43FD8F8572774A3CAB680BE8 /* OnboardingView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OnboardingView.swift; path = WhisperMateIOS/OnboardingView.swift; sourceTree = "<group>"; };
+		6B43A8A17227D69090D1799A /* KeyboardViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = KeyboardViewController.swift; path = WhisperMateKeyboard/KeyboardViewController.swift; sourceTree = "<group>"; };
+		87E126E5F783A66EE8C09AA7 /* WhisperMateShared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WhisperMateShared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		892656CDC14B3DC939E3E713 /* Recording.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = Recording.swift; path = WhisperMateShared/Models/Recording.swift; sourceTree = "<group>"; };
+		8F066CC73898BEDC3D1C8E7A /* WhisperMateApp.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WhisperMateApp.swift; path = WhisperMateIOS/WhisperMateApp.swift; sourceTree = "<group>"; };
+		90163ACE9B7925E9CBC7E080 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = WhisperMateIOS/Info.plist; sourceTree = "<group>"; };
+		A4426C33FC2C552979D23DDC /* OpenAIClient.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = OpenAIClient.swift; path = WhisperMateShared/Networking/OpenAIClient.swift; sourceTree = "<group>"; };
+		AED2B5470D07D8FF6363D2C6 /* WhisperMateKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WhisperMateKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		BCDA54DB6038C8BA054FC2BB /* KeychainHelper.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = KeychainHelper.swift; path = WhisperMateShared/Storage/KeychainHelper.swift; sourceTree = "<group>"; };
+		C156CCB36E17039DBB0B31AC /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		C18566D32EA0D31000B46F55 /* Whispermate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Whispermate.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C1E7D2AD2EBA925200A07338 /* WhisperMateShared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WhisperMateShared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		C1E7D2EE2EBA92A500A07338 /* WhisperMateIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhisperMateIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C1E7D3052EBA92C900A07338 /* WhisperMateKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WhisperMateKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C996FC2EB543FB14701046FE /* AudioRecorder.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AudioRecorder.swift; path = WhisperMateShared/Services/AudioRecorder.swift; sourceTree = "<group>"; };
+		CF582BE8000ED07877096C99 /* APIProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = APIProvider.swift; path = WhisperMateShared/Models/APIProvider.swift; sourceTree = "<group>"; };
+		D94A7E5A7707A450035CC4AD /* HistoryManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HistoryManager.swift; path = WhisperMateShared/Storage/HistoryManager.swift; sourceTree = "<group>"; };
+		DE09D4194C2E16234B5B3433 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = WhisperMateKeyboard/Info.plist; sourceTree = "<group>"; };
+		E7860C73CEBCB692E971B037 /* SecretsLoader.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SecretsLoader.swift; path = WhisperMateShared/Services/SecretsLoader.swift; sourceTree = "<group>"; };
+		F4DD5CFDADA4DD47C3B01D84 /* WhisperMateIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = WhisperMateIOS.app; path = WhisperMate.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F53B5254255B4893526A1D7A /* WhisperMateKeyboard.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; name = WhisperMateKeyboard.entitlements; path = WhisperMateKeyboard/WhisperMateKeyboard.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -34,25 +194,175 @@
 			path = Whispermate;
 			sourceTree = "<group>";
 		};
+		C1E7D2AE2EBA925200A07338 /* WhisperMateShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = WhisperMateShared;
+			sourceTree = "<group>";
+		};
+		C1E7D2EF2EBA92A500A07338 /* WhisperMateIOS */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = WhisperMateIOS;
+			sourceTree = "<group>";
+		};
+		C1E7D3062EBA92C900A07338 /* WhisperMateKeyboard */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = WhisperMateKeyboard;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		26D0A2CAAADAE02D1B8F01C1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				80EB1A509F3EF2F657960C28 /* Foundation.framework in Frameworks */,
+				90885B14BAA61DEEA063B669 /* WhisperMateShared.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		979963496D142605B6ED7266 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FCD1590CC693480EA05F4096 /* Foundation.framework in Frameworks */,
+				2FA938F53EF9B74987D368A2 /* WhisperMateShared.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C18566D02EA0D31000B46F55 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				C1C136142EAC1C7A001D58D3 /* ClaudeCodeSDK in Frameworks */,
+				C1E7D3212EBA950800A07338 /* WhisperMateShared.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1E7D2AA2EBA925200A07338 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1E7D2EB2EBA92A500A07338 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C1E7D3172EBA94A600A07338 /* WhisperMateShared.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1E7D3022EBA92C900A07338 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C1E7D31C2EBA94EE00A07338 /* WhisperMateShared.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FA50F034D2707C6954BE0D87 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3948B9FDAD1808CFC81D3F14 /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1F1F13017DE6CD732272B111 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				C156CCB36E17039DBB0B31AC /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		4F279358F2A5114F4063C6F8 /* WhisperMateIOS */ = {
+			isa = PBXGroup;
+			children = (
+				8F066CC73898BEDC3D1C8E7A /* WhisperMateApp.swift */,
+				43FD8F8572774A3CAB680BE8 /* OnboardingView.swift */,
+				90163ACE9B7925E9CBC7E080 /* Info.plist */,
+				124ACEBBEE4FFD6B31B3BEB3 /* WhisperMateIOS.entitlements */,
+			);
+			name = WhisperMateIOS;
+			sourceTree = "<group>";
+		};
+		63789CA0D5ABEC4BA50B9949 /* WhisperMateShared */ = {
+			isa = PBXGroup;
+			children = (
+				A786EFA15A4F857251E95749 /* Models */,
+				B3FCC1BF1269306D2E8BE4E7 /* Networking */,
+				8FA56199F738649AA4891048 /* Services */,
+				BEF65D63857913EDA8958D1F /* Storage */,
+			);
+			name = WhisperMateShared;
+			sourceTree = "<group>";
+		};
+		6BF00E2D935922E4763C5E41 /* WhisperMateKeyboard */ = {
+			isa = PBXGroup;
+			children = (
+				6B43A8A17227D69090D1799A /* KeyboardViewController.swift */,
+				DE09D4194C2E16234B5B3433 /* Info.plist */,
+				F53B5254255B4893526A1D7A /* WhisperMateKeyboard.entitlements */,
+			);
+			name = WhisperMateKeyboard;
+			sourceTree = "<group>";
+		};
+		8FA56199F738649AA4891048 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				30336B3D06310D0F50755B9F /* DebugLog.swift */,
+				E7860C73CEBCB692E971B037 /* SecretsLoader.swift */,
+				C996FC2EB543FB14701046FE /* AudioRecorder.swift */,
+			);
+			name = Services;
+			sourceTree = "<group>";
+		};
+		A786EFA15A4F857251E95749 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				2AC7D85E4302C28FDB3CF821 /* PromptRule.swift */,
+				07411C8F6170F2CDE6C1BE74 /* Language.swift */,
+				892656CDC14B3DC939E3E713 /* Recording.swift */,
+				CF582BE8000ED07877096C99 /* APIProvider.swift */,
+			);
+			name = Models;
+			sourceTree = "<group>";
+		};
+		B3FCC1BF1269306D2E8BE4E7 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				A4426C33FC2C552979D23DDC /* OpenAIClient.swift */,
+			);
+			name = Networking;
+			sourceTree = "<group>";
+		};
+		BEF65D63857913EDA8958D1F /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				BCDA54DB6038C8BA054FC2BB /* KeychainHelper.swift */,
+				D94A7E5A7707A450035CC4AD /* HistoryManager.swift */,
+			);
+			name = Storage;
+			sourceTree = "<group>";
+		};
 		C18566CA2EA0D31000B46F55 = {
 			isa = PBXGroup;
 			children = (
 				C18566D52EA0D31000B46F55 /* Whispermate */,
+				C1E7D2AE2EBA925200A07338 /* WhisperMateShared */,
+				C1E7D2EF2EBA92A500A07338 /* WhisperMateIOS */,
+				C1E7D3062EBA92C900A07338 /* WhisperMateKeyboard */,
+				C1E7D3162EBA94A600A07338 /* Frameworks */,
 				C18566D42EA0D31000B46F55 /* Products */,
+				63789CA0D5ABEC4BA50B9949 /* WhisperMateShared */,
+				4F279358F2A5114F4063C6F8 /* WhisperMateIOS */,
+				6BF00E2D935922E4763C5E41 /* WhisperMateKeyboard */,
 			);
 			sourceTree = "<group>";
 		};
@@ -60,13 +370,62 @@
 			isa = PBXGroup;
 			children = (
 				C18566D32EA0D31000B46F55 /* Whispermate.app */,
+				C1E7D2AD2EBA925200A07338 /* WhisperMateShared.framework */,
+				C1E7D2EE2EBA92A500A07338 /* WhisperMateIOS.app */,
+				C1E7D3052EBA92C900A07338 /* WhisperMateKeyboard.appex */,
+				87E126E5F783A66EE8C09AA7 /* WhisperMateShared.framework */,
+				F4DD5CFDADA4DD47C3B01D84 /* WhisperMateIOS.app */,
+				AED2B5470D07D8FF6363D2C6 /* WhisperMateKeyboard.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
+		C1E7D3162EBA94A600A07338 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1F1F13017DE6CD732272B111 /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
+/* Begin PBXHeadersBuildPhase section */
+		0E36BC2E70C95EC8BC169F10 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1E7D2A82EBA925200A07338 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
 /* Begin PBXNativeTarget section */
+		A729F7FF4C7458F8B03E4194 /* WhisperMateShared */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 25FC15FAD075C0C35207BFDC /* Build configuration list for PBXNativeTarget "WhisperMateShared" */;
+			buildPhases = (
+				0E36BC2E70C95EC8BC169F10 /* Headers */,
+				35C1DE71CCE2A4F435C4789D /* Sources */,
+				FA50F034D2707C6954BE0D87 /* Frameworks */,
+				F213F11805FBE5EB4CF6DC09 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WhisperMateShared;
+			productName = WhisperMateShared;
+			productReference = 87E126E5F783A66EE8C09AA7 /* WhisperMateShared.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 		C18566D22EA0D31000B46F55 /* Whispermate */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C18566DE2EA0D31100B46F55 /* Build configuration list for PBXNativeTarget "Whispermate" */;
@@ -75,10 +434,12 @@
 				C18566D02EA0D31000B46F55 /* Frameworks */,
 				C18566D12EA0D31000B46F55 /* Resources */,
 				C1F4D2A82F5E4A9B00A1CDEF /* Copy Secrets.plist */,
+				C1E7D3252EBA950800A07338 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				C1E7D3242EBA950800A07338 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				C18566D52EA0D31000B46F55 /* Whispermate */,
@@ -91,6 +452,111 @@
 			productReference = C18566D32EA0D31000B46F55 /* Whispermate.app */;
 			productType = "com.apple.product-type.application";
 		};
+		C1E7D2AC2EBA925200A07338 /* WhisperMateShared */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C1E7D2B52EBA925200A07338 /* Build configuration list for PBXNativeTarget "WhisperMateShared" */;
+			buildPhases = (
+				C1E7D2A82EBA925200A07338 /* Headers */,
+				C1E7D2A92EBA925200A07338 /* Sources */,
+				C1E7D2AA2EBA925200A07338 /* Frameworks */,
+				C1E7D2AB2EBA925200A07338 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C1E7D2AE2EBA925200A07338 /* WhisperMateShared */,
+			);
+			name = WhisperMateShared;
+			productName = WhisperMateShared;
+			productReference = C1E7D2AD2EBA925200A07338 /* WhisperMateShared.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		C1E7D2ED2EBA92A500A07338 /* WhisperMateIOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C1E7D2F62EBA92A600A07338 /* Build configuration list for PBXNativeTarget "WhisperMateIOS" */;
+			buildPhases = (
+				C1E7D2EA2EBA92A500A07338 /* Sources */,
+				C1E7D2EB2EBA92A500A07338 /* Frameworks */,
+				C1E7D2EC2EBA92A500A07338 /* Resources */,
+				C1E7D3112EBA92C900A07338 /* Embed Foundation Extensions */,
+				C1E7D31B2EBA94A600A07338 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C1E7D30B2EBA92C900A07338 /* PBXTargetDependency */,
+				C1E7D31A2EBA94A600A07338 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C1E7D2EF2EBA92A500A07338 /* WhisperMateIOS */,
+			);
+			name = WhisperMateIOS;
+			productName = WhisperMateIOS;
+			productReference = C1E7D2EE2EBA92A500A07338 /* WhisperMateIOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		C1E7D3042EBA92C900A07338 /* WhisperMateKeyboard */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C1E7D30E2EBA92C900A07338 /* Build configuration list for PBXNativeTarget "WhisperMateKeyboard" */;
+			buildPhases = (
+				C1E7D3012EBA92C900A07338 /* Sources */,
+				C1E7D3022EBA92C900A07338 /* Frameworks */,
+				C1E7D3032EBA92C900A07338 /* Resources */,
+				C1E7D3202EBA94EE00A07338 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C1E7D31F2EBA94EE00A07338 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C1E7D3062EBA92C900A07338 /* WhisperMateKeyboard */,
+			);
+			name = WhisperMateKeyboard;
+			productName = WhisperMateKeyboard;
+			productReference = C1E7D3052EBA92C900A07338 /* WhisperMateKeyboard.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		D2FB733C79C0C6BE05560035 /* WhisperMateKeyboard */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AE287DCEDF05A9A187D67212 /* Build configuration list for PBXNativeTarget "WhisperMateKeyboard" */;
+			buildPhases = (
+				A3950F3BBABBEECE50E491B6 /* Sources */,
+				979963496D142605B6ED7266 /* Frameworks */,
+				8ED3D1C9AB7070AEB4EC5982 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				17A226F5B5097773EDE4A811 /* PBXTargetDependency */,
+			);
+			name = WhisperMateKeyboard;
+			productName = WhisperMateKeyboard;
+			productReference = AED2B5470D07D8FF6363D2C6 /* WhisperMateKeyboard.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		DCB524753F2B40250735042C /* WhisperMateIOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8781329752ABA5BD69D9A977 /* Build configuration list for PBXNativeTarget "WhisperMateIOS" */;
+			buildPhases = (
+				DA57D6BA3012B093D109C509 /* Sources */,
+				26D0A2CAAADAE02D1B8F01C1 /* Frameworks */,
+				49FD4F2670F3FCD600D3FD94 /* Resources */,
+				B886ECA26AAF5923B44583D1 /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				657941FCF55B2D007339E599 /* PBXTargetDependency */,
+				47440F102C5722D0318F4CAE /* PBXTargetDependency */,
+			);
+			name = WhisperMateIOS;
+			productName = WhisperMateIOS;
+			productReference = F4DD5CFDADA4DD47C3B01D84 /* WhisperMateIOS.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -98,11 +564,20 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2600;
+				LastSwiftUpdateCheck = 2610;
 				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					C18566D22EA0D31000B46F55 = {
 						CreatedOnToolsVersion = 26.0.1;
+					};
+					C1E7D2AC2EBA925200A07338 = {
+						CreatedOnToolsVersion = 26.1;
+					};
+					C1E7D2ED2EBA92A500A07338 = {
+						CreatedOnToolsVersion = 26.1;
+					};
+					C1E7D3042EBA92C900A07338 = {
+						CreatedOnToolsVersion = 26.1;
 					};
 				};
 			};
@@ -124,12 +599,60 @@
 			projectRoot = "";
 			targets = (
 				C18566D22EA0D31000B46F55 /* Whispermate */,
+				C1E7D2AC2EBA925200A07338 /* WhisperMateShared */,
+				C1E7D2ED2EBA92A500A07338 /* WhisperMateIOS */,
+				C1E7D3042EBA92C900A07338 /* WhisperMateKeyboard */,
+				A729F7FF4C7458F8B03E4194 /* WhisperMateShared */,
+				DCB524753F2B40250735042C /* WhisperMateIOS */,
+				D2FB733C79C0C6BE05560035 /* WhisperMateKeyboard */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		49FD4F2670F3FCD600D3FD94 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8ED3D1C9AB7070AEB4EC5982 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C18566D12EA0D31000B46F55 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1E7D2AB2EBA925200A07338 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1E7D2EC2EBA92A500A07338 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1E7D3032EBA92C900A07338 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F213F11805FBE5EB4CF6DC09 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -163,6 +686,31 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		35C1DE71CCE2A4F435C4789D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C260104AE3BD9FD43536BA1D /* PromptRule.swift in Sources */,
+				6EC7256035309FA6ECE926C2 /* Language.swift in Sources */,
+				E671CB4F9F32AEF3B2F57E57 /* Recording.swift in Sources */,
+				DE4118C1ED88A573BE5D7E31 /* APIProvider.swift in Sources */,
+				8FD7BB937AAFD7295734A964 /* OpenAIClient.swift in Sources */,
+				7E94743A1A6890392F58EC04 /* DebugLog.swift in Sources */,
+				B79C70E4B4414EA4AF008828 /* SecretsLoader.swift in Sources */,
+				F9064D99464B818F7CEA06FF /* AudioRecorder.swift in Sources */,
+				7AB62183545713BCDA6AE7EB /* KeychainHelper.swift in Sources */,
+				F45B473B7D440F0B88536BAD /* HistoryManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A3950F3BBABBEECE50E491B6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				60F617CD5649DB8C1026DB48 /* KeyboardViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C18566CF2EA0D31000B46F55 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -170,9 +718,165 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C1E7D2A92EBA925200A07338 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1E7D2EA2EBA92A500A07338 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1E7D3012EBA92C900A07338 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DA57D6BA3012B093D109C509 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5AAACF59A6EBB27F83D9A1F3 /* WhisperMateApp.swift in Sources */,
+				21F47DB7E11086285CECF079 /* OnboardingView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		17A226F5B5097773EDE4A811 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = WhisperMateShared;
+			target = A729F7FF4C7458F8B03E4194 /* WhisperMateShared */;
+			targetProxy = 7D1DDFAEBC35F0A379ADF303 /* PBXContainerItemProxy */;
+		};
+		47440F102C5722D0318F4CAE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = WhisperMateKeyboard;
+			target = D2FB733C79C0C6BE05560035 /* WhisperMateKeyboard */;
+			targetProxy = 7E4665371CDFB3BF3C6FF732 /* PBXContainerItemProxy */;
+		};
+		657941FCF55B2D007339E599 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = WhisperMateShared;
+			target = A729F7FF4C7458F8B03E4194 /* WhisperMateShared */;
+			targetProxy = 263007B249BC3AA2D186CA78 /* PBXContainerItemProxy */;
+		};
+		C1E7D30B2EBA92C900A07338 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C1E7D3042EBA92C900A07338 /* WhisperMateKeyboard */;
+			targetProxy = C1E7D30A2EBA92C900A07338 /* PBXContainerItemProxy */;
+		};
+		C1E7D31A2EBA94A600A07338 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C1E7D2AC2EBA925200A07338 /* WhisperMateShared */;
+			targetProxy = C1E7D3192EBA94A600A07338 /* PBXContainerItemProxy */;
+		};
+		C1E7D31F2EBA94EE00A07338 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C1E7D2AC2EBA925200A07338 /* WhisperMateShared */;
+			targetProxy = C1E7D31E2EBA94EE00A07338 /* PBXContainerItemProxy */;
+		};
+		C1E7D3242EBA950800A07338 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C1E7D2AC2EBA925200A07338 /* WhisperMateShared */;
+			targetProxy = C1E7D3232EBA950800A07338 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		46761C1470F9759D63DC2CF6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WhisperMateIOS/WhisperMateIOS.entitlements;
+				INFOPLIST_FILE = WhisperMateIOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.ios;
+				PRODUCT_NAME = WhisperMate;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		7021884880D1B039CA4E0121 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WhisperMateKeyboard/WhisperMateKeyboard.entitlements;
+				INFOPLIST_FILE = WhisperMateKeyboard/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.ios.keyboard;
+				PRODUCT_NAME = WhisperMateKeyboard;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		716AB3FC4649BB27BD04E6F5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.0.20;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.shared;
+				PRODUCT_NAME = WhisperMateShared;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		C0903A5338D51FCD38A2BCAE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WhisperMateKeyboard/WhisperMateKeyboard.entitlements;
+				INFOPLIST_FILE = WhisperMateKeyboard/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.ios.keyboard;
+				PRODUCT_NAME = WhisperMateKeyboard;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		C18566DC2EA0D31100B46F55 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -300,9 +1004,14 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = G7DJ6P37KU;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Whispermate/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -312,7 +1021,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.0.19;
-				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.Whishpermate;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.macos;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -333,9 +1042,14 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = G7DJ6P37KU;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(BUILT_PRODUCTS_DIR)",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Whispermate/Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -345,7 +1059,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 0.0.19;
-				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.Whishpermate;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.macos;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -357,9 +1071,323 @@
 			};
 			name = Release;
 		};
+		C1E7D2B32EBA925200A07338 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = G7DJ6P37KU;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.0.20;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.shared;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_MODULE = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		C1E7D2B42EBA925200A07338 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = G7DJ6P37KU;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 0.0.20;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.shared;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = auto;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_MODULE = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		C1E7D2F72EBA92A600A07338 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = WhisperMateIOS/WhisperMateIOS.entitlements;
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = G7DJ6P37KU;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WhisperMateIOS/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.0.20;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C1E7D2F82EBA92A600A07338 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = WhisperMateIOS/WhisperMateIOS.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = G7DJ6P37KU;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WhisperMateIOS/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.0.20;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.ios;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "7b2401f4-a895-490b-9743-d5302342c4d2";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		C1E7D30F2EBA92C900A07338 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = WhisperMateKeyboard/WhisperMateKeyboard.entitlements;
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = G7DJ6P37KU;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WhisperMateKeyboard/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WhisperMateKeyboard;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.0.20;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.ios.keyboard;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C1E7D3102EBA92C900A07338 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = WhisperMateKeyboard/WhisperMateKeyboard.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = G7DJ6P37KU;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WhisperMateKeyboard/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WhisperMateKeyboard;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.0.20;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.ios.keyboard;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "2bdbec39-a1a0-4704-8592-6a528eb6fa01";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		DB0C6EBA832B24836549887F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WhisperMateIOS/WhisperMateIOS.entitlements;
+				INFOPLIST_FILE = WhisperMateIOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.ios;
+				PRODUCT_NAME = WhisperMate;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		F9289490B27DDE6DBCAD91CC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.0.20;
+				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.shared;
+				PRODUCT_NAME = WhisperMateShared;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		25FC15FAD075C0C35207BFDC /* Build configuration list for PBXNativeTarget "WhisperMateShared" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				716AB3FC4649BB27BD04E6F5 /* Release */,
+				F9289490B27DDE6DBCAD91CC /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8781329752ABA5BD69D9A977 /* Build configuration list for PBXNativeTarget "WhisperMateIOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DB0C6EBA832B24836549887F /* Release */,
+				46761C1470F9759D63DC2CF6 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AE287DCEDF05A9A187D67212 /* Build configuration list for PBXNativeTarget "WhisperMateKeyboard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C0903A5338D51FCD38A2BCAE /* Release */,
+				7021884880D1B039CA4E0121 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		C18566CE2EA0D31000B46F55 /* Build configuration list for PBXProject "Whispermate" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -374,6 +1402,33 @@
 			buildConfigurations = (
 				C18566DF2EA0D31100B46F55 /* Debug */,
 				C18566E02EA0D31100B46F55 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C1E7D2B52EBA925200A07338 /* Build configuration list for PBXNativeTarget "WhisperMateShared" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C1E7D2B32EBA925200A07338 /* Debug */,
+				C1E7D2B42EBA925200A07338 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C1E7D2F62EBA92A600A07338 /* Build configuration list for PBXNativeTarget "WhisperMateIOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C1E7D2F72EBA92A600A07338 /* Debug */,
+				C1E7D2F82EBA92A600A07338 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C1E7D30E2EBA92C900A07338 /* Build configuration list for PBXNativeTarget "WhisperMateKeyboard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C1E7D30F2EBA92C900A07338 /* Debug */,
+				C1E7D3102EBA92C900A07338 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
