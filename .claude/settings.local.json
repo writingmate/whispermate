@@ -115,7 +115,9 @@
       "Bash(git log:*)",
       "Bash(VERSION=\"0.0.18\" xcodebuild:*)",
       "Bash(VERSION=\"0.0.18\")",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(git pull:*)",
+      "Bash(plutil:*)"
     ],
     "deny": [],
     "ask": []

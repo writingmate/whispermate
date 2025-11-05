@@ -1,0 +1,13 @@
+# Matchfile - Code Signing Configuration
+
+git_url("git@github.com:writingmate/whispermate-certificates.git") # Git repository for certificates
+storage_mode("git")
+
+type("appstore") # Can be: appstore, adhoc, development, enterprise
+
+app_identifier(["com.whispermate.ios", "com.whispermate.ios.keyboard"])
+team_id("G7DJ6P37KU")
+
+# Don't set username - we'll use API key authentication via Fastfile before_all
+# For more information about Match, see:
+#     https://docs.fastlane.tools/actions/match/

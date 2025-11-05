@@ -1,0 +1,181 @@
+# WhisperMate Privacy Policy
+
+**Effective Date**: November 5, 2025
+**Last Updated**: November 5, 2025
+
+## Introduction
+
+WhisperMate ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our WhisperMate mobile application (the "App").
+
+Please read this privacy policy carefully. If you do not agree with the terms of this privacy policy, please do not access the App.
+
+## Information We Collect
+
+### Audio Recordings
+
+WhisperMate records your voice when you use the voice-to-text feature. This audio is:
+- **Temporarily processed** to convert speech to text
+- **Transmitted securely** to our transcription service provider
+- **Not stored** on our servers after transcription is complete
+- **Not used** for any purpose other than providing you the transcription service
+
+### Usage Data
+
+We may collect limited, anonymous usage data including:
+- Feature usage statistics (e.g., which features are used most)
+- Error logs and crash reports
+- Performance metrics
+
+This data is collected solely to improve the App and is completely anonymous - we cannot identify individual users.
+
+### Information We Do NOT Collect
+
+We explicitly do NOT collect:
+- Personal identification information (name, email, phone number)
+- Contact lists or address books
+- Location data
+- Photos or media files
+- Device identifiers for tracking purposes
+- Any data from keyboard input (when using our keyboard extension)
+
+## How We Use Your Information
+
+We use the audio recordings you provide solely to:
+- Generate text transcriptions of your speech
+- Improve transcription accuracy
+- Provide the core functionality of the App
+
+Anonymous usage data is used to:
+- Fix bugs and crashes
+- Improve App performance
+- Understand feature usage to guide development
+- Enhance user experience
+
+## Third-Party Services
+
+### Transcription Service Provider
+
+We use third-party AI services to process voice recordings and generate transcriptions:
+- **Provider**: Groq, OpenAI, or similar API providers (configurable)
+- **Data Shared**: Audio recordings only
+- **Data Retention**: Audio is not retained after transcription
+- **Security**: All data is transmitted via secure, encrypted connections (HTTPS)
+
+These providers have their own privacy policies governing their handling of data. We recommend reviewing:
+- Groq Privacy Policy: https://groq.com/privacy-policy/
+- OpenAI Privacy Policy: https://openai.com/privacy/
+
+### AI Assistant Integration
+
+When you choose to share transcriptions with third-party AI assistants (ChatGPT, Claude, Perplexity, etc.), you are leaving our App and subject to those services' privacy policies. We do not control or monitor these interactions.
+
+## Data Security
+
+We implement industry-standard security measures to protect your data:
+- **Encryption in Transit**: All data transmitted to our servers uses TLS/SSL encryption
+- **No Data at Rest**: We do not store your audio recordings or transcriptions on our servers
+- **Secure APIs**: All third-party integrations use secure, authenticated connections
+- **Minimal Data Collection**: We collect only what's necessary to provide the service
+
+## Your Privacy Rights
+
+### California Residents (CCPA)
+
+If you are a California resident, you have the right to:
+- Know what personal information we collect
+- Request deletion of your personal information
+- Opt-out of the sale of your personal information (Note: We do not sell personal information)
+
+### European Union Users (GDPR)
+
+If you are in the EU, you have the right to:
+- Access your personal data
+- Rectify inaccurate personal data
+- Erase your personal data
+- Restrict processing of your personal data
+- Data portability
+- Object to processing
+
+**Note**: Since we do not store personal data or audio recordings, there is typically no data to access, rectify, or delete.
+
+### Exercising Your Rights
+
+To exercise these rights, please contact us at: [support email address]
+
+## Children's Privacy
+
+WhisperMate is not intended for children under the age of 13. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us.
+
+## Keyboard Extension Privacy
+
+Our keyboard extension:
+- **Does NOT** collect any data you type using the keyboard
+- **Does NOT** transmit keyboard input to our servers
+- **Only** activates when you explicitly tap the microphone button
+- **Only** processes audio when you grant microphone permission
+
+**"Allow Full Access" Explanation**: iOS requires keyboard extensions to have "Full Access" enabled to:
+- Play audio feedback sounds
+- Access the microphone for voice input
+- Copy transcribed text to the system clipboard
+
+We do NOT use "Full Access" to:
+- Track your typing
+- Collect keyboard usage data
+- Monitor your activity across apps
+- Access your personal data
+
+## Data Retention
+
+- **Audio Recordings**: Deleted immediately after transcription (typically within seconds)
+- **Transcriptions**: Stored locally on your device only, under your control
+- **Usage Analytics**: Anonymized data retained for up to 12 months for improvement purposes
+
+## Changes to This Privacy Policy
+
+We may update this Privacy Policy from time to time. We will notify you of any changes by:
+- Posting the new Privacy Policy on this page
+- Updating the "Last Updated" date
+- Providing in-app notification for material changes
+
+Your continued use of the App after changes constitutes acceptance of the updated policy.
+
+## International Data Transfers
+
+Your information, including audio recordings during processing, may be transferred to and maintained on computers located outside of your state, province, country, or other governmental jurisdiction where data protection laws may differ.
+
+By using WhisperMate, you consent to this transfer. We ensure that such transfers are protected and comply with applicable laws.
+
+## Contact Us
+
+If you have questions or concerns about this Privacy Policy, please contact us:
+
+- **Email**: support@whispermate.ai
+- **GitHub**: https://github.com/writingmate/whispermate/issues
+- **Website**: https://whispermate.ai
+
+## Transparency Commitment
+
+We believe in transparency. This Privacy Policy reflects our commitment to:
+- Collect minimal data necessary for functionality
+- Process data securely and temporarily
+- Never sell or share your data for advertising
+- Give you control over your information
+- Clearly explain our practices
+
+---
+
+## Summary (TL;DR)
+
+- ✅ We process your voice to create transcriptions
+- ✅ Audio is deleted immediately after transcription
+- ✅ All data transmission is encrypted
+- ❌ We don't store your recordings or transcriptions
+- ❌ We don't sell your data
+- ❌ We don't track you across apps
+- ❌ Keyboard extension doesn't monitor your typing
+
+---
+
+*This privacy policy was last updated on November 5, 2025.*
+*WhisperMate v0.0.20*
