@@ -1,0 +1,241 @@
+# Fastfile - WhisperMate iOS Automation
+
+default_platform(:ios)
+
+# Before all lanes - set up API Key authentication
+before_all do
+  # Use App Store Connect API key instead of username/password
+  app_store_connect_api_key(
+    key_id: ENV["APP_STORE_CONNECT_API_KEY_KEY_ID"],
+    issuer_id: ENV["APP_STORE_CONNECT_API_KEY_ISSUER_ID"],
+    key_filepath: ENV["APP_STORE_CONNECT_API_KEY_KEY"],
+    in_house: false
+  )
+end
+
+platform :ios do
+  # Variables
+  app_identifier = "com.whispermate.ios"
+  team_id = "G7DJ6P37KU"
+
+  #####################################
+  # Lane: Setup
+  #####################################
+  desc "Initial setup - create App Store Connect app, provisioning profiles, etc."
+  lane :setup do
+    # Create app in App Store Connect
+    produce(
+      app_identifier: app_identifier,
+      app_name: "WhisperMate",
+      language: "English",
+      app_version: "0.0.20",
+      sku: "whispermate-ios",
+      team_id: team_id,
+      platforms: ["ios"]
+    )
+
+    # Create provisioning profiles
+    match(
+      type: "appstore",
+      app_identifier: [app_identifier, "#{app_identifier}.keyboard"],
+      team_id: team_id,
+      readonly: false
+    )
+
+    UI.success("✅ Setup complete! App created and provisioning profiles generated.")
+  end
+
+  #####################################
+  # Lane: Build
+  #####################################
+  desc "Build the app for App Store"
+  lane :build do
+    # Increment build number
+    increment_build_number(
+      xcodeproj: "Whispermate.xcodeproj"
+    )
+
+    # Update provisioning profiles
+    match(
+      type: "appstore",
+      app_identifier: [app_identifier, "#{app_identifier}.keyboard"],
+      team_id: team_id,
+      readonly: true
+    )
+
+    # Build and sign
+    gym(
+      scheme: "WhisperMateIOS",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "WhisperMate.ipa",
+      clean: true
+    )
+
+    UI.success("✅ Build complete!")
+  end
+
+  #####################################
+  # Lane: Screenshots
+  #####################################
+  desc "Generate screenshots for all device sizes"
+  lane :screenshots do
+    capture_screenshots(
+      scheme: "WhisperMateIOSUITests",
+      devices: [
+        "iPhone 15 Pro Max",
+        "iPhone 15 Pro",
+        "iPhone SE (3rd generation)",
+        "iPad Pro (12.9-inch) (6th generation)"
+      ],
+      languages: ["en-US"],
+      output_directory: "./fastlane/screenshots",
+      clear_previous_screenshots: true,
+      override_status_bar: true
+    )
+
+    # Optionally frame screenshots
+    frameit(white: false, path: "./fastlane/screenshots")
+
+    UI.success("✅ Screenshots captured!")
+  end
+
+  #####################################
+  # Lane: Metadata
+  #####################################
+  desc "Upload metadata and screenshots to App Store Connect"
+  lane :metadata do
+    deliver(
+      app_identifier: app_identifier,
+      team_id: team_id,
+      metadata_path: "./fastlane/metadata",
+      screenshots_path: "./fastlane/screenshots",
+      skip_binary_upload: true,
+      skip_app_version_update: false,
+      force: true,
+      overwrite_screenshots: true
+    )
+
+    UI.success("✅ Metadata uploaded!")
+  end
+
+  #####################################
+  # Lane: Beta (TestFlight)
+  #####################################
+  desc "Upload to TestFlight"
+  lane :beta do
+    # Build app
+    build
+
+    # Upload to TestFlight
+    pilot(
+      app_identifier: app_identifier,
+      team_id: team_id,
+      skip_waiting_for_build_processing: false,
+      distribute_external: false,
+      notify_external_testers: false,
+      changelog: "WhisperMate v0.0.20 - UI improvements and bug fixes"
+    )
+
+    UI.success("✅ Uploaded to TestFlight!")
+  end
+
+  #####################################
+  # Lane: Release
+  #####################################
+  desc "Build, upload, and submit for App Review"
+  lane :release do
+    # Ensure clean working directory
+    ensure_git_status_clean
+
+    # Build app
+    build
+
+    # Upload metadata and screenshots
+    metadata
+
+    # Upload to App Store Connect
+    deliver(
+      app_identifier: app_identifier,
+      team_id: team_id,
+      ipa: "./build/WhisperMate.ipa",
+      submit_for_review: true,
+      automatic_release: false,
+      submission_information: {
+        add_id_info_serves_ads: false,
+        add_id_info_tracks_action: false,
+        add_id_info_tracks_install: false,
+        add_id_info_uses_idfa: false,
+        content_rights_contains_third_party_content: false,
+        content_rights_has_rights: true,
+        export_compliance_uses_encryption: false,
+        export_compliance_is_exempt: true
+      }
+    )
+
+    # Create git tag
+    add_git_tag(
+      tag: "ios-v0.0.20"
+    )
+
+    # Push to git
+    push_to_git_remote
+
+    UI.success("✅ Release submitted to App Store!")
+  end
+
+  #####################################
+  # Lane: Quick Release (without submission)
+  #####################################
+  desc "Build and upload binary only (no auto-submit)"
+  lane :upload do
+    build
+
+    deliver(
+      app_identifier: app_identifier,
+      team_id: team_id,
+      ipa: "./build/WhisperMate.ipa",
+      skip_metadata: true,
+      skip_screenshots: true,
+      submit_for_review: false
+    )
+
+    UI.success("✅ Binary uploaded to App Store Connect!")
+  end
+
+  #####################################
+  # Lane: Update Metadata Only
+  #####################################
+  desc "Update metadata without uploading a new build"
+  lane :update_metadata do
+    deliver(
+      app_identifier: app_identifier,
+      team_id: team_id,
+      skip_binary_upload: true,
+      overwrite_screenshots: true
+    )
+
+    UI.success("✅ Metadata updated!")
+  end
+
+  #####################################
+  # Error Handling
+  #####################################
+  error do |lane, exception|
+    UI.error("❌ Error in lane '#{lane}': #{exception.message}")
+  end
+
+  #####################################
+  # After All
+  #####################################
+  after_all do |lane|
+    # Slack notification (optional)
+    # slack(
+    #   message: "Successfully executed '#{lane}' lane",
+    #   success: true
+    # )
+
+    # Clean up build artifacts
+    clean_build_artifacts
+  end
+end

@@ -1,0 +1,34 @@
+# fastlane specific
+*.ipa
+*.dSYM.zip
+*.mobileprovision
+*.cer
+*.certSigningRequest
+*.p12
+
+# fastlane reports
+report.xml
+test_output/
+screenshots/
+Preview.html
+
+# Environment variables (contains secrets!)
+.env
+.env.local
+.env.production
+
+# fastlane session
+fastlane_session.txt
+
+# deliver temporary files
+*.itmsp
+
+# Fastlane.swift runner binary
+.build/
+
+# Code signing
+certs/
+profiles/
+
+# Match
+*.provisionprofile
