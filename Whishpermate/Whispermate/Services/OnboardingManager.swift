@@ -79,8 +79,14 @@ class OnboardingManager: ObservableObject {
         // Check if user has completed onboarding before
         let hasCompleted = UserDefaults.standard.bool(forKey: onboardingCompletedKey)
 
-        if hasCompleted {
-            // Even if completed, check if all permissions are still granted
+        if !hasCompleted {
+            // First time launch - ALWAYS show onboarding, regardless of permission status
+            DebugLog.info("First launch detected - showing mandatory onboarding", context: "OnboardingManager")
+            showOnboarding = true
+            currentStep = .microphone
+        } else {
+            // User has completed onboarding before
+            // Check if all permissions are still granted
             let allGranted = checkAllPermissions()
             showOnboarding = !allGranted
 
@@ -91,11 +97,6 @@ class OnboardingManager: ObservableObject {
             } else {
                 DebugLog.info("All permissions granted, skipping onboarding", context: "OnboardingManager")
             }
-        } else {
-            // First time launch - always show onboarding
-            DebugLog.info("First launch, showing onboarding", context: "OnboardingManager")
-            showOnboarding = true
-            currentStep = .microphone
         }
     }
 
@@ -191,6 +192,13 @@ class OnboardingManager: ObservableObject {
 
     func reopenOnboarding() {
         DebugLog.info("Reopening onboarding", context: "OnboardingManager")
+        currentStep = .microphone
+        showOnboarding = true
+    }
+
+    func resetOnboarding() {
+        DebugLog.info("Resetting onboarding status", context: "OnboardingManager")
+        UserDefaults.standard.removeObject(forKey: onboardingCompletedKey)
         currentStep = .microphone
         showOnboarding = true
     }

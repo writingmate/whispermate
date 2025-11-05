@@ -1,0 +1,73 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -scheme WhisperMateIOS -sdk iphonesimulator -configuration Debug build
+
+Build settings from command line:
+    SDKROOT = iphonesimulator26.1
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  ClaudeCodeSDK: https://github.com/jamesrochabrun/ClaudeCodeSDK @ main (da2ceab)
+  swift-crypto: https://github.com/apple/swift-crypto.git @ 4.0.0
+  swift-http-structured-headers: https://github.com/apple/swift-http-structured-headers.git @ 1.5.0
+  swift-collections: https://github.com/apple/swift-collections.git @ 1.3.0
+  swift-http-types: https://github.com/apple/swift-http-types.git @ 1.5.1
+  swift-service-lifecycle: https://github.com/swift-server/swift-service-lifecycle.git @ 2.9.0
+  SwiftAnthropic: https://github.com/jamesrochabrun/SwiftAnthropic @ 2.1.9
+  swift-certificates: https://github.com/apple/swift-certificates.git @ 1.15.0
+  swift-algorithms: https://github.com/apple/swift-algorithms.git @ 1.2.1
+  swift-async-algorithms: https://github.com/apple/swift-async-algorithms.git @ 1.0.4
+  swift-nio-extras: https://github.com/apple/swift-nio-extras.git @ 1.29.0
+  swift-numerics: https://github.com/apple/swift-numerics.git @ 1.1.1
+  async-http-client: https://github.com/swift-server/async-http-client.git @ 1.29.0
+  swift-distributed-tracing: https://github.com/apple/swift-distributed-tracing.git @ 1.3.1
+  swift-atomics: https://github.com/apple/swift-atomics.git @ 1.3.0
+  swift-service-context: https://github.com/apple/swift-service-context.git @ 1.2.1
+  swift-asn1: https://github.com/apple/swift-asn1.git @ 1.5.0
+  swift-nio: https://github.com/apple/swift-nio.git @ 2.87.0
+  swift-nio-ssl: https://github.com/apple/swift-nio-ssl.git @ 2.35.0
+  swift-nio-http2: https://github.com/apple/swift-nio-http2.git @ 1.38.0
+  swift-system: https://github.com/apple/swift-system.git @ 1.6.3
+  swift-log: https://github.com/apple/swift-log.git @ 1.6.4
+  swift-nio-transport-services: https://github.com/apple/swift-nio-transport-services.git @ 1.25.2
+
+2025-11-04 12:12:15.052 xcodebuild[81595:4130224] Writing error result bundle to /var/folders/rd/62qb0t6d4gd8pff8wvblldg40000gn/T/ResultBundle_2025-04-11_12-12-0015.xcresult
+xcodebuild: error: Found no destinations for the scheme 'WhisperMateIOS' and action build.
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -scheme WhisperMateIOS -destination "generic/platform=iOS Simulator" -configuration Debug build
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  swift-nio-ssl: https://github.com/apple/swift-nio-ssl.git @ 2.35.0
+  swift-algorithms: https://github.com/apple/swift-algorithms.git @ 1.2.1
+  swift-crypto: https://github.com/apple/swift-crypto.git @ 4.0.0
+  swift-numerics: https://github.com/apple/swift-numerics.git @ 1.1.1
+  swift-log: https://github.com/apple/swift-log.git @ 1.6.4
+  swift-service-context: https://github.com/apple/swift-service-context.git @ 1.2.1
+  swift-service-lifecycle: https://github.com/swift-server/swift-service-lifecycle.git @ 2.9.0
+  swift-asn1: https://github.com/apple/swift-asn1.git @ 1.5.0
+  swift-certificates: https://github.com/apple/swift-certificates.git @ 1.15.0
+  swift-nio-http2: https://github.com/apple/swift-nio-http2.git @ 1.38.0
+  swift-http-structured-headers: https://github.com/apple/swift-http-structured-headers.git @ 1.5.0
+  swift-http-types: https://github.com/apple/swift-http-types.git @ 1.5.1
+  swift-collections: https://github.com/apple/swift-collections.git @ 1.3.0
+  SwiftAnthropic: https://github.com/jamesrochabrun/SwiftAnthropic @ 2.1.9
+  async-http-client: https://github.com/swift-server/async-http-client.git @ 1.29.0
+  swift-atomics: https://github.com/apple/swift-atomics.git @ 1.3.0
+  swift-nio-extras: https://github.com/apple/swift-nio-extras.git @ 1.29.0
+  swift-distributed-tracing: https://github.com/apple/swift-distributed-tracing.git @ 1.3.1
+  swift-nio: https://github.com/apple/swift-nio.git @ 2.87.0
+  swift-nio-transport-services: https://github.com/apple/swift-nio-transport-services.git @ 1.25.2
+  swift-async-algorithms: https://github.com/apple/swift-async-algorithms.git @ 1.0.4
+  ClaudeCodeSDK: https://github.com/jamesrochabrun/ClaudeCodeSDK @ main (da2ceab)
+  swift-system: https://github.com/apple/swift-system.git @ 1.6.3
+
+2025-11-04 12:13:31.286 xcodebuild[82027:4137280] Writing error result bundle to /var/folders/rd/62qb0t6d4gd8pff8wvblldg40000gn/T/ResultBundle_2025-04-11_12-13-0031.xcresult
+xcodebuild: error: Unable to find a destination matching the provided destination specifier:
+		{ generic:1, platform:iOS Simulator }
+
+	Ineligible destinations for the "WhisperMateIOS" scheme:
+		{ platform:iOS, id:dvtdevice-DVTiPhonePlaceholder-iphoneos:placeholder, name:Any iOS Device, error:iOS 26.1 is not installed. Please download and install the platform from Xcode > Settings > Components. }
