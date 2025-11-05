@@ -1,0 +1,7 @@
+New in This Release
+
+• 🎨 Improved UI with polished animations
+• ⚡ Enhanced copy button with visual feedback
+• 🔗 Updated share menu integration
+• 🐛 Bug fixes and performance improvements
+• 📱 Better iOS keyboard support
