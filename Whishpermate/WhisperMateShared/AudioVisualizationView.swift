@@ -1,8 +1,13 @@
 import SwiftUI
 
-struct AudioVisualizationView: View {
-    let audioLevel: Float
-    var color: Color = .blue
+public struct AudioVisualizationView: View {
+    public let audioLevel: Float
+    public var color: Color = .blue
+
+    public init(audioLevel: Float, color: Color = .blue) {
+        self.audioLevel = audioLevel
+        self.color = color
+    }
 
     private let totalBars = 40
     private let minActiveBars = 10  // Minimum bars that activate in center
@@ -49,7 +54,7 @@ struct AudioVisualizationView: View {
         return max(dotSize, min(maxBarHeight, baseHeight))
     }
 
-    var body: some View {
+    public var body: some View {
         HStack(spacing: barSpacing) {
             ForEach(0..<totalBars, id: \.self) { index in
                 RoundedRectangle(cornerRadius: 2)

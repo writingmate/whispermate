@@ -1,11 +1,14 @@
 import SwiftUI
+import WhisperMateShared
 
 struct SettingsWindowView: View {
     @ObservedObject private var hotkeyManager = HotkeyManager.shared
     @StateObject private var languageManager = LanguageManager()
     @StateObject private var transcriptionProviderManager = TranscriptionProviderManager()
     @StateObject private var llmProviderManager = LLMProviderManager()
-    @ObservedObject private var promptRulesManager = PromptRulesManager.shared
+    @ObservedObject private var dictionaryManager = DictionaryManager.shared
+    @ObservedObject private var toneStyleManager = ToneStyleManager.shared
+    @ObservedObject private var shortcutManager = ShortcutManager.shared
     @State private var selectedSection: SettingsSection = .general
     @Environment(\.dismiss) var dismiss
 
@@ -15,7 +18,9 @@ struct SettingsWindowView: View {
             languageManager: languageManager,
             transcriptionProviderManager: transcriptionProviderManager,
             llmProviderManager: llmProviderManager,
-            promptRulesManager: promptRulesManager,
+            dictionaryManager: dictionaryManager,
+            toneStyleManager: toneStyleManager,
+            shortcutManager: shortcutManager,
             selectedSection: $selectedSection
         )
         .navigationTitle(selectedSection.rawValue)

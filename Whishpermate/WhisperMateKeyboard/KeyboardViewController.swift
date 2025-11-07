@@ -1,6 +1,7 @@
 import UIKit
 import AVFoundation
 import Combine
+import SwiftUI
 import WhisperMateShared
 
 class KeyboardViewController: UIInputViewController {
@@ -8,8 +9,7 @@ class KeyboardViewController: UIInputViewController {
     // MARK: - Properties
     private var audioRecorder: AudioRecorder!
     private var openAIClient: OpenAIClient!
-    private var recordButton: UIButton!
-    private var recordingIndicator: UIView!
+    private var hostingController: UIHostingController<KeyboardRecordingView>!
     private var statusLabel: UILabel!
     private var cancellables = Set<AnyCancellable>()
 
@@ -21,6 +21,24 @@ class KeyboardViewController: UIInputViewController {
         setupAudioRecorder()
         setupOpenAIClient()
         setupUI()
+        checkInitialPermissions()
+    }
+
+    private func checkInitialPermissions() {
+        let micPermission = AVAudioSession.sharedInstance().recordPermission
+
+        switch micPermission {
+        case .denied:
+            statusLabel.text = "⚠️ Microphone access needed. Tap record to enable."
+            statusLabel.textColor = UIColor.systemOrange
+        case .undetermined:
+            statusLabel.text = "Tap record button to get started"
+            statusLabel.textColor = UIColor.label // Better visibility
+        case .granted:
+            statusLabel.text = ""
+        @unknown default:
+            break
+        }
     }
 
     // MARK: - Setup
@@ -68,75 +86,92 @@ class KeyboardViewController: UIInputViewController {
     }
 
     private func setupUI() {
-        view.backgroundColor = UIColor.systemBackground
+        // Create SwiftUI view
+        let recordingView = KeyboardRecordingView(
+            isRecording: false,
+            audioLevel: 0.0,
+            onStopRecording: { [weak self] in
+                self?.stopRecordingAndTranscribe()
+            }
+        )
 
-        // Create record button
-        recordButton = UIButton(type: .system)
-        recordButton.setTitle("🎙️ Tap to Record", for: .normal)
-        recordButton.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .medium)
-        recordButton.backgroundColor = UIColor.systemBlue
-        recordButton.setTitleColor(.white, for: .normal)
-        recordButton.layer.cornerRadius = 8
-        recordButton.translatesAutoresizingMaskIntoConstraints = false
-        recordButton.addTarget(self, action: #selector(recordButtonTapped), for: .touchUpInside)
-        view.addSubview(recordButton)
+        // Host it in a UIHostingController
+        hostingController = UIHostingController(rootView: recordingView)
+        hostingController.view.backgroundColor = .clear
+        hostingController.view.translatesAutoresizingMaskIntoConstraints = false
 
-        // Create recording indicator
-        recordingIndicator = UIView()
-        recordingIndicator.backgroundColor = UIColor.systemRed
-        recordingIndicator.layer.cornerRadius = 6
-        recordingIndicator.translatesAutoresizingMaskIntoConstraints = false
-        recordingIndicator.isHidden = true
-        view.addSubview(recordingIndicator)
+        addChild(hostingController)
+        view.addSubview(hostingController.view)
+        hostingController.didMove(toParent: self)
 
-        // Create status label
+        // Add tap gesture to start recording when not recording
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        hostingController.view.addGestureRecognizer(tapGesture)
+
+        // Create status label for transcription status (overlay)
         statusLabel = UILabel()
         statusLabel.text = ""
-        statusLabel.font = UIFont.systemFont(ofSize: 14)
-        statusLabel.textColor = UIColor.secondaryLabel
+        statusLabel.font = UIFont.systemFont(ofSize: 13, weight: .medium)
+        statusLabel.textColor = UIColor.label
         statusLabel.textAlignment = .center
+        statusLabel.numberOfLines = 2
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(statusLabel)
 
         // Layout constraints
+        let minKeyboardHeight: CGFloat = 200
+
         NSLayoutConstraint.activate([
-            recordButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            recordButton.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: -20),
-            recordButton.widthAnchor.constraint(equalToConstant: 200),
-            recordButton.heightAnchor.constraint(equalToConstant: 44),
+            // Hosting controller fills the view
+            hostingController.view.topAnchor.constraint(equalTo: view.topAnchor),
+            hostingController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            hostingController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            hostingController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            hostingController.view.heightAnchor.constraint(greaterThanOrEqualToConstant: minKeyboardHeight),
 
-            recordingIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            recordingIndicator.topAnchor.constraint(equalTo: recordButton.bottomAnchor, constant: 12),
-            recordingIndicator.widthAnchor.constraint(equalToConstant: 12),
-            recordingIndicator.heightAnchor.constraint(equalToConstant: 12),
-
+            // Status label at bottom
             statusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            statusLabel.topAnchor.constraint(equalTo: recordingIndicator.bottomAnchor, constant: 8),
-            statusLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            statusLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
+            statusLabel.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16),
+            statusLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            statusLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
         ])
     }
 
-    // MARK: - Actions
-
-    @objc private func recordButtonTapped() {
-        if audioRecorder.isRecording {
-            stopRecordingAndTranscribe()
-        } else {
+    @objc private func handleTap() {
+        if !audioRecorder.isRecording {
             startRecording()
         }
     }
 
+    // MARK: - Actions
+
     private func startRecording() {
-        // Request microphone permission if needed
-        AVAudioSession.sharedInstance().requestRecordPermission { [weak self] granted in
-            DispatchQueue.main.async {
-                if granted {
-                    self?.audioRecorder.startRecording()
-                } else {
-                    self?.showError("Microphone permission denied. Please enable it in Settings.")
+        // Check current permission status
+        let permission = AVAudioSession.sharedInstance().recordPermission
+
+        switch permission {
+        case .granted:
+            // Permission already granted, start recording
+            audioRecorder.startRecording()
+
+        case .denied:
+            // Permission was denied, show error with instructions
+            showError("Microphone access denied. Open Settings → WhisperMate to enable.")
+
+        case .undetermined:
+            // Request permission for the first time
+            AVAudioSession.sharedInstance().requestRecordPermission { [weak self] granted in
+                DispatchQueue.main.async {
+                    if granted {
+                        self?.audioRecorder.startRecording()
+                    } else {
+                        self?.showError("Microphone permission denied. Please enable it in Settings.")
+                    }
                 }
             }
+
+        @unknown default:
+            showError("Unable to check microphone permission.")
         }
     }
 
@@ -147,6 +182,7 @@ class KeyboardViewController: UIInputViewController {
         }
 
         statusLabel.text = "Transcribing..."
+        statusLabel.textColor = UIColor.label // Ensure visibility
 
         Task {
             do {
@@ -156,6 +192,7 @@ class KeyboardViewController: UIInputViewController {
                 await MainActor.run {
                     self.textDocumentProxy.insertText(transcription)
                     self.statusLabel.text = "✓ Transcribed"
+                    self.statusLabel.textColor = UIColor.systemGreen
 
                     // Save to history
                     let historyManager = HistoryManager()
@@ -165,6 +202,7 @@ class KeyboardViewController: UIInputViewController {
                     // Clear status after delay
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                         self.statusLabel.text = ""
+                        self.statusLabel.textColor = UIColor.label
                     }
                 }
 
@@ -181,25 +219,33 @@ class KeyboardViewController: UIInputViewController {
     // MARK: - UI Updates
 
     private func updateRecordingState(_ isRecording: Bool) {
+        // Update SwiftUI view
+        let newView = KeyboardRecordingView(
+            isRecording: isRecording,
+            audioLevel: audioRecorder.audioLevel,
+            onStopRecording: { [weak self] in
+                self?.stopRecordingAndTranscribe()
+            }
+        )
+        hostingController.rootView = newView
+
+        // Update status label
         if isRecording {
-            recordButton.setTitle("⏹️ Stop Recording", for: .normal)
-            recordButton.backgroundColor = UIColor.systemRed
-            recordingIndicator.isHidden = false
-            statusLabel.text = "Recording..."
-        } else {
-            recordButton.setTitle("🎙️ Tap to Record", for: .normal)
-            recordButton.backgroundColor = UIColor.systemBlue
-            recordingIndicator.isHidden = true
+            statusLabel.text = ""
         }
     }
 
     private func updateAudioLevel(_ level: Float) {
-        // Animate recording indicator based on audio level
+        // Update SwiftUI view with new audio level
         if audioRecorder.isRecording {
-            let scale = 1.0 + CGFloat(level) * 0.5
-            UIView.animate(withDuration: 0.05) {
-                self.recordingIndicator.transform = CGAffineTransform(scaleX: scale, y: scale)
-            }
+            let newView = KeyboardRecordingView(
+                isRecording: true,
+                audioLevel: level,
+                onStopRecording: { [weak self] in
+                    self?.stopRecordingAndTranscribe()
+                }
+            )
+            hostingController.rootView = newView
         }
     }
 
@@ -209,7 +255,7 @@ class KeyboardViewController: UIInputViewController {
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
             self.statusLabel.text = ""
-            self.statusLabel.textColor = UIColor.secondaryLabel
+            self.statusLabel.textColor = UIColor.label
         }
     }
 

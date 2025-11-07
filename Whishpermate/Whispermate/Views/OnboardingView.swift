@@ -32,13 +32,11 @@ struct OnboardingView: View {
             // Content area
             ScrollView {
                 VStack(spacing: 20) {
-                    // Icon (hidden for prompts step to save space)
-                    if onboardingManager.currentStep != .prompts {
-                        Image(systemName: onboardingManager.currentStep.icon)
-                            .font(.system(size: 64))
-                            .foregroundStyle(Color.accentColor)
-                            .padding(.top, 8)
-                    }
+                    // Icon
+                    Image(systemName: onboardingManager.currentStep.icon)
+                        .font(.system(size: 64))
+                        .foregroundStyle(Color.accentColor)
+                        .padding(.top, 8)
 
                     // Title
                     Text(onboardingManager.currentStep.title)
@@ -268,61 +266,31 @@ struct OnboardingView: View {
                 }
             }
 
-        case .prompts:
-            VStack(spacing: 16) {
-                // Rules table
-                RulesTable(
-                    promptRulesManager: promptRulesManager,
-                    newRuleText: $newRuleText
+        case .features:
+            VStack(spacing: 20) {
+                // Dictionary Feature
+                FeatureCard(
+                    icon: "book.closed.fill",
+                    title: "Custom Dictionary",
+                    description: "Teach WhisperMate your unique words, names, and terminology",
+                    example: "\"whispermate\" → \"WhisperMate\""
                 )
 
-                // Live preview section with divider
-                HStack {
-                    VStack { Divider() }
-                    Text("See it in action")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 8)
-                    VStack { Divider() }
-                }
-                .padding(.vertical, 4)
+                // Tone & Style Feature
+                FeatureCard(
+                    icon: "paintbrush.fill",
+                    title: "Tone & Style",
+                    description: "Automatically adjust your writing style for different apps",
+                    example: "Professional for Slack, casual for Messages"
+                )
 
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 8) {
-                        TextField("Try example text...", text: $exampleText)
-                            .textFieldStyle(.roundedBorder)
-                            .font(.system(size: 12))
-
-                        Button(action: {
-                            Task {
-                                await processExample()
-                            }
-                        }) {
-                            if isProcessingExample {
-                                ProgressView()
-                                    .scaleEffect(0.6)
-                                    .frame(width: 16, height: 16)
-                            } else {
-                                Image(systemName: "arrow.right.circle.fill")
-                                    .font(.system(size: 18))
-                            }
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(exampleText.isEmpty || isProcessingExample)
-                    }
-
-                    if !processedText.isEmpty {
-                        Text(processedText)
-                            .font(.system(size: 12))
-                            .foregroundStyle(.primary)
-                            .padding(10)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(Color.accentColor.opacity(0.1))
-                            )
-                    }
-                }
+                // Shortcuts Feature
+                FeatureCard(
+                    icon: "bolt.fill",
+                    title: "Voice Shortcuts",
+                    description: "Expand voice commands into frequently used text",
+                    example: "\"my email\" → \"hello@example.com\""
+                )
             }
             .padding(.horizontal, 40)
             .frame(maxWidth: .infinity)
@@ -405,7 +373,7 @@ struct OnboardingView: View {
             .buttonStyle(.plain)
             .disabled(hotkeyManager.currentHotkey == nil)
 
-        case .prompts:
+        case .features:
             Button(action: {
                 onboardingManager.completeOnboarding()
             }) {
@@ -542,5 +510,54 @@ struct OnboardingView: View {
                 isProcessingExample = false
             }
         }
+    }
+}
+
+// MARK: - Feature Card Component
+struct FeatureCard: View {
+    let icon: String
+    let title: String
+    let description: String
+    let example: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 24))
+                .foregroundStyle(Color.accentColor)
+                .frame(width: 36)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.primary)
+
+                Text(description)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Text(example)
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(Color.accentColor)
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 8)
+                    .background(
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.accentColor.opacity(0.1))
+                    )
+                    .padding(.top, 2)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(nsColor: .controlBackgroundColor))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+        )
     }
 }

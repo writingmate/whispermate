@@ -1,6 +1,7 @@
 import SwiftUI
 import AVFoundation
 import AppKit
+import WhisperMateShared
 
 enum AIApp: String, CaseIterable, Identifiable {
     case writingmate = "Writingmate"
@@ -50,7 +51,9 @@ struct ContentView: View {
     @StateObject private var languageManager = LanguageManager()
     @StateObject private var transcriptionProviderManager = TranscriptionProviderManager()
     @StateObject private var llmProviderManager = LLMProviderManager()
-    @ObservedObject private var promptRulesManager = PromptRulesManager.shared
+    @ObservedObject private var dictionaryManager = DictionaryManager.shared
+    @ObservedObject private var toneStyleManager = ToneStyleManager.shared
+    @ObservedObject private var shortcutManager = ShortcutManager.shared
     @StateObject private var vadSettingsManager = VADSettingsManager()
     @State private var transcription = ""
     @State private var isProcessing = false
@@ -700,9 +703,35 @@ struct ContentView: View {
         }
 
         // Get LLM API key (optional - only needed if rules are enabled)
-        let enabledRules = promptRulesManager.rules.filter { $0.isEnabled }.map { $0.text }
+        // Combine prompts from all three sources
+        var promptComponents: [String] = []
+
+        let dictionaryHints = dictionaryManager.transcriptionHints
+        if !dictionaryHints.isEmpty {
+            promptComponents.append("Vocabulary: \(dictionaryHints)")
+        }
+
+        let shortcutHints = shortcutManager.transcriptionHints
+        if !shortcutHints.isEmpty {
+            promptComponents.append("Phrases: \(shortcutHints)")
+        }
+
+        // Add LLM formatting instructions for dictionary replacements
+        if let dictionaryInstructions = dictionaryManager.formattingInstructions {
+            promptComponents.append(dictionaryInstructions)
+        }
+
+        // Add LLM formatting instructions for shortcut expansions
+        if let shortcutInstructions = shortcutManager.formattingInstructions {
+            promptComponents.append(shortcutInstructions)
+        }
+
+        if let styleInstructions = toneStyleManager.instructions(for: capturedAppContext) {
+            promptComponents.append(styleInstructions)
+        }
+
         var llmApiKey: String? = nil
-        if !enabledRules.isEmpty {
+        if !promptComponents.isEmpty {
             llmApiKey = resolvedLLMApiKey()
             if llmApiKey == nil {
                 DebugLog.info("Warning: LLM API key not found, skipping text correction", context: "ContentView")
@@ -727,7 +756,7 @@ struct ContentView: View {
                 DebugLog.info("Model: \(transcriptionProviderManager.effectiveModel)", context: "ContentView")
                 DebugLog.info("Using language: \(languageCode ?? "auto-detect")", context: "ContentView")
                 DebugLog.info("App context: \(capturedAppContext ?? "none")", context: "ContentView")
-                DebugLog.info("Enabled rules count: \(enabledRules.count)", context: "ContentView")
+                DebugLog.info("Formatting rules count: \(promptComponents.count)", context: "ContentView")
 
                 // Create unified OpenAI client with both endpoints configured
                 let config = OpenAIClient.Configuration(
@@ -744,13 +773,14 @@ struct ContentView: View {
                 let result = try await openAIClient.transcribeAndFormat(
                     audioURL: audioURL,
                     prompt: nil,
-                    formattingRules: enabledRules,
+                    formattingRules: promptComponents,
                     languageCodes: languageCode,
                     appContext: capturedAppContext,
                     llmApiKey: llmApiKey
                 )
 
                 DebugLog.sensitive("Transcription received: \(result)", context: "ContentView")
+
                 await MainActor.run {
                     transcription = result
                     isProcessing = false
