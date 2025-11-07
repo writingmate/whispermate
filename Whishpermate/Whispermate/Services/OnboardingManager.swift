@@ -10,7 +10,6 @@ enum OnboardingStep: Int, CaseIterable {
     case accessibility = 1
     case language = 2
     case hotkey = 3
-    case features = 4
 
     var title: String {
         switch self {
@@ -18,7 +17,6 @@ enum OnboardingStep: Int, CaseIterable {
         case .accessibility: return "Enable Accessibility"
         case .language: return "Select Your Languages"
         case .hotkey: return "Set Your Hotkey"
-        case .features: return "Powerful Features"
         }
     }
 
@@ -28,7 +26,6 @@ enum OnboardingStep: Int, CaseIterable {
         case .accessibility: return "hand.tap.fill"
         case .language: return "globe"
         case .hotkey: return "keyboard.fill"
-        case .features: return "sparkles"
         }
     }
 
@@ -42,8 +39,6 @@ enum OnboardingStep: Int, CaseIterable {
             return "Select the languages you speak. You can choose multiple languages or use auto-detect."
         case .hotkey:
             return "Choose your preferred hotkey to control recording. Press and hold to record, or double-tap to start/stop long recording."
-        case .features:
-            return "Enhance your transcriptions with custom dictionary, tone & style, and voice shortcuts."
         }
     }
 }
@@ -122,7 +117,6 @@ class OnboardingManager: ObservableObject {
         case .accessibility: return isAccessibilityGranted()
         case .language: return true // Always allow continuing from language step
         case .hotkey: return isHotkeyConfigured()
-        case .features: return true // Always allow continuing from features step
         }
     }
 
