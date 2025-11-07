@@ -65,6 +65,8 @@ struct ContentView: View {
     @State private var shouldAutoPaste = false
     @State private var isContinuousRecording = false
     @State private var capturedAppContext: String?
+    @State private var capturedAppBundleId: String?
+    @State private var capturedWindowTitle: String?
     @State private var showCopiedNotification = false
     @State private var isHoveringWindow = false
     @State private var hasCheckedOnboarding = false
@@ -556,9 +558,13 @@ struct ContentView: View {
         // Capture app context (app name and window title) before recording
         if let context = AppContextHelper.getCurrentAppContext() {
             capturedAppContext = context.description
-            DebugLog.info("Captured app context: \(context.description)", context: "ContentView")
+            capturedAppBundleId = context.bundleId
+            capturedWindowTitle = context.windowTitle
+            DebugLog.info("Captured app context: \(context.description) (\(context.bundleId ?? "unknown")), window title: \(context.windowTitle ?? "none")", context: "ContentView")
         } else {
             capturedAppContext = nil
+            capturedAppBundleId = nil
+            capturedWindowTitle = nil
         }
 
         // Store the currently active app for pasting later
@@ -732,8 +738,9 @@ struct ContentView: View {
             promptComponents.append(shortcutInstructions)
         }
 
-        if let styleInstructions = toneStyleManager.instructions(for: capturedAppContext) {
+        if let styleInstructions = toneStyleManager.instructions(for: capturedAppBundleId, windowTitle: capturedWindowTitle) {
             promptComponents.append(styleInstructions)
+            DebugLog.info("Applied tone/style: \(styleInstructions)", context: "ContentView")
         }
 
         var llmApiKey: String? = nil
@@ -762,6 +769,7 @@ struct ContentView: View {
                 DebugLog.info("Model: \(transcriptionProviderManager.effectiveModel)", context: "ContentView")
                 DebugLog.info("Using language: \(languageCode ?? "auto-detect")", context: "ContentView")
                 DebugLog.info("App context: \(capturedAppContext ?? "none")", context: "ContentView")
+                DebugLog.info("App bundle ID: \(capturedAppBundleId ?? "none"), window title: \(capturedWindowTitle ?? "none")", context: "ContentView")
                 DebugLog.info("Formatting rules count: \(promptComponents.count)", context: "ContentView")
 
                 // Create unified OpenAI client with both endpoints configured
