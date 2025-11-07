@@ -23,11 +23,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         // Configure window immediately - no async delay
         configureMainWindow()
-
-        // Check for updates on launch (silently, no alert if up to date)
-        Task { @MainActor in
-            await UpdateChecker.shared.checkForUpdates(showAlertIfNoUpdate: false)
-        }
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -187,14 +182,6 @@ struct WhishpermateApp: App {
 
             // Add custom commands
             CommandGroup(after: .appInfo) {
-                Button("Check for Updates...") {
-                    Task { @MainActor in
-                        await UpdateChecker.shared.checkForUpdates(showAlertIfNoUpdate: true)
-                    }
-                }
-
-                Divider()
-
                 Button("History") {
                     NotificationCenter.default.post(name: .showHistory, object: nil)
                 }

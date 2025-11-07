@@ -32,12 +32,14 @@ public class AppDiscoveryManager {
         }
 
         var apps: [InstalledApp] = []
+        var seenBundleIDs = Set<String>()
         let fileManager = FileManager.default
 
-        // Scan both user and system Applications directories
+        // Scan user, main, and system Applications directories
         let directories = [
             "/Applications",
-            "/System/Applications"
+            "/System/Applications",
+            FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications").path
         ]
 
         for directory in directories {
@@ -54,7 +56,11 @@ public class AppDiscoveryManager {
 
             for appURL in contents where appURL.pathExtension == "app" {
                 if let app = extractAppInfo(from: appURL) {
-                    apps.append(app)
+                    // Only add if we haven't seen this bundle ID before (avoid duplicates)
+                    if !seenBundleIDs.contains(app.bundleID) {
+                        apps.append(app)
+                        seenBundleIDs.insert(app.bundleID)
+                    }
                 }
             }
         }
