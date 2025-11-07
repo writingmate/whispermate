@@ -78,7 +78,7 @@ struct ContentView: View {
             // Content area - expands to fill space
             ZStack {
                 if audioRecorder.isRecording {
-                    AudioVisualizationView(audioLevel: audioRecorder.audioLevel, color: .accentColor)
+                    AudioVisualizationView(audioLevel: audioRecorder.audioLevel, color: .accentColor, frequencyBands: audioRecorder.frequencyBands)
                         .frame(height: 100)
                 } else if isProcessing {
                     VStack(spacing: 12) {
@@ -209,6 +209,12 @@ struct ContentView: View {
             DispatchQueue.main.async {
                 DebugLog.info("📊 Updating overlay audioLevel: \(newValue)", context: "ContentView")
                 overlayManager.audioLevel = newValue
+            }
+        }
+        .onChange(of: audioRecorder.frequencyBands) { newValue in
+            // Update overlay with frequency data (ensure main thread)
+            DispatchQueue.main.async {
+                overlayManager.frequencyBands = newValue
             }
         }
         .onAppear {

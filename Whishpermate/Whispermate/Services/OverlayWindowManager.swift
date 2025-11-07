@@ -16,13 +16,29 @@ class OverlayWindowManager: ObservableObject {
     @Published var isRecording = false {
         didSet {
             print("[OverlayWindowManager LOG] ⚡️ isRecording changed: \(oldValue) -> \(isRecording)")
-            updateWindowSize()
+            if isRecording {
+                // Expand immediately when starting
+                updateWindowSize()
+            } else {
+                // Delay contraction to let pill animation finish
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                    self?.updateWindowSize()
+                }
+            }
         }
     }
     @Published var isProcessing = false {
         didSet {
             print("[OverlayWindowManager LOG] ⚡️ isProcessing changed: \(oldValue) -> \(isProcessing)")
-            updateWindowSize()
+            if isProcessing {
+                // Expand immediately when starting
+                updateWindowSize()
+            } else {
+                // Delay contraction to let pill animation finish
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                    self?.updateWindowSize()
+                }
+            }
         }
     }
     @Published var audioLevel: Float = 0.0 {
@@ -32,6 +48,7 @@ class OverlayWindowManager: ObservableObject {
             }
         }
     }
+    @Published var frequencyBands: [Float] = Array(repeating: 0.0, count: 14)
     @Published var isOverlayMode = true {  // Start in overlay mode by default
         didSet {
             print("[OverlayWindowManager LOG] ⚡️ isOverlayMode changed: \(oldValue) -> \(isOverlayMode)")
@@ -255,7 +272,7 @@ class OverlayWindowManager: ObservableObject {
 
     private func getWindowSize() -> (width: CGFloat, height: CGFloat) {
         // Window size constants that match RecordingOverlayView
-        let activeStateWidth: CGFloat = 180
+        let activeStateWidth: CGFloat = 95  // Narrow for 14 bars
         let activeStateHeight: CGFloat = 24
         let activePadding: CGFloat = 15
 
@@ -297,15 +314,10 @@ class OverlayWindowManager: ObservableObject {
 
         let newFrame = NSRect(x: xPos, y: yPos, width: windowWidth, height: windowHeight)
 
-        // Animate window resize with spring timing (synchronized with SwiftUI content animations)
-        NSAnimationContext.runAnimationGroup({ context in
-            context.duration = 0.2
-            context.timingFunction = CAMediaTimingFunction(controlPoints: 0.5, 1.0, 0.89, 1.0) // Spring curve
-            context.allowsImplicitAnimation = true
-            window.animator().setFrame(newFrame, display: true)
-        }, completionHandler: nil)
+        // Resize window instantly (no animation) to prevent clipping the SwiftUI content animation
+        window.setFrame(newFrame, display: true, animate: false)
 
-        print("[OverlayWindowManager LOG] 📐 Window animating resize to: \(windowWidth)×\(windowHeight)")
+        print("[OverlayWindowManager LOG] 📐 Window resized instantly to: \(windowWidth)×\(windowHeight)")
     }
 
     deinit {
