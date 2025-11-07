@@ -7,56 +7,47 @@ struct TextRulesView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationView {
-            List {
-                Section {
-                    ForEach(promptRulesManager.rules) { rule in
-                        HStack {
-                            Text(rule.text)
-                                .font(.body)
+        List {
+            Section {
+                ForEach(promptRulesManager.rules) { rule in
+                    HStack {
+                        Text(rule.text)
+                            .font(.body)
 
-                            Spacer()
+                        Spacer()
 
-                            Toggle("", isOn: Binding(
-                                get: { rule.isEnabled },
-                                set: { _ in promptRulesManager.toggleRule(rule) }
-                            ))
-                        }
-                    }
-                    .onDelete { indexSet in
-                        indexSet.forEach { index in
-                            let rule = promptRulesManager.rules[index]
-                            promptRulesManager.removeRule(rule)
-                        }
+                        Toggle("", isOn: Binding(
+                            get: { rule.isEnabled },
+                            set: { _ in promptRulesManager.toggleRule(rule) }
+                        ))
                     }
                 }
-
-                Section {
-                    HStack {
-                        TextField("Add new rule...", text: $newRuleText)
-                            .onSubmit {
-                                addRule()
-                            }
-
-                        if !newRuleText.isEmpty {
-                            Button(action: addRule) {
-                                Image(systemName: "plus.circle.fill")
-                                    .foregroundColor(.green)
-                            }
-                        }
+                .onDelete { indexSet in
+                    indexSet.forEach { index in
+                        let rule = promptRulesManager.rules[index]
+                        promptRulesManager.removeRule(rule)
                     }
                 }
             }
-            .navigationTitle("Text Rules")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
-                        dismiss()
+
+            Section {
+                HStack {
+                    TextField("Add new rule...", text: $newRuleText)
+                        .onSubmit {
+                            addRule()
+                        }
+
+                    if !newRuleText.isEmpty {
+                        Button(action: addRule) {
+                            Image(systemName: "plus.circle.fill")
+                                .foregroundColor(.green)
+                        }
                     }
                 }
             }
         }
+        .navigationTitle("Text Rules")
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     private func addRule() {

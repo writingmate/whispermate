@@ -6,12 +6,16 @@
 //
 
 import SwiftUI
+import WhisperMateShared
 
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var statusBarManager = StatusBarManager()
     var mainWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Migrate old prompt rules to new system if needed
+        RulesMigrationManager.migrateIfNeeded()
+
         statusBarManager.setupMenuBar()
 
         // Disable automatic window restoration for all windows except main
@@ -205,7 +209,7 @@ struct WhishpermateApp: App {
         .windowResizability(.contentSize)
         .windowStyle(.titleBar)
         .defaultPosition(.center)
-        .defaultSize(width: 700, height: 550)
+        .defaultSize(width: 1050, height: 825)
         .commandsRemoved()
 
         // History window

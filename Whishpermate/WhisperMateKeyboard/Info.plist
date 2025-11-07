@@ -16,6 +16,8 @@
 	<string>3</string>
 	<key>CFBundleShortVersionString</key>
 	<string>0.0.20</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>WhisperMate keyboard needs microphone access to transcribe your voice to text.</string>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionAttributes</key>
@@ -27,7 +29,7 @@
 			<key>PrimaryLanguage</key>
 			<string>en-US</string>
 			<key>RequestsOpenAccess</key>
-			<false/>
+			<true/>
 		</dict>
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.keyboard-service</string>

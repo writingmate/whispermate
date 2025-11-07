@@ -1,6 +1,7 @@
 import SwiftUI
 import AVFoundation
 import ApplicationServices
+import WhisperMateShared
 
 // MARK: - Settings Card Component
 struct SettingsCard<Content: View>: View {
@@ -24,7 +25,9 @@ enum SettingsSection: String, CaseIterable, Identifiable {
     case general = "General"
     case permissions = "Permissions"
     case audio = "Audio"
-    case rules = "Text Rules"
+    case dictionary = "Dictionary"
+    case toneAndStyle = "Tone & Style"
+    case shortcuts = "Shortcuts"
     case hotkeys = "Hotkeys"
 
     var id: String { rawValue }
@@ -34,7 +37,9 @@ enum SettingsSection: String, CaseIterable, Identifiable {
         case .general: return "gear"
         case .permissions: return "lock.shield"
         case .audio: return "waveform"
-        case .rules: return "text.badge.checkmark"
+        case .dictionary: return "book.closed"
+        case .toneAndStyle: return "text.badge.checkmark"
+        case .shortcuts: return "text.word.spacing"
         case .hotkeys: return "keyboard"
         }
     }
@@ -45,7 +50,9 @@ struct SettingsView: View {
     @ObservedObject var languageManager: LanguageManager
     @ObservedObject var transcriptionProviderManager: TranscriptionProviderManager
     @ObservedObject var llmProviderManager: LLMProviderManager
-    @ObservedObject var promptRulesManager: PromptRulesManager
+    @ObservedObject var dictionaryManager: DictionaryManager
+    @ObservedObject var toneStyleManager: ToneStyleManager
+    @ObservedObject var shortcutManager: ShortcutManager
     @ObservedObject var overlayManager = OverlayWindowManager.shared
     @Binding var selectedSection: SettingsSection
     @State private var transcriptionApiKey = ""
@@ -54,12 +61,8 @@ struct SettingsView: View {
     @State private var customModel = ""
     @State private var showingTranscriptionKeySaved = false
     @State private var showingLLMKeySaved = false
-    @State private var newRuleText = ""
     @State private var audioDevices: [AVCaptureDevice] = []
     @State private var selectedAudioDevice: AVCaptureDevice?
-    @State private var exampleText = "I have two apples and three oranges"
-    @State private var processedText = ""
-    @State private var isProcessingExample = false
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -80,8 +83,12 @@ struct SettingsView: View {
                         permissionsSection
                     case .audio:
                         audioSection
-                    case .rules:
-                        rulesSection
+                    case .dictionary:
+                        dictionarySection
+                    case .toneAndStyle:
+                        toneAndStyleSection
+                    case .shortcuts:
+                        shortcutsSection
                     case .hotkeys:
                         hotkeysSection
                     }
@@ -292,61 +299,21 @@ struct SettingsView: View {
     }
 
     // MARK: - Text Rules Section
-    private var rulesSection: some View {
+    private var dictionarySection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Rules table
-            RulesTable(
-                promptRulesManager: promptRulesManager,
-                newRuleText: $newRuleText
-            )
+            DictionaryTabView(manager: dictionaryManager)
+        }
+    }
 
-            // Live preview section with divider
-            HStack {
-                VStack { Divider() }
-                Text("See it in action")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 8)
-                VStack { Divider() }
-            }
-            .padding(.vertical, 4)
+    private var toneAndStyleSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ToneStyleTabView(manager: toneStyleManager)
+        }
+    }
 
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 8) {
-                    TextField("Try example text...", text: $exampleText)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.system(size: 12))
-
-                    Button(action: {
-                        Task {
-                            await processExample()
-                        }
-                    }) {
-                        if isProcessingExample {
-                            ProgressView()
-                                .scaleEffect(0.6)
-                                .frame(width: 16, height: 16)
-                        } else {
-                            Image(systemName: "arrow.right.circle.fill")
-                                .font(.system(size: 18))
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(exampleText.isEmpty || isProcessingExample)
-                }
-
-                if !processedText.isEmpty {
-                    Text(processedText)
-                        .font(.system(size: 12))
-                        .foregroundStyle(.primary)
-                        .padding(10)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(
-                            RoundedRectangle(cornerRadius: 6)
-                                .fill(Color.accentColor.opacity(0.1))
-                        )
-                }
-            }
+    private var shortcutsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ShortcutsTabView(manager: shortcutManager)
         }
     }
 
@@ -470,49 +437,6 @@ struct SettingsView: View {
         }
     }
 
-    private func processExample() async {
-        guard !exampleText.isEmpty else { return }
-
-        isProcessingExample = true
-        processedText = ""
-
-        do {
-            // Get enabled rules
-            let enabledRules = promptRulesManager.rules.filter { $0.isEnabled }.map { $0.text }
-
-            // Get LLM provider settings
-            let llmProvider = llmProviderManager.selectedProvider
-            guard let llmApiKey = KeychainHelper.get(key: llmProvider.apiKeyName) ?? SecretsLoader.llmKey(for: llmProvider) else {
-                await MainActor.run {
-                    processedText = "⚠️ No LLM API key configured. The rules will be applied during actual transcription."
-                    isProcessingExample = false
-                }
-                return
-            }
-
-            // Create OpenAI client for LLM processing using configured provider
-            let clientConfig = OpenAIClient.Configuration(
-                chatCompletionEndpoint: llmProviderManager.effectiveEndpoint,
-                chatCompletionModel: llmProviderManager.effectiveModel,
-                apiKey: llmApiKey
-            )
-
-            let openAIClient = OpenAIClient(config: clientConfig)
-
-            // Process text with rules
-            let result = try await openAIClient.applyFormattingRules(transcription: exampleText, rules: enabledRules)
-
-            await MainActor.run {
-                processedText = result
-                isProcessingExample = false
-            }
-        } catch {
-            await MainActor.run {
-                processedText = "Error: \(error.localizedDescription)"
-                isProcessingExample = false
-            }
-        }
-    }
 }
 
 // MARK: - Rule Row Component
@@ -581,7 +505,9 @@ struct RuleRow: View {
                 languageManager: LanguageManager(),
                 transcriptionProviderManager: TranscriptionProviderManager(),
                 llmProviderManager: LLMProviderManager(),
-                promptRulesManager: PromptRulesManager.shared,
+                dictionaryManager: DictionaryManager.shared,
+                toneStyleManager: ToneStyleManager.shared,
+                shortcutManager: ShortcutManager.shared,
                 selectedSection: $selectedSection
             )
         }

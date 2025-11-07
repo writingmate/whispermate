@@ -6,7 +6,9 @@ struct RecordingSheetView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var audioRecorder = AudioRecorder()
     @ObservedObject var historyManager: HistoryManager
-    @ObservedObject var promptRulesManager: PromptRulesManager
+    @ObservedObject var dictionaryManager: DictionaryManager
+    @ObservedObject var toneStyleManager: ToneStyleManager
+    @ObservedObject var shortcutManager: ShortcutManager
 
     @State private var sheetState: SheetState = .recording
     @State private var transcription = ""
@@ -23,9 +25,11 @@ struct RecordingSheetView: View {
         case viewing
     }
 
-    init(historyManager: HistoryManager, promptRulesManager: PromptRulesManager, recording: Recording? = nil) {
+    init(historyManager: HistoryManager, dictionaryManager: DictionaryManager, toneStyleManager: ToneStyleManager, shortcutManager: ShortcutManager, recording: Recording? = nil) {
         self.historyManager = historyManager
-        self.promptRulesManager = promptRulesManager
+        self.dictionaryManager = dictionaryManager
+        self.toneStyleManager = toneStyleManager
+        self.shortcutManager = shortcutManager
         if let recording = recording {
             self._sheetState = State(initialValue: .viewing)
             self._transcription = State(initialValue: recording.transcription)
@@ -110,10 +114,6 @@ struct RecordingSheetView: View {
 
     private var recordingStateView: some View {
         VStack(spacing: 20) {
-            Text("Recording...")
-                .font(.system(size: 24, weight: .semibold))
-                .foregroundColor(.primary)
-
             AudioVisualizationView(audioLevel: audioRecorder.audioLevel, color: .blue)
                 .frame(height: 280)
                 .padding(.horizontal, 40)
@@ -124,9 +124,7 @@ struct RecordingSheetView: View {
         VStack(spacing: 16) {
             ProgressView()
                 .controlSize(.large)
-            Text("Transcribing...")
-                .font(.system(size: 17, weight: .medium))
-                .foregroundStyle(.secondary)
+                .tint(.white)
         }
     }
 
@@ -291,16 +289,41 @@ struct RecordingSheetView: View {
 
                 let openAIClient = OpenAIClient(config: config)
 
-                // Get formatting rules prompt
-                let promptText = promptRulesManager.combinedPrompt
+                // Combine prompts from all sources
+                var promptComponents: [String] = []
+
+                // Add dictionary hints for better recognition
+                let dictionaryHints = dictionaryManager.transcriptionHints
+                if !dictionaryHints.isEmpty {
+                    promptComponents.append("Vocabulary: \(dictionaryHints)")
+                }
+
+                // Add shortcut triggers for recognition
+                let shortcutHints = shortcutManager.transcriptionHints
+                if !shortcutHints.isEmpty {
+                    promptComponents.append("Phrases: \(shortcutHints)")
+                }
+
+                // Add tone/style instructions (all enabled styles for iOS)
+                let styleInstructions = toneStyleManager.allInstructions
+                if !styleInstructions.isEmpty {
+                    promptComponents.append(styleInstructions)
+                }
+
+                let promptText = promptComponents.joined(separator: ". ")
 
                 let result = try await openAIClient.transcribe(
                     audioURL: audioURL,
                     prompt: promptText.isEmpty ? nil : promptText
                 )
 
+                // Apply post-processing: dictionary replacements and shortcut expansion
+                var processedResult = result
+                processedResult = dictionaryManager.applyReplacements(to: processedResult)
+                processedResult = shortcutManager.expandShortcuts(in: processedResult)
+
                 await MainActor.run {
-                    transcription = result
+                    transcription = processedResult
                     sheetState = .viewing
                     errorMessage = ""
 
