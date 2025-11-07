@@ -244,8 +244,8 @@ struct ToneStyleTabView: View {
                 ToneStyleRow(
                     style: style,
                     onToggle: { manager.toggleStyle(style) },
-                    onEdit: { name, bundleIds, instructions in
-                        manager.updateStyle(style, name: name, appBundleIds: bundleIds, instructions: instructions)
+                    onEdit: { name, bundleIds, titlePatterns, instructions in
+                        manager.updateStyle(style, name: name, appBundleIds: bundleIds, titlePatterns: titlePatterns, instructions: instructions)
                     },
                     onDelete: { manager.removeStyle(style) }
                 )
@@ -447,6 +447,99 @@ struct AppToken: View {
     }
 }
 
+// MARK: - Title Pattern Token Field
+
+struct TitlePatternTokenField: View {
+    @Binding var titlePatterns: [String]
+    @State private var inputText = ""
+    @FocusState private var isInputFocused: Bool
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Tokens and input field
+            if !titlePatterns.isEmpty {
+                FlowLayout(spacing: 6) {
+                    ForEach(titlePatterns, id: \.self) { pattern in
+                        TitlePatternToken(pattern: pattern) {
+                            titlePatterns.removeAll { $0 == pattern }
+                        }
+                    }
+                }
+                .padding(8)
+            }
+
+            // Input field
+            HStack(spacing: 8) {
+                Image(systemName: "text.alignleft")
+                    .foregroundStyle(.secondary)
+                    .font(.system(size: 11))
+
+                TextField("Type pattern and press Enter (e.g., Gmail, *LinkedIn*)", text: $inputText)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 12))
+                    .focused($isInputFocused)
+                    .onSubmit {
+                        addPattern()
+                    }
+            }
+            .padding(8)
+        }
+        .background(Color(nsColor: .controlBackgroundColor))
+        .cornerRadius(6)
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .stroke(isInputFocused ? Color.accentColor : Color(nsColor: .separatorColor), lineWidth: isInputFocused ? 2 : 1)
+        )
+        .onTapGesture {
+            isInputFocused = true
+        }
+    }
+
+    private func addPattern() {
+        let trimmed = inputText.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty, !titlePatterns.contains(trimmed) else {
+            inputText = ""
+            return
+        }
+        titlePatterns.append(trimmed)
+        inputText = ""
+    }
+}
+
+struct TitlePatternToken: View {
+    let pattern: String
+    let onRemove: () -> Void
+
+    @State private var isHovering = false
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "text.alignleft")
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+
+            Text(pattern)
+                .font(.system(size: 11))
+                .lineLimit(1)
+
+            Button(action: onRemove) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+            .opacity(isHovering ? 1 : 0.6)
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .background(Color(nsColor: .selectedControlColor).opacity(0.3))
+        .cornerRadius(4)
+        .onHover { hovering in
+            isHovering = hovering
+        }
+    }
+}
+
 // Flow layout for tokens
 struct FlowLayout: Layout {
     var spacing: CGFloat = 8
@@ -494,7 +587,7 @@ struct FlowLayout: Layout {
 struct ToneStyleRow: View {
     let style: ToneStyle
     let onToggle: () -> Void
-    let onEdit: (String, [String], String) -> Void
+    let onEdit: (String, [String], [String], String) -> Void
     let onDelete: () -> Void
 
     @State private var isHovering = false
@@ -514,7 +607,12 @@ struct ToneStyleRow: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
 
-                    if !appIcons.isEmpty {
+                    if style.appBundleIds.isEmpty {
+                        Text("Applies to all apps")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                            .italic()
+                    } else if !appIcons.isEmpty {
                         HStack(spacing: 4) {
                             ForEach(appIcons.prefix(8)) { app in
                                 if let icon = app.icon {
@@ -603,20 +701,22 @@ struct ToneStyleRow: View {
 
 struct EditToneStyleSheet: View {
     let style: ToneStyle
-    let onSave: (String, [String], String) -> Void
+    let onSave: (String, [String], [String], String) -> Void
     @Binding var isPresented: Bool
 
     @State private var name: String
     @State private var selectedAppBundleIds: Set<String>
+    @State private var titlePatterns: [String]  // Array of window title patterns
     @State private var instructions: String
     @State private var installedApps: [InstalledApp] = []
 
-    init(style: ToneStyle, onSave: @escaping (String, [String], String) -> Void, isPresented: Binding<Bool>) {
+    init(style: ToneStyle, onSave: @escaping (String, [String], [String], String) -> Void, isPresented: Binding<Bool>) {
         self.style = style
         self.onSave = onSave
         self._isPresented = isPresented
         self._name = State(initialValue: style.name)
         self._selectedAppBundleIds = State(initialValue: Set(style.appBundleIds))
+        self._titlePatterns = State(initialValue: style.titlePatterns)
         self._instructions = State(initialValue: style.instructions)
     }
 
@@ -637,6 +737,17 @@ struct EditToneStyleSheet: View {
                     .font(.system(size: 12, weight: .medium))
 
                 AppTokenField(selectedAppBundleIds: $selectedAppBundleIds, installedApps: installedApps)
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Window Title Patterns")
+                    .font(.system(size: 12, weight: .medium))
+
+                TitlePatternTokenField(titlePatterns: $titlePatterns)
+
+                Text("Leave empty to match all window titles")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
             }
 
             VStack(alignment: .leading, spacing: 8) {
@@ -674,7 +785,7 @@ struct EditToneStyleSheet: View {
     }
 
     private func saveStyle() {
-        onSave(name, Array(selectedAppBundleIds), instructions)
+        onSave(name, Array(selectedAppBundleIds), titlePatterns, instructions)
         isPresented = false
     }
 }
@@ -685,6 +796,7 @@ struct AddToneStyleSheet: View {
 
     @State private var name = ""
     @State private var selectedAppBundleIds: Set<String> = []
+    @State private var titlePatterns: [String] = []  // Array of window title patterns
     @State private var instructions = ""
     @State private var installedApps: [InstalledApp] = []
 
@@ -705,6 +817,17 @@ struct AddToneStyleSheet: View {
                     .font(.system(size: 12, weight: .medium))
 
                 AppTokenField(selectedAppBundleIds: $selectedAppBundleIds, installedApps: installedApps)
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Window Title Patterns")
+                    .font(.system(size: 12, weight: .medium))
+
+                TitlePatternTokenField(titlePatterns: $titlePatterns)
+
+                Text("Leave empty to match all window titles")
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
             }
 
             VStack(alignment: .leading, spacing: 8) {
@@ -742,7 +865,7 @@ struct AddToneStyleSheet: View {
     }
 
     private func addStyle() {
-        manager.addStyle(name: name, appBundleIds: Array(selectedAppBundleIds), instructions: instructions)
+        manager.addStyle(name: name, appBundleIds: Array(selectedAppBundleIds), titlePatterns: titlePatterns, instructions: instructions)
         isPresented = false
     }
 }

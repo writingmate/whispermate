@@ -63,11 +63,11 @@ public class ToneStyleManager: ObservableObject {
         }
     }
 
-    public func addStyle(name: String, appBundleIds: [String], instructions: String) {
+    public func addStyle(name: String, appBundleIds: [String], titlePatterns: [String] = [], instructions: String) {
         // Remove these apps from other styles to ensure mutual exclusivity
         removeAppsFromOtherStyles(appBundleIds: appBundleIds, excludingStyleId: nil)
 
-        let style = ToneStyle(name: name, appBundleIds: appBundleIds, instructions: instructions)
+        let style = ToneStyle(name: name, appBundleIds: appBundleIds, titlePatterns: titlePatterns, instructions: instructions)
         styles.append(style)
         saveStyles()
         DebugLog.info("Added style: \(name)", context: "ToneStyleManager")
@@ -87,29 +87,148 @@ public class ToneStyleManager: ObservableObject {
         }
     }
 
-    public func updateStyle(_ style: ToneStyle, name: String, appBundleIds: [String], instructions: String) {
+    public func updateStyle(_ style: ToneStyle, name: String, appBundleIds: [String], titlePatterns: [String] = [], instructions: String) {
         if let index = styles.firstIndex(where: { $0.id == style.id }) {
             // Remove these apps from other styles to ensure mutual exclusivity
             removeAppsFromOtherStyles(appBundleIds: appBundleIds, excludingStyleId: style.id)
 
             styles[index].name = name
             styles[index].appBundleIds = appBundleIds
+            styles[index].titlePatterns = titlePatterns
             styles[index].instructions = instructions
             saveStyles()
             DebugLog.info("Updated style: \(name)", context: "ToneStyleManager")
         }
     }
 
-    /// Get tone/style instructions for a specific app bundle ID
-    public func instructions(for appBundleId: String?) -> String? {
-        guard let appBundleId = appBundleId else { return nil }
+    /// Get tone/style instructions for a specific app bundle ID and window title
+    /// Returns instructions from all matching styles:
+    /// - Styles with empty appBundleIds and empty titlePatterns (apply to all)
+    /// - Styles that match the app's bundle ID OR the window title pattern (OR logic)
+    public func instructions(for appBundleId: String?, windowTitle: String? = nil) -> String? {
+        DebugLog.info("=== Checking tone/style rules ===", context: "ToneStyleManager")
+        DebugLog.info("App Bundle ID: '\(appBundleId ?? "none")'", context: "ToneStyleManager")
+        DebugLog.info("Window Title: '\(windowTitle ?? "none")'", context: "ToneStyleManager")
+        DebugLog.info("Total styles: \(styles.count), Enabled: \(styles.filter { $0.isEnabled }.count)", context: "ToneStyleManager")
 
-        // Find the first enabled style that matches the app
-        let matchingStyle = styles.first { style in
-            style.isEnabled && style.appBundleIds.contains(appBundleId)
+        // Find all enabled styles that match
+        let matchingStyles = styles.filter { style in
+            DebugLog.info("", context: "ToneStyleManager")
+            DebugLog.info("Evaluating style: '\(style.name)' (enabled: \(style.isEnabled))", context: "ToneStyleManager")
+
+            guard style.isEnabled else {
+                DebugLog.info("  → Skipped (disabled)", context: "ToneStyleManager")
+                return false
+            }
+
+            // If both appBundleIds and titlePatterns are empty, this style applies to everything
+            if style.appBundleIds.isEmpty && style.titlePatterns.isEmpty {
+                DebugLog.info("  → Universal style (no app or title restrictions) - MATCHES", context: "ToneStyleManager")
+                return true
+            }
+
+            var appMatches = false
+            var titleMatches = false
+            var hasAppRestriction = false
+            var hasTitleRestriction = false
+
+            // Check app bundle ID match
+            if !style.appBundleIds.isEmpty {
+                hasAppRestriction = true
+                DebugLog.info("  Checking app bundle IDs: \(style.appBundleIds)", context: "ToneStyleManager")
+                if let appBundleId = appBundleId, style.appBundleIds.contains(appBundleId) {
+                    appMatches = true
+                    DebugLog.info("  → App matches: YES", context: "ToneStyleManager")
+                } else {
+                    DebugLog.info("  → App matches: NO", context: "ToneStyleManager")
+                }
+            } else {
+                DebugLog.info("  → No app restriction", context: "ToneStyleManager")
+            }
+
+            // Check window title pattern match
+            if !style.titlePatterns.isEmpty {
+                hasTitleRestriction = true
+                DebugLog.info("  Checking title patterns: \(style.titlePatterns)", context: "ToneStyleManager")
+                if let windowTitle = windowTitle {
+                    for pattern in style.titlePatterns {
+                        if matchesTitlePattern(title: windowTitle, pattern: pattern) {
+                            titleMatches = true
+                            DebugLog.info("  → Title matches pattern '\(pattern)': YES", context: "ToneStyleManager")
+                            break
+                        }
+                    }
+                    if !titleMatches {
+                        DebugLog.info("  → Title matches: NO (no patterns matched)", context: "ToneStyleManager")
+                    }
+                } else {
+                    DebugLog.info("  → Title matches: NO (no window title provided)", context: "ToneStyleManager")
+                }
+            } else {
+                DebugLog.info("  → No title restriction", context: "ToneStyleManager")
+            }
+
+            // OR logic: Either app OR title must match (if they have restrictions)
+            let finalMatch = appMatches || titleMatches
+            DebugLog.info("  Final result: \(finalMatch ? "✓ STYLE MATCHES" : "✗ STYLE DOES NOT MATCH") (app: \(appMatches), title: \(titleMatches)) [OR logic]", context: "ToneStyleManager")
+            return finalMatch
         }
 
-        return matchingStyle?.instructions
+        // Return combined instructions
+        if matchingStyles.isEmpty {
+            DebugLog.info("=== No matching styles found ===", context: "ToneStyleManager")
+            return nil
+        }
+
+        let styleNames = matchingStyles.map { $0.name }.joined(separator: ", ")
+        DebugLog.info("", context: "ToneStyleManager")
+        DebugLog.info("=== Matched \(matchingStyles.count) style(s): \(styleNames) ===", context: "ToneStyleManager")
+
+        let instructions = matchingStyles.map { $0.instructions }.joined(separator: ". ")
+        DebugLog.info("Combined instructions: \(instructions)", context: "ToneStyleManager")
+        return instructions
+    }
+
+    /// Match a window title against a pattern
+    /// Patterns can be:
+    /// - "Gmail" - matches if title contains "Gmail"
+    /// - "* - LinkedIn" - wildcard pattern match
+    /// - "Inbox (*)" - matches titles with wildcards
+    private func matchesTitlePattern(title: String, pattern: String) -> Bool {
+        DebugLog.info("Matching title pattern - Title: '\(title)', Pattern: '\(pattern)'", context: "ToneStyleManager")
+
+        // Convert pattern to regex
+        // * becomes .* (match any characters)
+        // Escape special regex characters except *
+        let patternRegex = pattern
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: ".", with: "\\.")
+            .replacingOccurrences(of: "+", with: "\\+")
+            .replacingOccurrences(of: "?", with: "\\?")
+            .replacingOccurrences(of: "(", with: "\\(")
+            .replacingOccurrences(of: ")", with: "\\)")
+            .replacingOccurrences(of: "[", with: "\\[")
+            .replacingOccurrences(of: "]", with: "\\]")
+            .replacingOccurrences(of: "{", with: "\\{")
+            .replacingOccurrences(of: "}", with: "\\}")
+            .replacingOccurrences(of: "^", with: "\\^")
+            .replacingOccurrences(of: "$", with: "\\$")
+            .replacingOccurrences(of: "|", with: "\\|")
+            .replacingOccurrences(of: "*", with: ".*")
+
+        DebugLog.info("Converted to regex pattern: '\(patternRegex)'", context: "ToneStyleManager")
+
+        guard let regex = try? NSRegularExpression(pattern: patternRegex, options: [.caseInsensitive]) else {
+            DebugLog.info("Failed to create regex from pattern", context: "ToneStyleManager")
+            return false
+        }
+
+        let range = NSRange(title.startIndex..., in: title)
+        let matches = regex.firstMatch(in: title, options: [], range: range) != nil
+
+        DebugLog.info("Pattern match result: \(matches ? "✓ MATCHED" : "✗ NO MATCH")", context: "ToneStyleManager")
+
+        return matches
     }
 
     /// Get all enabled style instructions as a combined prompt
