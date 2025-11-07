@@ -1,13 +1,16 @@
 import SwiftUI
+import WhisperMateShared
 
 struct RecordingOverlayView: View {
     @ObservedObject var manager: OverlayWindowManager
     @State private var isHovering = false
+    @State private var shouldShowExpandedPill = false
+    @State private var shouldShowContent = false
 
     // MARK: - Size Constants (single source of truth)
 
     // Recording/Processing state
-    private let activeStateWidth: CGFloat = 180
+    private let activeStateWidth: CGFloat = 95  // Narrow for 14 bars
     private let activeStateHeight: CGFloat = 24
 
     // Idle state
@@ -58,6 +61,57 @@ struct RecordingOverlayView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.clear)
         }
+        .onChange(of: manager.isRecording) { newValue in
+            if newValue {
+                // Only animate if we're coming from idle state
+                if !shouldShowExpandedPill {
+                    shouldShowExpandedPill = false
+                    shouldShowContent = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            shouldShowExpandedPill = true
+                        }
+                        // Show content after expansion animation completes
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            shouldShowContent = true
+                        }
+                    }
+                }
+            } else if !manager.isProcessing {
+                // Hide content immediately, then collapse
+                shouldShowContent = false
+                withAnimation(.easeOut(duration: 0.15)) {
+                    shouldShowExpandedPill = false
+                }
+            }
+        }
+        .onChange(of: manager.isProcessing) { newValue in
+            if newValue {
+                // Only animate if we're coming from idle state (not from recording)
+                if !manager.isRecording && !shouldShowExpandedPill {
+                    shouldShowExpandedPill = false
+                    shouldShowContent = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            shouldShowExpandedPill = true
+                        }
+                        // Show content after expansion animation completes
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            shouldShowContent = true
+                        }
+                    }
+                } else if manager.isRecording {
+                    // Already expanded from recording, just keep expanded and keep showing content
+                    shouldShowExpandedPill = true
+                    shouldShowContent = true
+                }
+            } else if !manager.isRecording {
+                shouldShowContent = false
+                withAnimation(.easeOut(duration: 0.15)) {
+                    shouldShowExpandedPill = false
+                }
+            }
+        }
     }
 
     @ViewBuilder
@@ -81,8 +135,6 @@ struct RecordingOverlayView: View {
         .fixedSize()
         .frame(maxWidth: .infinity, alignment: .center) // Center horizontally only
         .onHover { isHovering = $0 }
-        .animation(.spring(response: 0.2, dampingFraction: 0.8), value: manager.isRecording)
-        .animation(.spring(response: 0.2, dampingFraction: 0.8), value: manager.isProcessing)
         .animation(.easeInOut(duration: 0.2), value: isHovering)
         .padding(manager.position == .top ? .top : .bottom, edgeMargin)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: manager.position == .top ? .top : .bottom) // Position vertically
@@ -92,22 +144,25 @@ struct RecordingOverlayView: View {
 
     @ViewBuilder
     private var contentView: some View {
-        if manager.isRecording {
-            AudioVisualizationView(audioLevel: manager.audioLevel, color: .white)
-                .frame(width: activeStateWidth, height: activeStateHeight)
-                .transition(.scale.combined(with: .opacity))
-        } else if manager.isProcessing {
-            ProgressView()
-                .tint(.white)
-                .controlSize(.small)
-                .brightness(2)
-                .frame(width: activeStateWidth, height: activeStateHeight)
-                .transition(.opacity)
-        } else {
-            // Idle state - small pill
+        let targetWidth = shouldShowExpandedPill ? activeStateWidth : idleStateWidth
+        let targetHeight = shouldShowExpandedPill ? activeStateHeight : idleStateHeight
+
+        ZStack {
+            // Always render the frame container with animation
             Color.clear
-                .frame(width: idleStateWidth, height: idleStateHeight)
+                .frame(width: targetWidth, height: targetHeight)
+
+            // Overlay the actual content only after expansion is complete
+            if manager.isRecording && shouldShowContent {
+                AudioVisualizationView(audioLevel: manager.audioLevel, color: .white, frequencyBands: manager.frequencyBands)
+            } else if manager.isProcessing && shouldShowContent {
+                ProgressView()
+                    .tint(.white)
+                    .controlSize(.small)
+                    .brightness(2)
+            }
         }
+        .animation(.easeInOut(duration: 0.25), value: shouldShowExpandedPill)
     }
     
     private var expandButton: some View {

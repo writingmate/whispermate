@@ -239,6 +239,28 @@ struct SettingsView: View {
                 }
             }
 
+            // Mute Other Audio
+            SettingsCard {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Mute Other Audio When Recording")
+                            .font(.system(size: 13))
+                        Text("Automatically lower system volume to 30% while recording")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer()
+                    Toggle("", isOn: Binding(
+                        get: { UserDefaults.standard.object(forKey: "muteAudioWhenRecording") as? Bool ?? true },
+                        set: { UserDefaults.standard.set($0, forKey: "muteAudioWhenRecording") }
+                    ))
+                    .toggleStyle(.switch)
+                    .controlSize(.mini)
+                    .labelsHidden()
+                }
+            }
+
             // Language Selection
             SettingsCard {
                 VStack(alignment: .leading, spacing: 12) {

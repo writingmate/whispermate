@@ -2,18 +2,20 @@ import SwiftUI
 
 public struct AudioVisualizationView: View {
     public let audioLevel: Float
+    public let frequencyBands: [Float]?
     public var color: Color = .blue
 
-    public init(audioLevel: Float, color: Color = .blue) {
+    public init(audioLevel: Float, color: Color = .blue, frequencyBands: [Float]? = nil) {
         self.audioLevel = audioLevel
         self.color = color
+        self.frequencyBands = frequencyBands
     }
 
-    private let totalBars = 40
-    private let minActiveBars = 10  // Minimum bars that activate in center
-    private let barWidth: CGFloat = 2
+    private let totalBars = 14
+    private let minActiveBars = 4  // Minimum bars that activate in center
+    private let barWidth: CGFloat = 4  // Twice as thick
     private let barSpacing: CGFloat = 2
-    private let maxBarHeight: CGFloat = 32  // Increased for taller center bars
+    private let maxBarHeight: CGFloat = 20  // Fit within overlay height
     private let dotSize: CGFloat = 3  // Perfect circle when inactive
 
     private var activeBarCount: Int {
@@ -24,6 +26,16 @@ public struct AudioVisualizationView: View {
     }
 
     private func barHeight(for index: Int) -> CGFloat {
+        // Use frequency bands if available
+        if let bands = frequencyBands, bands.count == totalBars {
+            let magnitude = CGFloat(bands[index])
+            let heightRange = maxBarHeight - dotSize
+            let randomFactor = CGFloat.random(in: 0.8...1.2)  // Add organic variation
+            let height = dotSize + (heightRange * magnitude * randomFactor)
+            return max(dotSize, min(maxBarHeight, height))
+        }
+
+        // Fallback to volume-based visualization
         // Calculate position from center (0.0 = center, 1.0 = edge)
         let center = Double(totalBars - 1) / 2.0
         let distanceFromCenter = abs(Double(index) - center) / center
@@ -41,15 +53,18 @@ public struct AudioVisualizationView: View {
             return dotSize
         }
 
-        // Quadratic audio factor for more dramatic response
-        let audioFactor = CGFloat(audioLevel) * CGFloat(audioLevel)
+        // Linear audio factor for better sensitivity
+        let audioFactor = CGFloat(audioLevel)
 
         // Quadratic falloff from center for dramatic curve
         let waveformFactor = 1.0 - (distanceFromCenter * distanceFromCenter)
 
+        // Add organic variation
+        let randomFactor = CGFloat.random(in: 0.8...1.2)
+
         // Calculate height
         let heightRange = maxBarHeight - dotSize
-        let baseHeight = dotSize + (heightRange * audioFactor * waveformFactor)
+        let baseHeight = dotSize + (heightRange * audioFactor * waveformFactor * randomFactor)
 
         return max(dotSize, min(maxBarHeight, baseHeight))
     }
@@ -62,8 +77,7 @@ public struct AudioVisualizationView: View {
                     .frame(width: barWidth, height: barHeight(for: index))
             }
         }
-        .animation(.easeOut(duration: 0.15), value: activeBarCount)
-        .animation(.easeOut(duration: 0.08), value: audioLevel)
+        .animation(.easeOut(duration: 0.12), value: frequencyBands ?? [audioLevel])
     }
 }
 
