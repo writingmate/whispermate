@@ -155,6 +155,7 @@ struct RecordingOverlayView: View {
             // Overlay the actual content only after expansion is complete
             if manager.isRecording && shouldShowContent {
                 AudioVisualizationView(audioLevel: manager.audioLevel, color: .white, frequencyBands: manager.frequencyBands)
+                    .frame(maxHeight: activeStateHeight)  // Constrain to container height
             } else if manager.isProcessing && shouldShowContent {
                 ProgressView()
                     .tint(.white)

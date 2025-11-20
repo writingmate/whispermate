@@ -15,7 +15,7 @@ public struct AudioVisualizationView: View {
     private let minActiveBars = 4  // Minimum bars that activate in center
     private let barWidth: CGFloat = 4  // Twice as thick
     private let barSpacing: CGFloat = 2
-    private let maxBarHeight: CGFloat = 20  // Fit within overlay height
+    private let maxBarHeight: CGFloat = 18  // Fit within 24px overlay height with padding
     private let dotSize: CGFloat = 3  // Perfect circle when inactive
 
     private var activeBarCount: Int {
