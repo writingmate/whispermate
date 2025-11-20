@@ -54,6 +54,7 @@ struct SettingsView: View {
     @ObservedObject var toneStyleManager: ToneStyleManager
     @ObservedObject var shortcutManager: ShortcutManager
     @ObservedObject var overlayManager = OverlayWindowManager.shared
+    @ObservedObject var launchAtLoginManager = LaunchAtLoginManager.shared
     @Binding var selectedSection: SettingsSection
     @State private var transcriptionApiKey = ""
     @State private var llmApiKey = ""
@@ -61,8 +62,8 @@ struct SettingsView: View {
     @State private var customModel = ""
     @State private var showingTranscriptionKeySaved = false
     @State private var showingLLMKeySaved = false
-    @State private var audioDevices: [AVCaptureDevice] = []
-    @State private var selectedAudioDevice: AVCaptureDevice?
+    @State private var audioDevices: [AudioDeviceManager.AudioDevice] = []
+    @State private var selectedAudioDevice: AudioDeviceManager.AudioDevice?
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -93,11 +94,19 @@ struct SettingsView: View {
                         hotkeysSection
                     }
                 }
-                .padding(20)
+                .padding(.horizontal, 20)
+                .padding(.top, 52)  // Extra top padding to avoid traffic lights
+                .padding(.bottom, 20)
             }
         }
         .navigationSplitViewStyle(.balanced)
         .onAppear {
+            loadAudioDevices()
+        }
+        .onChange(of: selectedAudioDevice) { newValue in
+            saveSelectedAudioDevice(newValue)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("AudioDeviceListChanged"))) { _ in
             loadAudioDevices()
         }
     }
@@ -148,6 +157,28 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.menu)
                     .fixedSize()
+                }
+            }
+
+            // LAUNCH AT LOGIN
+            SettingsCard {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Launch at Login")
+                            .font(.system(size: 13))
+                        Text("Automatically start WhisperMate when you log in")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer()
+                    Toggle("", isOn: Binding(
+                        get: { launchAtLoginManager.isEnabled },
+                        set: { _ in launchAtLoginManager.toggle() }
+                    ))
+                    .toggleStyle(.switch)
+                    .controlSize(.mini)
+                    .labelsHidden()
                 }
             }
         }
@@ -230,8 +261,8 @@ struct SettingsView: View {
                     Spacer()
 
                     Picker("", selection: $selectedAudioDevice) {
-                        ForEach(audioDevices, id: \.uniqueID) { device in
-                            Text(device.localizedName).tag(device as AVCaptureDevice?)
+                        ForEach(audioDevices) { device in
+                            Text(device.localizedName).tag(device as AudioDeviceManager.AudioDevice?)
                         }
                     }
                     .pickerStyle(.menu)
@@ -430,33 +461,48 @@ struct SettingsView: View {
 
     // MARK: - Helper Functions
     private func loadAudioDevices() {
-        // Get all available audio input devices using discovery session
-        let discoverySession = AVCaptureDevice.DiscoverySession(
-            deviceTypes: [.builtInMicrophone, .externalUnknown],
-            mediaType: .audio,
-            position: .unspecified
-        )
+        // Get all available audio input devices using Core Audio
+        audioDevices = AudioDeviceManager.shared.getInputDevices()
 
-        // Get all devices from the session
-        audioDevices = discoverySession.devices
-
-        // Also try to get any other audio devices not in the standard types
-        #if compiler(>=6.0)
-        if #available(macOS 14.0, *) {
-            // On macOS 14+, we can get more device types
-            let extendedSession = AVCaptureDevice.DiscoverySession(
-                deviceTypes: [.builtInMicrophone, .externalUnknown, .microphone],
-                mediaType: .audio,
-                position: .unspecified
-            )
-            audioDevices = extendedSession.devices
-        }
-        #endif
-
-        // Select default device
+        // Select saved device or default
         if selectedAudioDevice == nil {
-            selectedAudioDevice = AVCaptureDevice.default(for: .audio)
+            if let savedDeviceID = UserDefaults.standard.string(forKey: "selectedAudioDeviceID"),
+               let savedDevice = audioDevices.first(where: { $0.uniqueID == savedDeviceID }) {
+                selectedAudioDevice = savedDevice
+            } else {
+                selectedAudioDevice = AudioDeviceManager.shared.getDefaultInputDevice()
+            }
         }
+    }
+
+    private func saveSelectedAudioDevice(_ device: AudioDeviceManager.AudioDevice?) {
+        if let device = device {
+            UserDefaults.standard.set(device.uniqueID, forKey: "selectedAudioDeviceID")
+            DebugLog.info("Setting audio device: \(device.localizedName)", context: "SettingsView")
+
+            // Set as system default so AVAudioEngine will use it
+            let success = AudioDeviceManager.shared.setDefaultInputDevice(deviceID: device.id)
+            if success {
+                DebugLog.info("Successfully set default input device", context: "SettingsView")
+
+                // Notify AudioRecorder about the change
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("AudioInputDeviceChanged"),
+                    object: device.uniqueID
+                )
+            } else {
+                DebugLog.info("Failed to set default input device", context: "SettingsView")
+            }
+        }
+    }
+
+    private func setupDeviceNotifications() {
+        // Listen for device list changes from Core Audio
+        // Using .onReceive in SwiftUI instead of NotificationCenter for proper lifecycle management
+    }
+
+    private func removeDeviceNotifications() {
+        // Handled by SwiftUI's .onReceive lifecycle
     }
 
 }
