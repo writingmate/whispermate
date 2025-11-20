@@ -3,49 +3,10 @@ import AVFoundation
 import AppKit
 import WhisperMateShared
 
-enum AIApp: String, CaseIterable, Identifiable {
-    case writingmate = "Writingmate"
-    case claude = "Claude"
-    case chatgpt = "ChatGPT"
-    case perplexity = "Perplexity"
-//    case telegram = "Telegram"
-    case whatsapp = "WhatsApp"
-    case email = "Email"
-    case custom = "Custom"
-
-    var id: String { rawValue }
-
-    var icon: String {
-        switch self {
-        case .writingmate: return "square.and.pencil"
-        case .claude: return "sparkles"
-        case .chatgpt: return "bubble.left.and.bubble.right"
-        case .perplexity: return "magnifyingglass.circle"
-//        case .telegram: return "paperplane"
-        case .whatsapp: return "message.fill"
-        case .email: return "envelope"
-        case .custom: return "gearshape"
-        }
-    }
-
-    var urlTemplate: String {
-        switch self {
-        case .writingmate: return "https://writingmate.ai/new?q={prompt}"
-        case .chatgpt: return "https://chatgpt.com/?q={prompt}"
-        case .perplexity: return "https://www.perplexity.ai/?q={prompt}"
-        case .claude: return "https://claude.ai/new?q={prompt}"
-//        case .telegram: return "tg://msg?text={prompt}"
-        case .whatsapp: return "whatsapp://send?text={prompt}"
-        case .email: return "mailto:?body={prompt}"
-        case .custom: return "" // Will be loaded from UserDefaults
-        }
-    }
-}
-
 struct ContentView: View {
-    @StateObject private var audioRecorder = AudioRecorder()
+    @ObservedObject private var audioRecorder = AudioRecorder.shared
     @ObservedObject private var hotkeyManager = HotkeyManager.shared
-    @StateObject private var historyManager = HistoryManager()
+    @ObservedObject private var historyManager = HistoryManager.shared
     @ObservedObject private var overlayManager = OverlayWindowManager.shared
     @ObservedObject private var onboardingManager = OnboardingManager.shared
     @StateObject private var languageManager = LanguageManager()
@@ -68,20 +29,16 @@ struct ContentView: View {
     @State private var capturedAppBundleId: String?
     @State private var capturedWindowTitle: String?
     @State private var showCopiedNotification = false
-    @State private var isHoveringWindow = false
     @State private var hasCheckedOnboarding = false
 
     var body: some View {
         VStack(spacing: 0) {
-            // Titlebar spacer
-            Color(nsColor: .windowBackgroundColor)
-                .frame(height: 32)
-
             // Content area - expands to fill space
             ZStack {
                 if audioRecorder.isRecording {
                     AudioVisualizationView(audioLevel: audioRecorder.audioLevel, color: .accentColor, frequencyBands: audioRecorder.frequencyBands)
-                        .frame(height: 100)
+                        .frame(height: 30)
+                        .padding(.vertical, 20)
                 } else if isProcessing {
                     VStack(spacing: 12) {
                         ProgressView()
@@ -90,6 +47,47 @@ struct ContentView: View {
                             .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(.secondary)
                     }
+                } else if !errorMessage.isEmpty {
+                    // Error state with retry button
+                    VStack(spacing: 16) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.orange)
+
+                        Text("Transcription Failed")
+                            .font(.system(size: 16, weight: .semibold))
+
+                        Text(errorMessage)
+                            .font(.system(size: 13))
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
+
+                        HStack(spacing: 12) {
+                            Button(action: {
+                                errorMessage = ""
+                            }) {
+                                Text("Dismiss")
+                            }
+                            .buttonStyle(.borderless)
+                            .controlSize(.large)
+
+                            Button(action: {
+                                retryLatestFailedTranscription()
+                            }) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "arrow.clockwise")
+                                    Text("Retry")
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                            .disabled(historyManager.failedRecordings.isEmpty ||
+                                     (historyManager.failedRecordings.first?.retryCount ?? 0) >= 3)
+                        }
+                        .padding(.top, 8)
+                    }
+                    .padding(24)
                 } else if transcription.isEmpty {
                     VStack(spacing: 8) {
                         Image(systemName: "mic.circle")
@@ -166,15 +164,10 @@ struct ContentView: View {
             }
             .padding(.bottom, 8)
         }
-        .frame(width: 400)
+        .frame(minWidth: 400, maxWidth: .infinity)
         .background(Color(nsColor: .windowBackgroundColor))
-        .onHover { hovering in
-            isHoveringWindow = hovering
-            if let window = NSApplication.shared.windows.first(where: { $0.identifier == WindowIdentifiers.main }) {
-                window.standardWindowButton(.closeButton)?.alphaValue = hovering ? 1.0 : 0.0
-                window.standardWindowButton(.miniaturizeButton)?.alphaValue = hovering ? 1.0 : 0.0
-                window.standardWindowButton(.zoomButton)?.alphaValue = hovering ? 1.0 : 0.0
-            }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            Color.clear.frame(height: 0)
         }
         .ignoresSafeArea(.all, edges: .top)
         .onChange(of: onboardingManager.showOnboarding) { newValue in
@@ -221,6 +214,10 @@ struct ContentView: View {
         }
         .onAppear {
             DebugLog.info("ContentView onAppear - checking onboarding status", context: "ContentView")
+
+            // Clear any stale error messages
+            errorMessage = ""
+            DebugLog.info("Cleared error message on appear", context: "ContentView")
 
             // Only check onboarding status once on first launch
             if !hasCheckedOnboarding {
@@ -426,13 +423,7 @@ struct ContentView: View {
             DebugLog.info("Hotkey callbacks configured!", context: "ContentView")
 
             // Set up notification observers for menu bar actions
-            NotificationCenter.default.addObserver(
-                forName: .showHistory,
-                object: nil,
-                queue: .main
-            ) { [self] _ in
-                openWindow(id: "history")
-            }
+            // Note: .showHistory is now handled by HistoryMasterDetailView (sidebar is built-in)
 
             NotificationCenter.default.addObserver(
                 forName: .showSettings,
@@ -578,13 +569,24 @@ struct ContentView: View {
             return
         }
 
-        // Update overlay IMMEDIATELY on key down (only if in overlay mode)
-        if overlayManager.isOverlayMode {
-            overlayManager.updateState(isRecording: true, isProcessing: false)
-        }
-
         DebugLog.info("ℹ️ Starting file-based recording", context: "ContentView")
         audioRecorder.startRecording()
+
+        // Only update overlay if recording actually started
+        if audioRecorder.isRecording {
+            DebugLog.info("✅ Recording started successfully", context: "ContentView")
+
+            if overlayManager.isOverlayMode {
+                overlayManager.updateState(isRecording: true, isProcessing: false)
+            }
+
+            // Notify that recording has started (to clear recording selection in history view)
+            NotificationCenter.default.post(name: .recordingStarted, object: nil)
+        } else {
+            DebugLog.info("❌ Recording failed to start", context: "ContentView")
+            errorMessage = "Failed to start recording. Please try again."
+        }
+
         DebugLog.info("========== START RECORDING COMPLETE ==========", context: "ContentView")
     }
 
@@ -669,8 +671,10 @@ struct ContentView: View {
 
                     await MainActor.run {
                         if !hasSpeech {
-                            DebugLog.info("🔇 No speech detected - skipping transcription", context: "ContentView")
-                            errorMessage = "No speech detected"
+                            DebugLog.info("🔇 No speech detected - returning to empty state", context: "ContentView")
+                            // Clear everything and return to empty state (no error shown)
+                            errorMessage = ""
+                            transcription = ""
                             shouldAutoPaste = false
                             isProcessing = false
 
@@ -808,9 +812,23 @@ struct ContentView: View {
                     // Calculate duration
                     let duration = recordingStartTime.map { Date().timeIntervalSince($0) }
 
-                    // Save to history
-                    let recording = Recording(transcription: result, duration: duration)
+                    // Copy audio file to persistent storage
+                    guard let persistentAudioURL = historyManager.copyAudioToPersistentStorage(from: audioURL) else {
+                        DebugLog.error("Failed to save audio file", context: "ContentView")
+                        return
+                    }
+
+                    // Save to history with success status
+                    let recording = Recording(
+                        audioFileURL: persistentAudioURL,
+                        transcription: result,
+                        status: .success,
+                        duration: duration
+                    )
                     historyManager.addRecording(recording)
+
+                    // Notify that recording is completed and ready to view
+                    NotificationCenter.default.post(name: .recordingCompleted, object: recording)
 
                     // Auto-paste if triggered by hotkey (but not during onboarding)
                     if shouldAutoPaste && !onboardingManager.showOnboarding {
@@ -851,11 +869,31 @@ struct ContentView: View {
                 }
             } catch {
                 DebugLog.info("Transcription error: \(error.localizedDescription)", context: "ContentView")
+
+                // Calculate duration for failed transcription
+                let duration = recordingStartTime.map { Date().timeIntervalSince($0) }
+
                 await MainActor.run {
                     transcription = ""
                     isProcessing = false
                     errorMessage = "Transcription failed: \(error.localizedDescription)"
                     shouldAutoPaste = false
+
+                    // Copy audio file to persistent storage
+                    guard let persistentAudioURL = historyManager.copyAudioToPersistentStorage(from: audioURL) else {
+                        DebugLog.error("Failed to save audio file for failed transcription", context: "ContentView")
+                        return
+                    }
+
+                    // Save failed transcription to history
+                    let recording = Recording(
+                        audioFileURL: persistentAudioURL,
+                        transcription: nil,
+                        status: .failed,
+                        errorMessage: error.localizedDescription,
+                        duration: duration
+                    )
+                    historyManager.addRecording(recording)
 
                     // Update overlay - processing failed (only if in overlay mode)
                     if overlayManager.isOverlayMode {
@@ -892,6 +930,54 @@ struct ContentView: View {
         }
         DebugLog.warning("No LLM key found for provider: \(provider.displayName)", context: "ContentView")
         return nil
+    }
+
+    private func retryLatestFailedTranscription() {
+        DebugLog.info("Retrying latest failed transcription", context: "ContentView")
+
+        // Get the most recent failed recording
+        guard let failedRecording = historyManager.failedRecordings.first else {
+            DebugLog.warning("No failed recordings to retry", context: "ContentView")
+            errorMessage = ""
+            return
+        }
+
+        // Check if audio file still exists
+        guard FileManager.default.fileExists(atPath: failedRecording.audioFileURL.path) else {
+            DebugLog.error("Audio file no longer exists for failed recording", context: "ContentView")
+            errorMessage = "Audio file no longer exists"
+            historyManager.deleteRecording(failedRecording)
+            return
+        }
+
+        // Check retry limit
+        if failedRecording.retryCount >= 3 {
+            DebugLog.warning("Maximum retry attempts reached", context: "ContentView")
+            errorMessage = "Maximum retry attempts (3) exceeded"
+            return
+        }
+
+        // Update recording status to retrying
+        var updatedRecording = failedRecording
+        updatedRecording.status = .retrying
+        updatedRecording.retryCount += 1
+        historyManager.updateRecording(updatedRecording)
+
+        // Clear error message and start retry
+        errorMessage = ""
+        transcription = ""
+        isProcessing = true
+
+        // Set recording start time from failed recording
+        recordingStartTime = failedRecording.timestamp
+
+        // Update overlay
+        if overlayManager.isOverlayMode {
+            overlayManager.updateState(isRecording: false, isProcessing: true)
+        }
+
+        // Retry the transcription with the persisted audio file
+        continueWithTranscription(audioURL: failedRecording.audioFileURL)
     }
 
     // MARK: - Copy Function
