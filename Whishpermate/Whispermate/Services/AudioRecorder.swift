@@ -19,6 +19,20 @@ class AudioRecorder: NSObject, ObservableObject {
     private override init() {
         super.init()
         // Microphone permission is now handled by OnboardingManager
+
+        // Listen for audio input device changes
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAudioDeviceChanged),
+            name: NSNotification.Name("AudioInputDeviceChanged"),
+            object: nil
+        )
+    }
+
+    @objc private func handleAudioDeviceChanged(_ notification: Notification) {
+        DebugLog.info("Audio input device changed, will use new device on next recording", context: "AudioRecorder LOG")
+        // If currently recording, we could optionally restart here
+        // For now, the new device will be used on the next recording
     }
 
     func startRecording() {
@@ -217,6 +231,9 @@ class AudioRecorder: NSObject, ObservableObject {
 
     deinit {
         DebugLog.info("🗑️ Deinit - cleaning up", context: "AudioRecorder LOG")
+
+        // Remove notification observers
+        NotificationCenter.default.removeObserver(self)
 
         // Stop engine and clean up
         if let engine = audioEngine {
