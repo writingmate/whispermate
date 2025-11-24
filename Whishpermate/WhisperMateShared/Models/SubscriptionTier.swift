@@ -7,11 +7,11 @@
 
 import Foundation
 
-enum SubscriptionTier: String, Codable {
+public enum SubscriptionTier: String, Codable {
     case free
     case pro
 
-    var displayName: String {
+    public var displayName: String {
         switch self {
         case .free:
             return "Free Trial"
@@ -20,7 +20,7 @@ enum SubscriptionTier: String, Codable {
         }
     }
 
-    var wordLimit: Int {
+    public var wordLimit: Int {
         switch self {
         case .free:
             return 2000 // One-time lifetime limit
@@ -29,7 +29,7 @@ enum SubscriptionTier: String, Codable {
         }
     }
 
-    var price: String {
+    public var price: String {
         switch self {
         case .free:
             return "$0"
@@ -38,7 +38,7 @@ enum SubscriptionTier: String, Codable {
         }
     }
 
-    var features: [String] {
+    public var features: [String] {
         switch self {
         case .free:
             return [

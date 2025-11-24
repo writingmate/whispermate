@@ -6,17 +6,18 @@
 //
 
 import Foundation
+import Combine
 #if canImport(AppKit)
 import AppKit
 #endif
 
-class AuthManager: ObservableObject {
-    static let shared = AuthManager()
+public class AuthManager: ObservableObject {
+    public static let shared = AuthManager()
 
-    @Published var currentUser: User?
-    @Published var isAuthenticated: Bool = false
-    @Published var isLoading: Bool = false
-    @Published var error: String?
+    @Published public var currentUser: User?
+    @Published public var isAuthenticated: Bool = false
+    @Published public var isLoading: Bool = false
+    @Published public var error: String?
 
     private let supabaseClient = SupabaseClient.shared
 
@@ -31,8 +32,8 @@ class AuthManager: ObservableObject {
 
     // MARK: - Authentication
 
-    func openSignUp() {
-        guard let supabaseURL = SecretsLoader.shared.getValue(for: "SUPABASE_URL") else {
+    public func openSignUp() {
+        guard let supabaseURL = SecretsLoader.getValue(for: "SUPABASE_URL") else {
             self.error = "Missing Supabase configuration"
             return
         }
@@ -47,8 +48,8 @@ class AuthManager: ObservableObject {
         #endif
     }
 
-    func openLogin() {
-        guard let supabaseURL = SecretsLoader.shared.getValue(for: "SUPABASE_URL") else {
+    public func openLogin() {
+        guard let supabaseURL = SecretsLoader.getValue(for: "SUPABASE_URL") else {
             self.error = "Missing Supabase configuration"
             return
         }
@@ -63,7 +64,7 @@ class AuthManager: ObservableObject {
         #endif
     }
 
-    func handleAuthCallback(url: URL) async {
+    public func handleAuthCallback(url: URL) async {
         // Parse the access token from the callback URL
         // Expected format: whispermate://auth?access_token=xxx&refresh_token=yyy
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
@@ -88,7 +89,7 @@ class AuthManager: ObservableObject {
         await refreshUser()
     }
 
-    func refreshUser() async {
+    public func refreshUser() async {
         await MainActor.run {
             self.isLoading = true
             self.error = nil
@@ -110,7 +111,7 @@ class AuthManager: ObservableObject {
         }
     }
 
-    func logout() {
+    public func logout() {
         supabaseClient.clearAccessToken()
         currentUser = nil
         isAuthenticated = false
@@ -118,7 +119,7 @@ class AuthManager: ObservableObject {
 
     // MARK: - Usage Tracking
 
-    func updateWordCount(wordsToAdd: Int) async throws -> User {
+    public func updateWordCount(wordsToAdd: Int) async throws -> User {
         let updatedUser = try await supabaseClient.updateUserWordCount(wordsToAdd: wordsToAdd)
         await MainActor.run {
             self.currentUser = updatedUser
@@ -126,7 +127,7 @@ class AuthManager: ObservableObject {
         return updatedUser
     }
 
-    func checkCanTranscribe() -> (canTranscribe: Bool, reason: String?) {
+    public func checkCanTranscribe() -> (canTranscribe: Bool, reason: String?) {
         guard isAuthenticated, let user = currentUser else {
             return (false, "Please create an account to start transcribing")
         }

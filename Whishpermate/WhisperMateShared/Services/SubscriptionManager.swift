@@ -6,14 +6,15 @@
 //
 
 import Foundation
+import Combine
 #if canImport(AppKit)
 import AppKit
 #endif
 
-class SubscriptionManager: ObservableObject {
-    static let shared = SubscriptionManager()
+public class SubscriptionManager: ObservableObject {
+    public static let shared = SubscriptionManager()
 
-    @Published var showUpgradeModal: Bool = false
+    @Published public var showUpgradeModal: Bool = false
 
     private let authManager = AuthManager.shared
 
@@ -21,8 +22,8 @@ class SubscriptionManager: ObservableObject {
 
     // MARK: - Subscription
 
-    func openUpgrade() {
-        guard let stripePaymentLink = SecretsLoader.shared.getValue(for: "STRIPE_PAYMENT_LINK") else {
+    public func openUpgrade() {
+        guard let stripePaymentLink = SecretsLoader.getValue(for: "STRIPE_PAYMENT_LINK") else {
             print("Missing Stripe payment link configuration")
             return
         }
@@ -43,7 +44,7 @@ class SubscriptionManager: ObservableObject {
         #endif
     }
 
-    func handlePaymentSuccess() async {
+    public func handlePaymentSuccess() async {
         // Refresh user data to get updated subscription tier
         await authManager.refreshUser()
 
@@ -53,14 +54,14 @@ class SubscriptionManager: ObservableObject {
         }
     }
 
-    func handlePaymentCancel() {
+    public func handlePaymentCancel() {
         // User cancelled payment, just close modal
         showUpgradeModal = false
     }
 
     // MARK: - Usage Helpers
 
-    func getUsageStatus() -> (used: Int, limit: Int, percentage: Double, isPro: Bool) {
+    public func getUsageStatus() -> (used: Int, limit: Int, percentage: Double, isPro: Bool) {
         guard let user = authManager.currentUser else {
             return (0, 2000, 0.0, false)
         }
@@ -73,7 +74,7 @@ class SubscriptionManager: ObservableObject {
         return (used, limit, percentage, isPro)
     }
 
-    func shouldShowUpgradePrompt(for wordCount: Int) -> Bool {
+    public func shouldShowUpgradePrompt(for wordCount: Int) -> Bool {
         guard let user = authManager.currentUser else {
             return false
         }
@@ -91,7 +92,7 @@ class SubscriptionManager: ObservableObject {
         return percentage >= 0.9
     }
 
-    func getUpgradeMessage(for user: User) -> String {
+    public func getUpgradeMessage(for user: User) -> String {
         let remaining = user.wordsRemaining
         if remaining <= 0 {
             return "You've used all 2,000 free words. Upgrade to Pro for unlimited transcriptions!"
