@@ -15,6 +15,8 @@ class AudioRecorder: NSObject, ObservableObject {
     private var recordingURL: URL?
     private let volumeManager = AudioVolumeManager()
     private let frequencyAnalyzer = FrequencyAnalyzer()
+    private var inputFormat: AVAudioFormat?
+    private var outputFormat: AVAudioFormat?
 
     private override init() {
         super.init()
@@ -27,25 +29,135 @@ class AudioRecorder: NSObject, ObservableObject {
             name: NSNotification.Name("AudioInputDeviceChanged"),
             object: nil
         )
+
+        // Pre-initialize the audio engine for instant recording start
+        setupAudioEngine()
     }
 
     @objc private func handleAudioDeviceChanged(_ notification: Notification) {
-        DebugLog.info("Audio input device changed, will use new device on next recording", context: "AudioRecorder LOG")
-        // If currently recording, we could optionally restart here
-        // For now, the new device will be used on the next recording
+        DebugLog.info("Audio input device changed", context: "AudioRecorder LOG")
+        // Don't restart if currently recording - let the current recording finish
+        // Only reinitialize the engine when not recording
+        if !isRecording {
+            DebugLog.info("Reinitializing engine with new device", context: "AudioRecorder LOG")
+            setupAudioEngine()
+        } else {
+            DebugLog.info("Currently recording - will use new device on next recording", context: "AudioRecorder LOG")
+        }
+    }
+
+    private func setupAudioEngine() {
+        DebugLog.info("🎙️ Setting up audio engine (persistent mode)", context: "AudioRecorder LOG")
+
+        // Clean up existing engine if any
+        if let engine = audioEngine {
+            if engine.isRunning {
+                engine.stop()
+            }
+            engine.inputNode.removeTap(onBus: 0)
+            audioEngine = nil
+        }
+
+        do {
+            // Create AVAudioEngine
+            let engine = AVAudioEngine()
+            let inputNode = engine.inputNode
+            let bus = 0
+            inputFormat = inputNode.outputFormat(forBus: bus)
+
+            // Create output format for M4A file (AAC, 44.1kHz, mono)
+            outputFormat = AVAudioFormat(
+                commonFormat: .pcmFormatFloat32,
+                sampleRate: 44100.0,
+                channels: 1,
+                interleaved: false
+            )
+
+            guard let inputFormat = inputFormat, let outputFormat = outputFormat else {
+                DebugLog.info("❌ Failed to create audio formats", context: "AudioRecorder LOG")
+                return
+            }
+
+            // Install tap for both recording and frequency analysis
+            // The tap runs continuously, but only writes to file when isRecording is true
+            inputNode.installTap(onBus: bus, bufferSize: 2048, format: inputFormat) { [weak self] buffer, _ in
+                guard let self = self else { return }
+
+                // Only analyze and update visualization when actually recording
+                if self.isRecording {
+                    let bands = self.frequencyAnalyzer.analyze(buffer: buffer)
+                    let level = self.calculateAudioLevel(from: buffer)
+
+                    DispatchQueue.main.async {
+                        self.frequencyBands = bands
+                        self.audioLevel = level
+                    }
+                }
+
+                // Only write to file when actually recording
+                guard self.isRecording, let audioFile = self.audioFile else { return }
+
+                do {
+                    // Convert to output format if needed
+                    if let converter = AVAudioConverter(from: inputFormat, to: outputFormat) {
+                        let convertedBuffer = AVAudioPCMBuffer(
+                            pcmFormat: outputFormat,
+                            frameCapacity: AVAudioFrameCount(outputFormat.sampleRate) * buffer.frameLength / AVAudioFrameCount(inputFormat.sampleRate)
+                        )!
+
+                        var error: NSError?
+                        converter.convert(to: convertedBuffer, error: &error) { _, outStatus in
+                            outStatus.pointee = .haveData
+                            return buffer
+                        }
+
+                        if error == nil {
+                            try audioFile.write(from: convertedBuffer)
+                        }
+                    } else {
+                        // Same format, write directly
+                        try audioFile.write(from: buffer)
+                    }
+                } catch {
+                    DebugLog.info("❌ Failed to write audio buffer: \(error)", context: "AudioRecorder LOG")
+                }
+            }
+
+            // Don't start the engine yet - only start when recording begins
+            audioEngine = engine
+
+            DebugLog.info("✅ Audio engine initialized (will start on recording)", context: "AudioRecorder LOG")
+        } catch {
+            DebugLog.info("❌ Failed to setup audio engine: \(error)", context: "AudioRecorder LOG")
+        }
     }
 
     func startRecording() {
-        DebugLog.info("startRecording called - isRecording before: \(isRecording)", context: "AudioRecorder LOG")
+        DebugLog.info("⚡ startRecording called - isRecording before: \(isRecording)", context: "AudioRecorder LOG")
 
-        // Clean up any previous engine instance
-        if let existingEngine = audioEngine {
-            if existingEngine.isRunning {
-                DebugLog.info("⚠️ Stopping previous recording session", context: "AudioRecorder LOG")
-                existingEngine.stop()
+        // Ensure engine is set up
+        if audioEngine == nil {
+            DebugLog.info("Engine not initialized, setting up...", context: "AudioRecorder LOG")
+            setupAudioEngine()
+        }
+
+        // Start the engine if not running
+        guard let engine = audioEngine else {
+            DebugLog.info("❌ Engine not available", context: "AudioRecorder LOG")
+            return
+        }
+
+        let engineWasStarted = engine.isRunning
+        if !engineWasStarted {
+            do {
+                try engine.start()
+                DebugLog.info("✅ Audio engine started", context: "AudioRecorder LOG")
+                // Give the engine a moment to start processing audio
+                usleep(50000) // 50ms delay to let audio pipeline stabilize
+            } catch {
+                DebugLog.info("❌ Failed to start audio engine: \(error)", context: "AudioRecorder LOG")
+                return
             }
-            existingEngine.inputNode.removeTap(onBus: 0)
-            audioEngine = nil
         }
 
         // Lower system volume to duck other audio (if enabled in settings)
@@ -67,24 +179,12 @@ class AudioRecorder: NSObject, ObservableObject {
 
         recordingURL = newRecordingURL
 
+        guard let outputFormat = outputFormat else {
+            DebugLog.info("❌ Output format not initialized", context: "AudioRecorder LOG")
+            return
+        }
+
         do {
-            // Create AVAudioEngine
-            let engine = AVAudioEngine()
-            let inputNode = engine.inputNode
-            let bus = 0
-            let inputFormat = inputNode.outputFormat(forBus: bus)
-
-            // Create output format for M4A file (AAC, 44.1kHz, mono)
-            guard let outputFormat = AVAudioFormat(
-                commonFormat: .pcmFormatFloat32,
-                sampleRate: 44100.0,
-                channels: 1,
-                interleaved: false
-            ) else {
-                DebugLog.info("❌ Failed to create output format", context: "AudioRecorder LOG")
-                return
-            }
-
             // Create audio file for writing
             audioFile = try AVAudioFile(
                 forWriting: newRecordingURL,
@@ -96,52 +196,6 @@ class AudioRecorder: NSObject, ObservableObject {
                 ]
             )
 
-            // Install tap for both recording and frequency analysis
-            inputNode.installTap(onBus: bus, bufferSize: 2048, format: inputFormat) { [weak self] buffer, _ in
-                guard let self = self else { return }
-
-                // Write buffer to file
-                do {
-                    // Convert to output format if needed
-                    if let converter = AVAudioConverter(from: inputFormat, to: outputFormat) {
-                        let convertedBuffer = AVAudioPCMBuffer(
-                            pcmFormat: outputFormat,
-                            frameCapacity: AVAudioFrameCount(outputFormat.sampleRate) * buffer.frameLength / AVAudioFrameCount(inputFormat.sampleRate)
-                        )!
-
-                        var error: NSError?
-                        converter.convert(to: convertedBuffer, error: &error) { _, outStatus in
-                            outStatus.pointee = .haveData
-                            return buffer
-                        }
-
-                        if error == nil {
-                            try self.audioFile?.write(from: convertedBuffer)
-                        }
-                    } else {
-                        // Same format, write directly
-                        try self.audioFile?.write(from: buffer)
-                    }
-                } catch {
-                    DebugLog.info("❌ Failed to write audio buffer: \(error)", context: "AudioRecorder LOG")
-                }
-
-                // Analyze frequencies
-                let bands = self.frequencyAnalyzer.analyze(buffer: buffer)
-
-                // Calculate audio level from buffer
-                let level = self.calculateAudioLevel(from: buffer)
-
-                DispatchQueue.main.async {
-                    self.frequencyBands = bands
-                    self.audioLevel = level
-                }
-            }
-
-            // Start the engine
-            try engine.start()
-            audioEngine = engine
-
             // Update UI state synchronously so ContentView can check it immediately
             // Ensure we're on main thread for @Published property updates
             if Thread.isMainThread {
@@ -152,9 +206,9 @@ class AudioRecorder: NSObject, ObservableObject {
                 }
             }
 
-            DebugLog.info("✅ Recording started successfully with AVAudioEngine", context: "AudioRecorder LOG")
+            DebugLog.info("✅ Recording started", context: "AudioRecorder LOG")
         } catch {
-            DebugLog.info("❌ Failed to start recording: \(error) (\(error.localizedDescription))", context: "AudioRecorder LOG")
+            DebugLog.info("❌ Failed to create audio file: \(error)", context: "AudioRecorder LOG")
         }
     }
 
@@ -183,22 +237,16 @@ class AudioRecorder: NSObject, ObservableObject {
     }
 
     func stopRecording() -> URL? {
-        DebugLog.info("stopRecording called - isRecording before: \(isRecording)", context: "AudioRecorder LOG")
-
-        // Stop engine and remove tap
-        if let engine = audioEngine {
-            if engine.isRunning {
-                engine.stop()
-                DebugLog.info("Stopped audio engine", context: "AudioRecorder LOG")
-            }
-
-            engine.inputNode.removeTap(onBus: 0)
-            DebugLog.info("Removed audio tap", context: "AudioRecorder LOG")
-        }
-        audioEngine = nil
+        DebugLog.info("⚡ stopRecording called - isRecording before: \(isRecording)", context: "AudioRecorder LOG")
 
         // Close audio file
         audioFile = nil
+
+        // Stop the audio engine to release microphone
+        if let engine = audioEngine, engine.isRunning {
+            engine.stop()
+            DebugLog.info("✅ Audio engine stopped", context: "AudioRecorder LOG")
+        }
 
         // Restore system volume
         let shouldMuteAudio = UserDefaults.standard.object(forKey: "muteAudioWhenRecording") as? Bool ?? true
@@ -221,7 +269,7 @@ class AudioRecorder: NSObject, ObservableObject {
         }
 
         let url = recordingURL
-        DebugLog.info("stopRecording completed, recordingURL: \(String(describing: url))", context: "AudioRecorder LOG")
+        DebugLog.info("✅ stopRecording completed, recordingURL: \(String(describing: url))", context: "AudioRecorder LOG")
 
         // Clear recordingURL for next session
         recordingURL = nil

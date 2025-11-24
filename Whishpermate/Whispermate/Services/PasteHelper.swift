@@ -80,8 +80,15 @@ class PasteHelper {
         let targetApp = previousApp ?? NSWorkspace.shared.frontmostApplication
         DebugLog.info("Target app for paste: \(targetApp?.localizedName ?? "unknown")", context: "PasteHelper")
 
+        // Don't paste if target is WhisperMate itself (prevents beep when history window is active)
+        if targetApp?.bundleIdentifier == Bundle.main.bundleIdentifier {
+            DebugLog.info("⚠️ Target is WhisperMate - skipping paste to avoid beep", context: "PasteHelper")
+            previousApp = nil
+            return
+        }
+
         // Activate the target app first
-        if let app = targetApp, app.bundleIdentifier != Bundle.main.bundleIdentifier {
+        if let app = targetApp {
             DebugLog.info("Activating target app: \(app.localizedName ?? "unknown")", context: "PasteHelper")
             app.activate(options: [])
 
@@ -102,21 +109,8 @@ class PasteHelper {
                 }
             }
         } else {
-            DebugLog.info("No target app, pasting directly", context: "PasteHelper")
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                simulatePaste()
-
-                // Restore original clipboard content after a short delay
-                // Increased to 200ms to give web apps (Chrome, Firefox) time to process paste
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    if let original = originalContent {
-                        pasteboard.clearContents()
-                        pasteboard.setString(original, forType: .string)
-                        DebugLog.info("Restored original clipboard content", context: "PasteHelper")
-                    }
-                    previousApp = nil
-                }
-            }
+            DebugLog.info("⚠️ No target app - skipping paste to avoid beep", context: "PasteHelper")
+            previousApp = nil
         }
     }
 

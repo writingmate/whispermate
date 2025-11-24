@@ -12,6 +12,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     var statusBarManager = StatusBarManager()
     var mainWindow: NSWindow?
 
+    // Keep references to managers
+    private let appState = AppState.shared
+    private let hotkeyManager = HotkeyManager.shared
+    private let onboardingManager = OnboardingManager.shared
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Migrate old prompt rules to new system if needed
         RulesMigrationManager.migrateIfNeeded()
@@ -23,6 +28,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         // Configure window immediately - no async delay
         configureMainWindow()
+
+        // Set up hotkey callbacks once at app startup
+        // This ensures they persist throughout the app lifecycle
+        setupHotkeyCallbacks()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -76,8 +85,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         // Minimal configuration - let SwiftUI's .hiddenTitleBar style handle most of it
         window.isMovableByWindowBackground = true
-        window.backgroundColor = .clear
+        window.backgroundColor = NSColor.windowBackgroundColor
         window.hasShadow = true
+        window.isOpaque = true
 
         // Use the system's corner radius for Tahoe/Sequoia
         if #available(macOS 13.0, *) {
@@ -98,13 +108,23 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // Set delegate to customize traffic light button behavior
         window.delegate = self
 
-        // Customize traffic light button actions
-        customizeTrafficLightButtons(window: window)
+        // Hide overlay when main window becomes visible (but keep showing if recording)
+        NotificationCenter.default.addObserver(
+            forName: NSWindow.didBecomeKeyNotification,
+            object: window,
+            queue: .main
+        ) { [weak self] _ in
+            let overlayManager = OverlayWindowManager.shared
+            if window.isVisible && !overlayManager.isRecording && !overlayManager.isProcessing {
+                DebugLog.info("Main window became key - hiding overlay", context: "AppDelegate")
+                overlayManager.hide()
+            }
+        }
 
-        // Hide traffic lights initially (they'll show on hover)
-        window.standardWindowButton(.closeButton)?.alphaValue = 0.0
-        window.standardWindowButton(.miniaturizeButton)?.alphaValue = 0.0
-        window.standardWindowButton(.zoomButton)?.alphaValue = 0.0
+        // Hide traffic lights completely
+        window.standardWindowButton(.closeButton)?.isHidden = true
+        window.standardWindowButton(.miniaturizeButton)?.isHidden = true
+        window.standardWindowButton(.zoomButton)?.isHidden = true
 
         // Center window before hiding it - prevents jump when showing onboarding
         window.center()
@@ -141,6 +161,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @objc private func closeButtonClicked() {
         DebugLog.info("Red button clicked - hiding window to menu bar", context: "AppDelegate")
         mainWindow?.setIsVisible(false)
+        OverlayWindowManager.shared.show()
     }
 
     @objc private func yellowButtonClicked() {
@@ -158,6 +179,63 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
         return true
     }
+
+    // MARK: - Hotkey Setup
+
+    private func setupHotkeyCallbacks() {
+        DebugLog.info("========================================", context: "AppDelegate")
+        DebugLog.info("Setting up hotkey callbacks", context: "AppDelegate")
+        DebugLog.info("========================================", context: "AppDelegate")
+
+        // Hotkey callbacks now just delegate to AppState
+        hotkeyManager.onHotkeyPressed = { [weak self] in
+            DebugLog.info("🎯 Hotkey pressed", context: "AppDelegate")
+            self?.appState.startRecording()
+        }
+
+        hotkeyManager.onHotkeyReleased = { [weak self] in
+            DebugLog.info("🎯 Hotkey released", context: "AppDelegate")
+            self?.appState.stopRecording()
+        }
+
+        hotkeyManager.onDoubleTap = { [weak self] in
+            DebugLog.info("🎯🎯 Double-tap", context: "AppDelegate")
+            self?.appState.toggleContinuousRecording()
+        }
+
+        DebugLog.info("Hotkey callbacks configured!", context: "AppDelegate")
+    }
+}
+
+// MARK: - Window Identifier Modifier
+struct WindowIdentifierModifier: ViewModifier {
+    let identifier: NSUserInterfaceItemIdentifier
+
+    func body(content: Content) -> some View {
+        content.background(WindowAccessor(identifier: identifier))
+    }
+}
+
+struct WindowAccessor: NSViewRepresentable {
+    let identifier: NSUserInterfaceItemIdentifier
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async {
+            view.window?.identifier = identifier
+        }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        nsView.window?.identifier = identifier
+    }
+}
+
+extension View {
+    func windowIdentifier(_ identifier: NSUserInterfaceItemIdentifier) -> some View {
+        modifier(WindowIdentifierModifier(identifier: identifier))
+    }
 }
 
 @main
@@ -166,11 +244,13 @@ struct WhishpermateApp: App {
     @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        // Use Window instead of WindowGroup to prevent multiple instances
+        Window("Whispermate", id: "main") {
+            HistoryMasterDetailView()
         }
         .windowResizability(.contentSize)
-        .windowStyle(.hiddenTitleBar)
+        .windowStyle(.titleBar)
+        .defaultSize(width: 900, height: 600)
         .commands {
             // Replace default "Preferences" with our Settings
             CommandGroup(replacing: .appSettings) {
@@ -180,30 +260,21 @@ struct WhishpermateApp: App {
                 .keyboardShortcut(",", modifiers: .command)
             }
 
-            // Add custom commands
-            CommandGroup(after: .appInfo) {
-                Button("History") {
-                    NotificationCenter.default.post(name: .showHistory, object: nil)
-                }
-                .keyboardShortcut("h", modifiers: .command)
-            }
+            // Remove History command since it's now part of main window
+            // Remove File > New Window command since we only want one main window
+            CommandGroup(replacing: .newItem) { }
         }
 
         // Settings window
         Window("Settings", id: "settings") {
             SettingsWindowView()
+                .windowIdentifier(WindowIdentifiers.settings)
         }
         .windowResizability(.contentSize)
         .windowStyle(.titleBar)
         .defaultPosition(.center)
         .defaultSize(width: 1050, height: 825)
         .commandsRemoved()
-
-        // History window
-        Window("History", id: "history") {
-            HistoryWindowView()
-        }
-        .windowResizability(.contentSize)
 
         // Onboarding window
         Window("Welcome to Whispermate", id: "onboarding") {
@@ -214,6 +285,7 @@ struct WhishpermateApp: App {
                 promptRulesManager: PromptRulesManager.shared,
                 llmProviderManager: LLMProviderManager()
             )
+            .windowIdentifier(WindowIdentifiers.onboarding)
         }
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)

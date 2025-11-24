@@ -24,11 +24,5 @@ struct SettingsWindowView: View {
             selectedSection: $selectedSection
         )
         .navigationTitle(selectedSection.rawValue)
-        .onAppear {
-            // Set window identifier for identification
-            if let window = NSApplication.shared.windows.first(where: { $0.title == "Settings" }) {
-                window.identifier = WindowIdentifiers.settings
-            }
-        }
     }
 }

@@ -95,8 +95,6 @@ struct SettingsView: View {
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 52)  // Extra top padding to avoid traffic lights
-                .padding(.bottom, 20)
             }
         }
         .navigationSplitViewStyle(.balanced)

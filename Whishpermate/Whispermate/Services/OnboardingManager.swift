@@ -108,7 +108,9 @@ class OnboardingManager: ObservableObject {
     }
 
     func isHotkeyConfigured() -> Bool {
-        return UserDefaults.standard.data(forKey: "recordingHotkey") != nil
+        // Check the same keys that HotkeyManager uses
+        return UserDefaults.standard.value(forKey: "hotkey_keycode") != nil &&
+               UserDefaults.standard.value(forKey: "hotkey_modifiers") != nil
     }
 
     func isStepComplete(_ step: OnboardingStep) -> Bool {
