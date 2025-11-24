@@ -15,6 +15,7 @@ struct Recording: Identifiable, Codable, Hashable {
     var errorMessage: String?
     var retryCount: Int
     let duration: TimeInterval?
+    var wordCount: Int?
 
     init(
         id: UUID = UUID(),
@@ -24,7 +25,8 @@ struct Recording: Identifiable, Codable, Hashable {
         status: TranscriptionStatus = .success,
         errorMessage: String? = nil,
         retryCount: Int = 0,
-        duration: TimeInterval? = nil
+        duration: TimeInterval? = nil,
+        wordCount: Int? = nil
     ) {
         self.id = id
         self.timestamp = timestamp
@@ -34,6 +36,7 @@ struct Recording: Identifiable, Codable, Hashable {
         self.errorMessage = errorMessage
         self.retryCount = retryCount
         self.duration = duration
+        self.wordCount = wordCount
     }
 
     var formattedDate: String {
