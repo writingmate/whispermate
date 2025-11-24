@@ -9,38 +9,56 @@ import Foundation
 
 public struct User: Codable, Identifiable {
     public let id: UUID
+    public let userId: UUID
     public let email: String
-    public var totalWordsUsed: Int
-    public var subscriptionTier: SubscriptionTier
-    public let createdAt: Date
-    public var updatedAt: Date
+    public var monthlyWordCount: Int
+    public var subscriptionStatus: String
+    public let createdAt: Date?
+    public var updatedAt: Date?
+    public let stripeCustomerId: String?
+    public let stripeSubscriptionId: String?
+    public let wordCountResetAt: Date?
+
+    // Computed property for compatibility
+    public var subscriptionTier: SubscriptionTier {
+        subscriptionStatus == "pro" ? .pro : .free
+    }
+
+    // Compatibility property
+    public var totalWordsUsed: Int {
+        monthlyWordCount
+    }
 
     public var wordsRemaining: Int {
         let limit = subscriptionTier.wordLimit
         if limit == Int.max {
             return Int.max // Unlimited
         }
-        return max(0, limit - totalWordsUsed)
+        return max(0, limit - monthlyWordCount)
     }
 
     public var hasReachedLimit: Bool {
-        subscriptionTier.wordLimit != Int.max && totalWordsUsed >= subscriptionTier.wordLimit
+        subscriptionTier.wordLimit != Int.max && monthlyWordCount >= subscriptionTier.wordLimit
     }
 
     public var usagePercentage: Double {
         guard subscriptionTier.wordLimit != Int.max else {
             return 0.0
         }
-        return Double(totalWordsUsed) / Double(subscriptionTier.wordLimit)
+        return Double(monthlyWordCount) / Double(subscriptionTier.wordLimit)
     }
 
     enum CodingKeys: String, CodingKey {
         case id
+        case userId = "user_id"
         case email
-        case totalWordsUsed = "total_words_used"
-        case subscriptionTier = "subscription_tier"
+        case monthlyWordCount = "monthly_word_count"
+        case subscriptionStatus = "subscription_status"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
+        case stripeCustomerId = "stripe_customer_id"
+        case stripeSubscriptionId = "stripe_subscription_id"
+        case wordCountResetAt = "word_count_reset_at"
     }
 }
 

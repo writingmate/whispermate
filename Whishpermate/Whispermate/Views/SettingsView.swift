@@ -22,8 +22,8 @@ struct SettingsCard<Content: View>: View {
 }
 
 enum SettingsSection: String, CaseIterable, Identifiable {
-    case account = "Account"
     case general = "General"
+    case account = "Account"
     case permissions = "Permissions"
     case audio = "Audio"
     case dictionary = "Dictionary"
@@ -35,8 +35,8 @@ enum SettingsSection: String, CaseIterable, Identifiable {
 
     var icon: String {
         switch self {
-        case .account: return "person.circle"
         case .general: return "gear"
+        case .account: return "person.circle"
         case .permissions: return "lock.shield"
         case .audio: return "waveform"
         case .dictionary: return "book.closed"
@@ -57,6 +57,7 @@ struct SettingsView: View {
     @ObservedObject var shortcutManager: ShortcutManager
     @ObservedObject var overlayManager = OverlayWindowManager.shared
     @ObservedObject var launchAtLoginManager = LaunchAtLoginManager.shared
+    @ObservedObject var authManager = AuthManager.shared
     @Binding var selectedSection: SettingsSection
     @State private var transcriptionApiKey = ""
     @State private var llmApiKey = ""
@@ -66,6 +67,8 @@ struct SettingsView: View {
     @State private var showingLLMKeySaved = false
     @State private var audioDevices: [AudioDeviceManager.AudioDevice] = []
     @State private var selectedAudioDevice: AudioDeviceManager.AudioDevice?
+    @State private var selectedBillingPeriod: BillingPeriod = .monthly
+    @State private var isCheckingPayment = false
     @Environment(\.dismiss) var dismiss
 
     var body: some View {
@@ -80,10 +83,10 @@ struct SettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     switch selectedSection {
-                    case .account:
-                        accountSection
                     case .general:
                         generalSection
+                    case .account:
+                        accountSection
                     case .permissions:
                         permissionsSection
                     case .audio:
@@ -111,12 +114,241 @@ struct SettingsView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("AudioDeviceListChanged"))) { _ in
             loadAudioDevices()
         }
+        .onDisappear {
+            stopPaymentConfirmationCheck()
+        }
     }
 
     // MARK: - Account Section
     private var accountSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            AccountStatusView()
+            // Account Status Card
+            SettingsCard {
+                VStack(alignment: .leading, spacing: 12) {
+                    if authManager.isAuthenticated, let user = authManager.currentUser {
+                        // Email
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Account")
+                                    .font(.system(size: 13))
+                                Text(user.email)
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Button("Sign Out") {
+                                Task {
+                                    await AuthManager.shared.logout()
+                                }
+                            }
+                            .controlSize(.small)
+                        }
+
+                        Divider()
+
+                        // Subscription Status
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Subscription")
+                                    .font(.system(size: 13))
+                                Text(user.subscriptionTier == .pro ? "Pro" : "Free")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(user.subscriptionTier == .pro ? Color(nsColor: .systemGreen) : .secondary)
+                            }
+                            Spacer()
+                        }
+
+                        // Word Usage (only for Free tier)
+                        if user.subscriptionTier == .free {
+                            Divider()
+
+                            HStack(spacing: 12) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Word Usage")
+                                        .font(.system(size: 13))
+                                    Text("\(user.monthlyWordCount) of 2,000 words this month")
+                                        .font(.system(size: 11))
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                            }
+                        }
+                    } else {
+                        // Not signed in
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Account")
+                                    .font(.system(size: 13))
+                                Text("Sign in to track usage and unlock Pro features")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            Spacer()
+                            Button("Sign In") {
+                                authManager.openSignUp()
+                            }
+                            .controlSize(.small)
+                        }
+                    }
+                }
+            }
+
+            // Upgrade Card (only for Free tier or not signed in)
+            if !authManager.isAuthenticated || authManager.currentUser?.subscriptionTier == .free {
+                SettingsCard {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Upgrade to Pro")
+                                .font(.system(size: 13))
+                            if isCheckingPayment {
+                                Text("Checking for payment confirmation...")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                Text("Unlimited transcriptions, priority support")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        Spacer()
+                        if isCheckingPayment {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Button("Upgrade") {
+                                openPaymentLink()
+                            }
+                            .controlSize(.small)
+                        }
+                    }
+                }
+            }
+
+            // Reset Application
+            SettingsCard {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Reset Application")
+                            .font(.system(size: 13))
+                        Text("Clear all data and restart onboarding")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button("Reset") {
+                        resetApplication()
+                    }
+                    .controlSize(.small)
+                }
+            }
+        }
+    }
+
+    private func openPaymentLink() {
+        let paymentLinkKey: String
+        switch selectedBillingPeriod {
+        case .monthly:
+            paymentLinkKey = "STRIPE_PAYMENT_LINK_MONTHLY"
+        case .annual:
+            paymentLinkKey = "STRIPE_PAYMENT_LINK_ANNUAL"
+        case .lifetime:
+            paymentLinkKey = "STRIPE_PAYMENT_LINK_LIFETIME"
+        @unknown default:
+            paymentLinkKey = "STRIPE_PAYMENT_LINK_MONTHLY"
+        }
+
+        guard let paymentLinkString = SecretsLoader.getValue(for: paymentLinkKey),
+              var paymentURL = URL(string: paymentLinkString) else {
+            DebugLog.error("Invalid payment link", context: "SettingsView")
+            return
+        }
+
+        // Add user email as query parameter if authenticated
+        if let email = authManager.currentUser?.email,
+           let encodedEmail = email.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+            var components = URLComponents(url: paymentURL, resolvingAgainstBaseURL: false)
+            var queryItems = components?.queryItems ?? []
+            queryItems.append(URLQueryItem(name: "prefilled_email", value: encodedEmail))
+            components?.queryItems = queryItems
+            if let urlWithEmail = components?.url {
+                paymentURL = urlWithEmail
+            }
+        }
+
+        #if canImport(AppKit)
+        NSWorkspace.shared.open(paymentURL)
+        #endif
+
+        // Start checking for payment confirmation
+        startPaymentConfirmationCheck()
+    }
+
+    private func startPaymentConfirmationCheck() {
+        isCheckingPayment = true
+        DebugLog.info("Starting payment confirmation check", context: "SettingsView")
+
+        Task {
+            // Poll for up to 10 minutes (120 checks every 5 seconds)
+            for _ in 0..<120 {
+                guard isCheckingPayment else { break }
+
+                // Wait 5 seconds between checks
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+
+                // Refresh user data
+                await authManager.refreshUser()
+
+                // Check if subscription status changed to pro
+                if authManager.currentUser?.subscriptionTier == .pro {
+                    DebugLog.info("✅ Payment confirmed! User is now Pro", context: "SettingsView")
+                    await MainActor.run {
+                        isCheckingPayment = false
+                    }
+                    break
+                }
+            }
+
+            // Stop checking after 10 minutes
+            await MainActor.run {
+                isCheckingPayment = false
+            }
+        }
+    }
+
+    private func stopPaymentConfirmationCheck() {
+        isCheckingPayment = false
+    }
+
+    private func resetApplication() {
+        DebugLog.info("🔄 Resetting application state", context: "SettingsView")
+
+        Task {
+            // 1. Sign out user
+            if authManager.isAuthenticated {
+                await authManager.logout()
+            }
+
+            await MainActor.run {
+                // 2. Clear all UserDefaults
+                if let bundleID = Bundle.main.bundleIdentifier {
+                    UserDefaults.standard.removePersistentDomain(forName: bundleID)
+                    UserDefaults.standard.synchronize()
+                }
+
+                // 3. Clear Keychain (API keys)
+                KeychainHelper.delete(key: "GroqTranscriptionKey")
+                KeychainHelper.delete(key: "GroqLLMKey")
+                KeychainHelper.delete(key: "CustomTranscriptionKey")
+
+                // 4. Reset onboarding
+                OnboardingManager.shared.resetOnboarding()
+
+                // 5. Close settings window
+                dismiss()
+
+                DebugLog.info("✅ Application reset complete", context: "SettingsView")
+            }
         }
     }
 

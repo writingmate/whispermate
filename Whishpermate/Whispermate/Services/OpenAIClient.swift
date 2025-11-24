@@ -260,11 +260,12 @@ class OpenAIClient {
         formattingRules: [String] = [],
         languageCodes: String? = nil,
         appContext: String? = nil,
-        llmApiKey: String? = nil
+        llmApiKey: String? = nil,
+        clipboardContent: String? = nil
     ) async throws -> String {
         let startTime = CFAbsoluteTimeGetCurrent()
 
-        // Build prompt with formatting rules if provided
+        // Build prompt with formatting rules and clipboard content if provided
         var combinedPrompt = prompt ?? ""
 
         if !formattingRules.isEmpty {
@@ -278,6 +279,17 @@ class OpenAIClient {
             if let appContext = appContext {
                 combinedPrompt += "\n\nContext: The user is currently in \(appContext)."
             }
+
+            // Add clipboard content if present
+            if let clipboardContent = clipboardContent, !clipboardContent.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                combinedPrompt += "\n\nSelected content to format: \(clipboardContent)"
+            }
+        }
+
+        // Log the complete prompt before sending
+        if !combinedPrompt.isEmpty {
+            DebugLog.info("📝 Full prompt being sent to API:\n\(combinedPrompt)", context: "OpenAIClient")
+            print("📝 [Prompt] Full prompt:\n\(combinedPrompt)")
         }
 
         // Transcribe with formatting rules in prompt
@@ -303,7 +315,7 @@ class OpenAIClient {
     }
 
     /// Apply formatting rules to transcription using chat completion
-    func applyFormattingRules(transcription: String, rules: [String], languageCodes: String? = nil, appContext: String? = nil) async throws -> String {
+    func applyFormattingRules(transcription: String, rules: [String], languageCodes: String? = nil, appContext: String? = nil, clipboardContent: String? = nil) async throws -> String {
         // Check if transcription is empty or whitespace-only
         let trimmedTranscription = transcription.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedTranscription.isEmpty else {
@@ -322,6 +334,13 @@ class OpenAIClient {
             systemPrompt += "\n\nContext: The user is currently in \(appContext). Consider this context when formatting the text."
         }
 
+        // Check if clipboard content is present
+        let hasClipboardContent = clipboardContent?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+
+        if hasClipboardContent, let clipboardContent = clipboardContent {
+            systemPrompt += "\n\nThe user has selected text in their clipboard. Apply formatting to the SELECTED CONTENT below, using the transcription as context."
+        }
+
         if let languageCodes = languageCodes {
             systemPrompt += "\n\nThe text may contain content in the following languages: \(languageCodes). Preserve the original language(s) when correcting."
         }
@@ -333,9 +352,21 @@ class OpenAIClient {
             }
         }
 
+        // Build the user message
+        var userMessage = ""
+        if hasClipboardContent, let clipboardContent = clipboardContent {
+            userMessage = """
+            Transcription (context): \(transcription)
+
+            Selected content to format: \(clipboardContent)
+            """
+        } else {
+            userMessage = transcription
+        }
+
         let messages = [
             ["role": "system", "content": systemPrompt],
-            ["role": "user", "content": transcription]
+            ["role": "user", "content": userMessage]
         ]
 
         return try await chatCompletion(messages: messages)

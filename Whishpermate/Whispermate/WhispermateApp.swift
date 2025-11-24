@@ -269,8 +269,8 @@ struct WhishpermateApp: App {
     private func handleURL(_ url: URL) {
         DebugLog.info("Received URL callback: \(url.absoluteString)", context: "WhispermateApp")
 
-        // Handle authentication callback
-        if url.scheme == "whispermate" && url.host == "auth" {
+        // Handle authentication callback (whispermate://auth-callback)
+        if url.scheme == "whispermate" && (url.host == "auth-callback" || url.host == "auth") {
             Task {
                 await authManager.handleAuthCallback(url: url)
             }

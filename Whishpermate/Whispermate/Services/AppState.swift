@@ -234,6 +234,29 @@ class AppState: ObservableObject {
 
         Task {
             do {
+                // Check word limit for authenticated users
+                if AuthManager.shared.isAuthenticated {
+                    let (canTranscribe, reason) = AuthManager.shared.checkCanTranscribe()
+                    if !canTranscribe {
+                        DebugLog.info("⚠️ Word limit reached", context: "AppState")
+                        await MainActor.run {
+                            self.recordingState = .idle
+                            self.isProcessing = false
+                            self.errorMessage = reason ?? "Word limit reached"
+                        }
+                        try? FileManager.default.removeItem(at: audioURL)
+                        if overlayManager.isOverlayMode {
+                            overlayManager.updateState(isRecording: false, isProcessing: false)
+                        }
+
+                        // Show upgrade modal
+                        await MainActor.run {
+                            SubscriptionManager.shared.showUpgradeModal = true
+                        }
+                        return
+                    }
+                }
+
                 // VAD check first
                 if vadSettingsManager.vadEnabled {
                     DebugLog.info("🎤 VAD check...", context: "AppState")
@@ -308,6 +331,15 @@ class AppState: ObservableObject {
                     throw NSError(domain: "AppState", code: -1)
                 }
 
+                // Read clipboard content if available
+                let clipboardContent = await MainActor.run {
+                    NSPasteboard.general.string(forType: .string)
+                }
+
+                if let clipboardContent = clipboardContent, !clipboardContent.isEmpty {
+                    DebugLog.info("Clipboard content detected: \(clipboardContent.prefix(50))...", context: "AppState")
+                }
+
                 // Transcribe
                 let result = try await client.transcribeAndFormat(
                     audioURL: audioURL,
@@ -315,7 +347,8 @@ class AppState: ObservableObject {
                     formattingRules: promptComponents,
                     languageCodes: languageManager.apiLanguageCode,
                     appContext: capturedAppContext,
-                    llmApiKey: llmApiKey
+                    llmApiKey: llmApiKey,
+                    clipboardContent: clipboardContent
                 )
 
                 // Success - save to history
@@ -327,12 +360,27 @@ class AppState: ObservableObject {
                     return
                 }
 
-                let recording = Recording(
+                // Count words in transcription
+                let wordCount = result.split(separator: " ").count
+
+                // Update user's word count if authenticated
+                if AuthManager.shared.isAuthenticated {
+                    do {
+                        _ = try await AuthManager.shared.updateWordCount(wordsToAdd: wordCount)
+                        print("✅ Updated word count: +\(wordCount) words")
+                    } catch {
+                        print("❌ Failed to update word count: \(error.localizedDescription)")
+                        // Don't fail transcription if word count update fails
+                    }
+                }
+
+                var recording = Recording(
                     audioFileURL: persistentURL,
                     transcription: result,
                     status: .success,
                     duration: duration
                 )
+                recording.wordCount = wordCount
 
                 await MainActor.run {
                     historyManager.addRecording(recording)
