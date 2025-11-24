@@ -1,15 +1,38 @@
 import Foundation
 
-struct Recording: Identifiable, Codable {
+enum TranscriptionStatus: String, Codable {
+    case success
+    case failed
+    case retrying
+}
+
+struct Recording: Identifiable, Codable, Hashable {
     let id: UUID
     let timestamp: Date
-    let transcription: String
+    let audioFileURL: URL
+    var transcription: String?
+    var status: TranscriptionStatus
+    var errorMessage: String?
+    var retryCount: Int
     let duration: TimeInterval?
 
-    init(id: UUID = UUID(), timestamp: Date = Date(), transcription: String, duration: TimeInterval? = nil) {
+    init(
+        id: UUID = UUID(),
+        timestamp: Date = Date(),
+        audioFileURL: URL,
+        transcription: String? = nil,
+        status: TranscriptionStatus = .success,
+        errorMessage: String? = nil,
+        retryCount: Int = 0,
+        duration: TimeInterval? = nil
+    ) {
         self.id = id
         self.timestamp = timestamp
+        self.audioFileURL = audioFileURL
         self.transcription = transcription
+        self.status = status
+        self.errorMessage = errorMessage
+        self.retryCount = retryCount
         self.duration = duration
     }
 
@@ -29,5 +52,13 @@ struct Recording: Identifiable, Codable {
         } else {
             return String(format: "%ds", seconds)
         }
+    }
+
+    var isSuccessful: Bool {
+        return status == .success
+    }
+
+    var isFailed: Bool {
+        return status == .failed
     }
 }

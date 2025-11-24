@@ -3,9 +3,10 @@ import AppKit
 
 // MARK: - Window Identifiers
 struct WindowIdentifiers {
-    static let main = NSUserInterfaceItemIdentifier("main-window")
-    static let settings = NSUserInterfaceItemIdentifier("settings-window")
-    static let history = NSUserInterfaceItemIdentifier("history-window")
+    static let main = NSUserInterfaceItemIdentifier("main")
+    static let settings = NSUserInterfaceItemIdentifier("settings")
+    static let history = NSUserInterfaceItemIdentifier("history")
+    static let onboarding = NSUserInterfaceItemIdentifier("onboarding")
 }
 
 // MARK: - Notification Names
@@ -14,6 +15,9 @@ extension NSNotification.Name {
     static let showSettings = NSNotification.Name("ShowSettings")
     static let showOnboarding = NSNotification.Name("ShowOnboarding")
     static let onboardingComplete = NSNotification.Name("OnboardingComplete")
+    static let recordingStarted = NSNotification.Name("RecordingStarted")
+    static let recordingCompleted = NSNotification.Name("RecordingCompleted")
+    static let recordingReadyForTranscription = NSNotification.Name("RecordingReadyForTranscription")
 }
 
 class StatusBarManager {

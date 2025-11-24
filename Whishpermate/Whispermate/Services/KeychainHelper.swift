@@ -51,6 +51,9 @@ struct KeychainHelper {
     }
 
     static func get(key: String) -> String? {
+        // Try to migrate from old format first
+        migrateIfNeeded(key: key)
+
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,

@@ -82,12 +82,8 @@ class HotkeyManager: ObservableObject {
         DebugLog.info("registerHotkey: keyCode=\(hotkey.keyCode), modifiers=\(hotkey.modifiers.rawValue)", context: "HotkeyManager LOG")
         DebugLog.info("registerHotkey: displayString=\(hotkey.displayString)", context: "HotkeyManager LOG")
 
-        // If the Fn monitor is already running for the same hotkey, don't restart it
-        if hotkey.modifiers == .function && hotkey.keyCode == 63 && fnKeyMonitor != nil {
-            DebugLog.info("Fn key monitor already running, skipping re-registration", context: "HotkeyManager LOG")
-            return
-        }
-
+        // Always unregister and re-register to ensure clean state
+        // This fixes issues where the hotkey gets stuck and won't work
         unregisterHotkey()
 
         // If hotkey is just Fn key, use polling-based monitoring

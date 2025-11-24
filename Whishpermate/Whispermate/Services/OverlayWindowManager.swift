@@ -12,6 +12,8 @@ class OverlayWindowManager: ObservableObject {
 
     private var overlayWindow: NSWindow?
     private var screenChangeObserver: Any?
+    private var audioLevelCancellable: AnyCancellable?
+    private var frequencyBandsCancellable: AnyCancellable?
 
     @Published var isRecording = false {
         didSet {
@@ -102,6 +104,24 @@ class OverlayWindowManager: ObservableObject {
 
     init() {
         setupScreenChangeObserver()
+        setupAudioObservers()
+    }
+
+    private func setupAudioObservers() {
+        // Observe AudioRecorder's audio level and frequency bands
+        let audioRecorder = AudioRecorder.shared
+
+        audioLevelCancellable = audioRecorder.$audioLevel
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] level in
+                self?.audioLevel = level
+            }
+
+        frequencyBandsCancellable = audioRecorder.$frequencyBands
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] bands in
+                self?.frequencyBands = bands
+            }
     }
 
     func show() {
@@ -125,15 +145,20 @@ class OverlayWindowManager: ObservableObject {
 
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
-            print("[OverlayWindowManager LOG] updateState main thread - setting isRecording: \(isRecording), isProcessing: \(isProcessing)")
-            self.isRecording = isRecording
-            self.isProcessing = isProcessing
 
-            // Show overlay when recording/processing, respect hideIdleState when idle
+            // Show overlay FIRST (creates window if needed), THEN update state
             if isRecording || isProcessing {
                 // Always show when actively recording/processing
                 if self.overlayWindow == nil {
-                    print("[OverlayWindowManager LOG] updateState - overlay window is nil, showing...")
+                    print("[OverlayWindowManager LOG] updateState - overlay window is nil, creating...")
+                    self.show() // This creates the window
+                    // Small delay to ensure window is fully created before state update
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+                        print("[OverlayWindowManager LOG] updateState main thread - setting isRecording: \(isRecording), isProcessing: \(isProcessing)")
+                        self?.isRecording = isRecording
+                        self?.isProcessing = isProcessing
+                    }
+                    return
                 }
                 self.show()
             } else if self.hideIdleState {
@@ -143,6 +168,10 @@ class OverlayWindowManager: ObservableObject {
                 // Show idle state
                 self.show()
             }
+
+            print("[OverlayWindowManager LOG] updateState main thread - setting isRecording: \(isRecording), isProcessing: \(isProcessing)")
+            self.isRecording = isRecording
+            self.isProcessing = isProcessing
         }
     }
 

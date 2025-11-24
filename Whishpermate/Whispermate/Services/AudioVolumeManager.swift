@@ -13,6 +13,7 @@ class AudioVolumeManager {
             return
         }
 
+        // Store the current volume so we can restore it later
         originalVolume = currentVolume
 
         DebugLog.info("Lowering volume from \(currentVolume) to \(targetVolumeLevel)", context: "AudioVolumeManager")
