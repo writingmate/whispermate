@@ -22,6 +22,7 @@ struct SettingsCard<Content: View>: View {
 }
 
 enum SettingsSection: String, CaseIterable, Identifiable {
+    case account = "Account"
     case general = "General"
     case permissions = "Permissions"
     case audio = "Audio"
@@ -34,6 +35,7 @@ enum SettingsSection: String, CaseIterable, Identifiable {
 
     var icon: String {
         switch self {
+        case .account: return "person.circle"
         case .general: return "gear"
         case .permissions: return "lock.shield"
         case .audio: return "waveform"
@@ -78,6 +80,8 @@ struct SettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     switch selectedSection {
+                    case .account:
+                        accountSection
                     case .general:
                         generalSection
                     case .permissions:
@@ -106,6 +110,13 @@ struct SettingsView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("AudioDeviceListChanged"))) { _ in
             loadAudioDevices()
+        }
+    }
+
+    // MARK: - Account Section
+    private var accountSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            AccountStatusView()
         }
     }
 

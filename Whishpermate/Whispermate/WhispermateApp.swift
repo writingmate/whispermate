@@ -242,11 +242,39 @@ extension View {
 struct WhishpermateApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @Environment(\.openWindow) private var openWindow
+    @StateObject private var authManager = AuthManager.shared
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
+
+    // MARK: - URL Handling
+
+    private func handleURL(_ url: URL) {
+        DebugLog.info("Received URL callback: \(url.absoluteString)", context: "WhispermateApp")
+
+        // Handle authentication callback
+        if url.scheme == "whispermate" && url.host == "auth" {
+            Task {
+                await authManager.handleAuthCallback(url: url)
+            }
+        }
+        // Handle payment success callback
+        else if url.scheme == "whispermate" && url.host == "payment" && url.path == "/success" {
+            Task {
+                await subscriptionManager.handlePaymentSuccess()
+            }
+        }
+        // Handle payment cancel callback
+        else if url.scheme == "whispermate" && url.host == "payment" && url.path == "/cancel" {
+            subscriptionManager.handlePaymentCancel()
+        }
+    }
 
     var body: some Scene {
         // Use Window instead of WindowGroup to prevent multiple instances
         Window("Whispermate", id: "main") {
             HistoryMasterDetailView()
+                .onOpenURL { url in
+                    handleURL(url)
+                }
         }
         .windowResizability(.contentSize)
         .windowStyle(.titleBar)

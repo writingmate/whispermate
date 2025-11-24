@@ -9,3 +9,4 @@
 4. build dmg
 5. only when dmg is released and working push everything to github, dmg, notarized app, etc
 6. make sure that the code in github and main are up to date to the latest release
+- notarization email is hello@writingmate.ai, always use dmg, not zip

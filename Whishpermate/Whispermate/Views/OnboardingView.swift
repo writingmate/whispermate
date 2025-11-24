@@ -1,4 +1,5 @@
 import SwiftUI
+import WhisperMateShared
 
 struct OnboardingView: View {
     @ObservedObject var onboardingManager: OnboardingManager
@@ -265,6 +266,52 @@ struct OnboardingView: View {
                     stopFnKeyMonitoring()
                 }
             }
+
+        case .account:
+            if AuthManager.shared.isAuthenticated {
+                // Already authenticated
+                VStack(spacing: 12) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 48))
+                        .foregroundStyle(Color(nsColor: .systemGreen))
+                        .scaleEffect(1.0)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.6), value: true)
+
+                    if let user = AuthManager.shared.currentUser {
+                        Text("Account created!")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(Color(nsColor: .systemGreen))
+
+                        Text(user.email)
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+
+                        Text("You have \(user.wordsRemaining) words remaining")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text("Account created!")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(Color(nsColor: .systemGreen))
+                    }
+                }
+                .padding(.vertical, 20)
+            } else {
+                // Not authenticated yet
+                VStack(spacing: 16) {
+                    Text("Get started with 2,000 free words")
+                        .font(.system(size: 14, weight: .medium))
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("Unlimited transcriptions", systemImage: "checkmark.circle")
+                        Label("Cloud sync", systemImage: "checkmark.circle")
+                        Label("Upgrade anytime for unlimited", systemImage: "checkmark.circle")
+                    }
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 20)
+            }
         }
     }
 
@@ -329,9 +376,9 @@ struct OnboardingView: View {
 
         case .hotkey:
             Button(action: {
-                onboardingManager.completeOnboarding()
+                onboardingManager.moveToNextStep()
             }) {
-                Text("Get Started")
+                Text("Continue")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
@@ -343,6 +390,26 @@ struct OnboardingView: View {
             }
             .buttonStyle(.plain)
             .disabled(hotkeyManager.currentHotkey == nil)
+
+        case .account:
+            Button(action: {
+                if AuthManager.shared.isAuthenticated {
+                    onboardingManager.completeOnboarding()
+                } else {
+                    AuthManager.shared.openSignUp()
+                }
+            }) {
+                Text(AuthManager.shared.isAuthenticated ? "Get Started" : "Create Free Account")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .background(
+                        Capsule()
+                            .fill(Color.accentColor)
+                    )
+            }
+            .buttonStyle(.plain)
         }
     }
 
