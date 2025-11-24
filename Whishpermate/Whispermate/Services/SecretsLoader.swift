@@ -36,4 +36,8 @@ enum SecretsLoader {
             return nil
         }
     }
+
+    static func getValue(for key: String) -> String? {
+        return secretsDictionary?[key] as? String
+    }
 }

@@ -107,7 +107,9 @@ struct AccountStatusView: View {
                         Spacer()
 
                         Button("Sign Out") {
-                            authManager.logout()
+                            Task {
+                                await authManager.logout()
+                            }
                         }
                         .foregroundColor(.red)
                     }
