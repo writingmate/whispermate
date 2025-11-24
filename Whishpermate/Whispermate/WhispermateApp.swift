@@ -32,6 +32,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // Set up hotkey callbacks once at app startup
         // This ensures they persist throughout the app lifecycle
         setupHotkeyCallbacks()
+
+        // Check if onboarding is needed and open window if necessary
+        checkAndShowOnboarding()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -178,6 +181,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             return false
         }
         return true
+    }
+
+    // MARK: - Onboarding
+
+    private func checkAndShowOnboarding() {
+        // Delay slightly to ensure views are loaded and onChange handlers are registered
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            guard let self = self else { return }
+
+            // Check if onboarding needs to be shown
+            self.onboardingManager.checkOnboardingStatus()
+
+            DebugLog.info("Onboarding check complete. showOnboarding = \(self.onboardingManager.showOnboarding)", context: "AppDelegate")
+
+            // The onChange handler in HistoryMasterDetailView will open the window automatically
+        }
     }
 
     // MARK: - Hotkey Setup
