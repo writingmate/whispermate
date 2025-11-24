@@ -36,8 +36,8 @@ enum SupabaseError: LocalizedError {
     }
 }
 
-class SupabaseClient {
-    static let shared = SupabaseClient()
+public class SupabaseClient {
+    public static let shared = SupabaseClient()
 
     private let baseURL: String
     private let anonKey: String
@@ -45,8 +45,8 @@ class SupabaseClient {
 
     private init() {
         // Load from Secrets.plist or environment
-        if let supabaseURL = SecretsLoader.shared.getValue(for: "SUPABASE_URL"),
-           let supabaseKey = SecretsLoader.shared.getValue(for: "SUPABASE_ANON_KEY") {
+        if let supabaseURL = SecretsLoader.getValue(for: "SUPABASE_URL"),
+           let supabaseKey = SecretsLoader.getValue(for: "SUPABASE_ANON_KEY") {
             self.baseURL = supabaseURL
             self.anonKey = supabaseKey
         } else {
@@ -56,19 +56,19 @@ class SupabaseClient {
         }
 
         // Try to load saved token from Keychain
-        self.accessToken = KeychainHelper.shared.get(key: "supabase_access_token")
+        self.accessToken = KeychainHelper.get(key: "supabase_access_token")
     }
 
     // MARK: - Authentication
 
     func setAccessToken(_ token: String) {
         self.accessToken = token
-        KeychainHelper.shared.save(key: "supabase_access_token", value: token)
+        KeychainHelper.save(key: "supabase_access_token", value: token)
     }
 
     func clearAccessToken() {
         self.accessToken = nil
-        KeychainHelper.shared.delete(key: "supabase_access_token")
+        KeychainHelper.delete(key: "supabase_access_token")
     }
 
     var isAuthenticated: Bool {
