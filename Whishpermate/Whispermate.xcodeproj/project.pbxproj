@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BDFC47F5E1B86E447DC841F2 /* WhisperMateShared.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = C1E7D2AD2EBA925200A07338 /* WhisperMateShared.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		C12A3A102ED4CFAA002D97E6 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = C12A3A0F2ED4CFAA002D97E6 /* Supabase */; };
 		C12A3A142ED4D0AA002D97E6 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = C12A3A132ED4D0AA002D97E6 /* Auth */; };
 		C12A3A162ED4D0AA002D97E6 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = C12A3A152ED4D0AA002D97E6 /* Functions */; };
@@ -81,6 +82,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				BDFC47F5E1B86E447DC841F2 /* WhisperMateShared.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -130,6 +132,8 @@
 		};
 		C1E7D2AE2EBA925200A07338 /* WhisperMateShared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = WhisperMateShared;
 			sourceTree = "<group>";
 		};
@@ -237,8 +241,6 @@
 				C18566D52EA0D31000B46F55 /* Whispermate */,
 			);
 			name = Whispermate;
-			packageProductDependencies = (
-			);
 			productName = Whishpermate;
 			productReference = C18566D32EA0D31000B46F55 /* Whispermate.app */;
 			productType = "com.apple.product-type.application";
@@ -631,11 +633,13 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Whispermate/Whispermate.entitlements;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = G7DJ6P37KU;
 				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				FRAMEWORK_SEARCH_PATHS = (
