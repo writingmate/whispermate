@@ -41,7 +41,7 @@ enum AIApp: String, CaseIterable, Identifiable {
 struct HistoryMasterDetailView: View {
     @ObservedObject private var historyManager = HistoryManager.shared
     @ObservedObject private var onboardingManager = OnboardingManager.shared
-    @State private var columnVisibility: NavigationSplitViewVisibility = .detailOnly
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
     @State private var selectedRecording: Recording?
     @Environment(\.openWindow) private var openWindow
 
