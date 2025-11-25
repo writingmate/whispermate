@@ -32,29 +32,36 @@ struct OnboardingView: View {
 
             // Content area
             ScrollView {
-                VStack(spacing: 20) {
-                    // Icon
-                    Image(systemName: onboardingManager.currentStep.icon)
-                        .font(.system(size: 64))
-                        .foregroundStyle(Color.accentColor)
-                        .padding(.top, 8)
+                VStack(spacing: 0) {
+                    Spacer()
 
-                    // Title
-                    Text(onboardingManager.currentStep.title)
-                        .font(.system(size: 24, weight: .semibold))
+                    VStack(spacing: 20) {
+                        // Icon
+                        Image(systemName: onboardingManager.currentStep.icon)
+                            .font(.system(size: 64))
+                            .foregroundStyle(Color.accentColor)
+                            .padding(.top, 8)
 
-                    // Explanation
-                    Text(onboardingManager.currentStep.explanation)
-                        .font(.system(size: 14))
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(4)
-                        .padding(.horizontal, 60)
-                        .fixedSize(horizontal: false, vertical: true)
+                        // Title
+                        Text(onboardingManager.currentStep.title)
+                            .font(.system(size: 24, weight: .semibold))
 
-                    stepContent
-                        .padding(.top, 4)
+                        // Explanation
+                        Text(onboardingManager.currentStep.explanation)
+                            .font(.system(size: 14))
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(4)
+                            .padding(.horizontal, 60)
+                            .fixedSize(horizontal: false, vertical: true)
+
+                        stepContent
+                            .padding(.top, 4)
+                    }
+
+                    Spacer()
                 }
+                .frame(minHeight: 400)
                 .padding(.bottom, 20)
             }
             .frame(maxHeight: .infinity)
@@ -75,7 +82,7 @@ struct OnboardingView: View {
                 .padding(.horizontal, 40)
                 .padding(.bottom, 24)
         }
-        .frame(width: 560, height: 520)
+        .frame(width: 672, height: 624)
         .background(Color(nsColor: .windowBackgroundColor))
         .onAppear {
             // Defer hotkey registration during onboarding
