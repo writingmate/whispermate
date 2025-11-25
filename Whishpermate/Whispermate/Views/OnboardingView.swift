@@ -82,7 +82,7 @@ struct OnboardingView: View {
                 .padding(.horizontal, 40)
                 .padding(.bottom, 24)
         }
-        .frame(width: 672, height: 624)
+        .frame(width: 605, height: 562)
         .background(Color(nsColor: .windowBackgroundColor))
         .onAppear {
             // Defer hotkey registration during onboarding
