@@ -20,7 +20,11 @@
       "Bash(git tag:*)",
       "Bash(git reset:*)",
       "Bash(git restore:*)",
-      "Bash(.gitignore)"
+      "Bash(.gitignore)",
+      "Bash(brew install:*)",
+      "Bash(arch -arm64 brew install:*)",
+      "Bash(create-dmg:*)",
+      "Bash(gh release create:*)"
     ],
     "deny": [],
     "ask": []
