@@ -3,105 +3,140 @@ import SwiftUI
 // MARK: - Design System
 // Custom design system with light/dark mode support
 
-// MARK: - Color Definitions (Dark mode adaptive)
-extension Color {
-    // Helper to get current color scheme
-    private static var isDarkMode: Bool {
-        if #available(macOS 14.0, *) {
-            return NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        } else {
-            return NSApp.effectiveAppearance.name == .darkAqua
-        }
-    }
+// MARK: - Color Definitions
+// Primary Theme Colors:
+// - Background: #ffffff, Foreground: #111827
+// - Primary: #d87943 (orange/terracotta), Primary Foreground: #ffffff
+// - Secondary: #527575 (teal), Secondary Foreground: #ffffff
+// - Accent: #eeeeee, Accent Foreground: #111827
+// - Muted: #f3f4f6, Muted Foreground: #6b7280
+// - Border: #e5e7eb, Card: #ffffff
+// - Destructive: #ef4444, Ring: #d87943
 
+extension Color {
     // Background colors
     static var dsBackground: Color {
-        isDarkMode ? Color(hex: "0F0F1A") : Color(hex: "FFFFFF")
+        Color(nsColor: NSColor(red: 1, green: 1, blue: 1, alpha: 1)) // #ffffff
     }
 
     static var dsForeground: Color {
-        isDarkMode ? Color(hex: "F8FAFC") : Color(hex: "1A1A2E")
+        Color(nsColor: NSColor(red: 0x11/255.0, green: 0x18/255.0, blue: 0x27/255.0, alpha: 1)) // #111827
     }
 
-    // Primary colors
+    // Primary colors - terracotta/orange
     static var dsPrimary: Color {
-        isDarkMode ? Color(hex: "818CF8") : Color(hex: "6366F1")
+        Color(nsColor: NSColor(red: 0xD8/255.0, green: 0x79/255.0, blue: 0x43/255.0, alpha: 1)) // #d87943
     }
 
-    static var dsPrimaryGlow: Color {
-        isDarkMode ? Color(hex: "A5B4FC") : Color(hex: "818CF8")
+    static var dsPrimaryForeground: Color {
+        Color(nsColor: NSColor(red: 1, green: 1, blue: 1, alpha: 1)) // #ffffff
     }
 
-    // Secondary and accent
+    // Secondary - teal
     static var dsSecondary: Color {
-        Color(hex: "22D3EE")
+        Color(nsColor: NSColor(red: 0x52/255.0, green: 0x75/255.0, blue: 0x75/255.0, alpha: 1)) // #527575
     }
 
+    static var dsSecondaryForeground: Color {
+        Color(nsColor: NSColor(red: 1, green: 1, blue: 1, alpha: 1)) // #ffffff
+    }
+
+    // Accent
     static var dsAccent: Color {
-        isDarkMode ? Color(hex: "C4B5FD") : Color(hex: "A78BFA")
+        Color(nsColor: NSColor(red: 0xEE/255.0, green: 0xEE/255.0, blue: 0xEE/255.0, alpha: 1)) // #eeeeee
+    }
+
+    static var dsAccentForeground: Color {
+        Color(nsColor: NSColor(red: 0x11/255.0, green: 0x18/255.0, blue: 0x27/255.0, alpha: 1)) // #111827
     }
 
     // Muted colors
     static var dsMuted: Color {
-        isDarkMode ? Color(hex: "1E1E2E") : Color(hex: "F1F5F9")
+        Color(nsColor: NSColor(red: 0xF3/255.0, green: 0xF4/255.0, blue: 0xF6/255.0, alpha: 1)) // #f3f4f6
     }
 
     static var dsMutedForeground: Color {
-        isDarkMode ? Color(hex: "94A3B8") : Color(hex: "64748B")
+        Color(nsColor: NSColor(red: 0x6B/255.0, green: 0x72/255.0, blue: 0x80/255.0, alpha: 1)) // #6b7280
     }
 
     // Border and card
     static var dsBorder: Color {
-        isDarkMode ? Color(hex: "2E2E3E") : Color(hex: "E2E8F0")
+        Color(nsColor: NSColor(red: 0xE5/255.0, green: 0xE7/255.0, blue: 0xEB/255.0, alpha: 1)) // #e5e7eb
     }
 
     static var dsCard: Color {
-        isDarkMode ? Color(hex: "1A1A2E") : Color(hex: "FFFFFF")
+        Color(nsColor: NSColor(red: 1, green: 1, blue: 1, alpha: 1)) // #ffffff
+    }
+
+    static var dsCardForeground: Color {
+        Color(nsColor: NSColor(red: 0x11/255.0, green: 0x18/255.0, blue: 0x27/255.0, alpha: 1)) // #111827
+    }
+
+    // Input and Ring
+    static var dsInput: Color {
+        Color(nsColor: NSColor(red: 0xE5/255.0, green: 0xE7/255.0, blue: 0xEB/255.0, alpha: 1)) // #e5e7eb
+    }
+
+    static var dsRing: Color {
+        Color(nsColor: NSColor(red: 0xD8/255.0, green: 0x79/255.0, blue: 0x43/255.0, alpha: 1)) // #d87943
+    }
+
+    // Destructive
+    static var dsDestructive: Color {
+        Color(nsColor: NSColor(red: 0xEF/255.0, green: 0x44/255.0, blue: 0x44/255.0, alpha: 1)) // #ef4444
+    }
+
+    static var dsDestructiveForeground: Color {
+        Color(nsColor: NSColor(red: 0xFA/255.0, green: 0xFA/255.0, blue: 0xFA/255.0, alpha: 1)) // #fafafa
+    }
+
+    // Sidebar colors
+    static var dsSidebarBackground: Color {
+        Color(nsColor: NSColor(red: 0xF3/255.0, green: 0xF4/255.0, blue: 0xF6/255.0, alpha: 1)) // #f3f4f6
+    }
+
+    static var dsSidebarForeground: Color {
+        Color(nsColor: NSColor(red: 0x11/255.0, green: 0x18/255.0, blue: 0x27/255.0, alpha: 1)) // #111827
+    }
+
+    static var dsSidebarPrimary: Color {
+        Color(nsColor: NSColor(red: 0xD8/255.0, green: 0x79/255.0, blue: 0x43/255.0, alpha: 1)) // #d87943
+    }
+
+    static var dsSidebarAccent: Color {
+        Color(nsColor: NSColor(red: 1, green: 1, blue: 1, alpha: 1)) // #ffffff
+    }
+
+    static var dsSidebarBorder: Color {
+        Color(nsColor: NSColor(red: 0xE5/255.0, green: 0xE7/255.0, blue: 0xEB/255.0, alpha: 1)) // #e5e7eb
+    }
+
+    // Chart colors
+    static var dsChart1: Color {
+        Color(nsColor: NSColor(red: 0x5F/255.0, green: 0x87/255.0, blue: 0x87/255.0, alpha: 1)) // #5f8787
+    }
+
+    static var dsChart2: Color {
+        Color(nsColor: NSColor(red: 0xE7/255.0, green: 0x8A/255.0, blue: 0x53/255.0, alpha: 1)) // #e78a53
+    }
+
+    static var dsChart3: Color {
+        Color(nsColor: NSColor(red: 0xFB/255.0, green: 0xCB/255.0, blue: 0x97/255.0, alpha: 1)) // #fbcb97
     }
 }
 
-// MARK: - Semantic Colors (Adaptive)
+// MARK: - Legacy Adaptive Colors (for compatibility)
 extension Color {
-    // Adaptive colors that resolve at runtime based on color scheme
-    static func dsBackgroundAdaptive(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? Color(hex: "0F0F1A") : Color(hex: "FFFFFF")
-    }
-
-    static func dsForegroundAdaptive(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? Color(hex: "F8FAFC") : Color(hex: "1A1A2E")
-    }
-
-    static func dsPrimaryAdaptive(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? Color(hex: "818CF8") : Color(hex: "6366F1")
-    }
-
-    static func dsPrimaryGlowAdaptive(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? Color(hex: "A5B4FC") : Color(hex: "818CF8")
-    }
-
-    static func dsSecondaryAdaptive(for colorScheme: ColorScheme) -> Color {
-        Color(hex: "22D3EE") // Same in both modes
-    }
-
-    static func dsAccentAdaptive(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? Color(hex: "C4B5FD") : Color(hex: "A78BFA")
-    }
-
-    static func dsMutedAdaptive(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? Color(hex: "1E1E2E") : Color(hex: "F1F5F9")
-    }
-
-    static func dsMutedForegroundAdaptive(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? Color(hex: "94A3B8") : Color(hex: "64748B")
-    }
-
-    static func dsBorderAdaptive(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? Color(hex: "2E2E3E") : Color(hex: "E2E8F0")
-    }
-
-    static func dsCardAdaptive(for colorScheme: ColorScheme) -> Color {
-        colorScheme == .dark ? Color(hex: "1A1A2E") : Color(hex: "FFFFFF")
-    }
+    static func dsBackgroundAdaptive(for colorScheme: ColorScheme) -> Color { dsBackground }
+    static func dsForegroundAdaptive(for colorScheme: ColorScheme) -> Color { dsForeground }
+    static func dsPrimaryAdaptive(for colorScheme: ColorScheme) -> Color { dsPrimary }
+    static func dsPrimaryGlowAdaptive(for colorScheme: ColorScheme) -> Color { dsPrimary }
+    static func dsSecondaryAdaptive(for colorScheme: ColorScheme) -> Color { dsSecondary }
+    static func dsAccentAdaptive(for colorScheme: ColorScheme) -> Color { dsAccent }
+    static func dsMutedAdaptive(for colorScheme: ColorScheme) -> Color { dsMuted }
+    static func dsMutedForegroundAdaptive(for colorScheme: ColorScheme) -> Color { dsMutedForeground }
+    static func dsBorderAdaptive(for colorScheme: ColorScheme) -> Color { dsBorder }
+    static func dsCardAdaptive(for colorScheme: ColorScheme) -> Color { dsCard }
 }
 
 // MARK: - Hex Color Initializer
@@ -164,29 +199,19 @@ struct DSCardStyle: ViewModifier {
     }
 }
 
-// Primary button style
+// Primary button style - terracotta/orange solid background
 struct DSPrimaryButtonStyle: ButtonStyle {
-    @Environment(\.colorScheme) var colorScheme
     @Environment(\.isEnabled) var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 15, weight: .semibold))
-            .foregroundStyle(.white)
+            .foregroundStyle(Color.dsPrimaryForeground)
             .padding(.horizontal, 24)
             .padding(.vertical, 12)
             .background(
                 Capsule()
-                    .fill(
-                        LinearGradient(
-                            gradient: Gradient(colors: [
-                                Color.dsPrimaryAdaptive(for: colorScheme),
-                                Color.dsPrimaryGlowAdaptive(for: colorScheme)
-                            ]),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+                    .fill(Color.dsPrimary)
             )
             .opacity(isEnabled ? (configuration.isPressed ? 0.8 : 1.0) : 0.5)
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
@@ -194,20 +219,19 @@ struct DSPrimaryButtonStyle: ButtonStyle {
     }
 }
 
-// Secondary button style
+// Secondary button style - teal outline
 struct DSSecondaryButtonStyle: ButtonStyle {
-    @Environment(\.colorScheme) var colorScheme
     @Environment(\.isEnabled) var isEnabled
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.system(size: 15, weight: .medium))
-            .foregroundStyle(Color.dsPrimaryAdaptive(for: colorScheme))
+            .foregroundStyle(Color.dsSecondary)
             .padding(.horizontal, 24)
             .padding(.vertical, 12)
             .background(
                 Capsule()
-                    .stroke(Color.dsBorderAdaptive(for: colorScheme), lineWidth: 1)
+                    .stroke(Color.dsBorder, lineWidth: 1)
             )
             .opacity(isEnabled ? (configuration.isPressed ? 0.8 : 1.0) : 0.5)
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)

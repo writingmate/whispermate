@@ -119,13 +119,7 @@ private struct PlanCard: View {
                             .foregroundColor(.white)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [Color.dsPrimary, Color.dsPrimaryGlow]),
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
+                            .background(Color.dsPrimary)
                             .cornerRadius(4)
                     }
 
@@ -187,11 +181,7 @@ private struct PlanCard: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .background(
-                        isSelected ?
-                        LinearGradient(gradient: Gradient(colors: [Color.dsPrimary, Color.dsPrimaryGlow]), startPoint: .leading, endPoint: .trailing) :
-                        LinearGradient(gradient: Gradient(colors: [Color.dsMutedForeground, Color.dsMutedForeground]), startPoint: .leading, endPoint: .trailing)
-                    )
+                    .background(isSelected ? Color.dsPrimary : Color.dsMutedForeground)
                     .cornerRadius(DSCornerRadius.small)
             }
             .buttonStyle(.plain)
@@ -235,11 +225,7 @@ private struct BillingOptionButton: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
             .frame(minWidth: 85)
-            .background(
-                isSelected ?
-                LinearGradient(gradient: Gradient(colors: [Color.dsPrimary, Color.dsPrimaryGlow]), startPoint: .leading, endPoint: .trailing) :
-                LinearGradient(gradient: Gradient(colors: [Color.dsCard, Color.dsCard]), startPoint: .leading, endPoint: .trailing)
-            )
+            .background(isSelected ? Color.dsPrimary : Color.dsCard)
             .cornerRadius(DSCornerRadius.small)
             .overlay(
                 RoundedRectangle(cornerRadius: DSCornerRadius.small)

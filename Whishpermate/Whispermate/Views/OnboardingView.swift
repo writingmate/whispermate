@@ -311,9 +311,7 @@ struct OnboardingView: View {
                     .frame(height: 44)
                     .background(
                         Capsule()
-                            .fill(onboardingManager.isAccessibilityGranted() ?
-                                  LinearGradient(gradient: Gradient(colors: [Color.dsPrimary, Color.dsPrimaryGlow]), startPoint: .leading, endPoint: .trailing) :
-                                  LinearGradient(gradient: Gradient(colors: [Color.dsAccent, Color.dsAccent]), startPoint: .leading, endPoint: .trailing))
+                            .fill(onboardingManager.isAccessibilityGranted() ? Color.dsPrimary : Color.dsSecondary)
                     )
             }
             .buttonStyle(.plain)
@@ -339,9 +337,7 @@ struct OnboardingView: View {
                     .frame(height: 44)
                     .background(
                         Capsule()
-                            .fill(hotkeyManager.currentHotkey != nil ?
-                                  LinearGradient(gradient: Gradient(colors: [Color.dsPrimary, Color.dsPrimaryGlow]), startPoint: .leading, endPoint: .trailing) :
-                                  LinearGradient(gradient: Gradient(colors: [Color.dsMutedForeground, Color.dsMutedForeground]), startPoint: .leading, endPoint: .trailing))
+                            .fill(hotkeyManager.currentHotkey != nil ? Color.dsPrimary : Color.dsMutedForeground)
                     )
             }
             .buttonStyle(.plain)
