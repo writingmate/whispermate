@@ -39,9 +39,9 @@ struct RecordingOverlayView: View {
     }
 
     private var backgroundColor: Color {
-        if manager.isRecording { return .accentColor }
-        if manager.isProcessing { return .accentColor }
-        return .gray.opacity(0.85)
+        if manager.isRecording { return Color.dsPrimary }
+        if manager.isProcessing { return Color.dsPrimary }
+        return Color.dsMuted.opacity(0.85)
     }
 
     private var shouldShowExpandButton: Bool {

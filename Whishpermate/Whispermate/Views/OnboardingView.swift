@@ -23,7 +23,7 @@ struct OnboardingView: View {
             HStack(spacing: 8) {
                 ForEach(OnboardingStep.allCases, id: \.rawValue) { step in
                     Circle()
-                        .fill(step.rawValue <= onboardingManager.currentStep.rawValue ? Color.accentColor : Color.gray.opacity(0.3))
+                        .fill(step.rawValue <= onboardingManager.currentStep.rawValue ? Color.dsPrimary : Color.dsMuted)
                         .frame(width: 8, height: 8)
                 }
             }
@@ -39,17 +39,18 @@ struct OnboardingView: View {
                         // Icon
                         Image(systemName: onboardingManager.currentStep.icon)
                             .font(.system(size: 64))
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(Color.dsPrimary)
                             .padding(.top, 8)
 
                         // Title
                         Text(onboardingManager.currentStep.title)
-                            .font(.system(size: 24, weight: .semibold))
+                            .dsFont(.h4)
+                            .foregroundStyle(Color.dsForeground)
 
                         // Explanation
                         Text(onboardingManager.currentStep.explanation)
-                            .font(.system(size: 14))
-                            .foregroundStyle(.secondary)
+                            .dsFont(.caption)
+                            .foregroundStyle(Color.dsMutedForeground)
                             .multilineTextAlignment(.center)
                             .lineSpacing(4)
                             .padding(.horizontal, 60)
@@ -83,7 +84,7 @@ struct OnboardingView: View {
                 .padding(.bottom, 24)
         }
         .frame(width: 605, height: 562)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .background(Color.dsBackground)
         .onAppear {
             // Defer hotkey registration during onboarding
             hotkeyManager.setDeferRegistration(true)
@@ -121,13 +122,13 @@ struct OnboardingView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 48))
-                        .foregroundStyle(Color(nsColor: .systemGreen))
+                        .foregroundStyle(Color.dsSecondary)
                         .scaleEffect(1.0)
                         .animation(.spring(response: 0.5, dampingFraction: 0.6), value: true)
 
                     Text("Permission granted")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color(nsColor: .systemGreen))
+                        .foregroundStyle(Color.dsSecondary)
                 }
                 .padding(.vertical, 20)
             } else {
@@ -140,13 +141,13 @@ struct OnboardingView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 48))
-                        .foregroundStyle(Color(nsColor: .systemGreen))
+                        .foregroundStyle(Color.dsSecondary)
                         .scaleEffect(onboardingManager.accessibilityGranted ? 1.0 : 0.5)
                         .animation(.spring(response: 0.5, dampingFraction: 0.6), value: onboardingManager.accessibilityGranted)
 
                     Text("Permission granted")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color(nsColor: .systemGreen))
+                        .foregroundStyle(Color.dsSecondary)
                 }
                 .padding(.vertical, 20)
             } else {
@@ -170,7 +171,7 @@ struct OnboardingView: View {
 
                                 Text(language.displayName)
                                     .font(.system(size: 13))
-                                    .foregroundStyle(languageManager.isSelected(language) ? .white : .primary)
+                                    .foregroundStyle(languageManager.isSelected(language) ? .white : Color.dsForeground)
                                     .lineLimit(1)
 
                                 Spacer()
@@ -185,12 +186,12 @@ struct OnboardingView: View {
                             .padding(.vertical, 8)
                             .frame(maxWidth: .infinity)
                             .background(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(languageManager.isSelected(language) ? Color.accentColor : Color(nsColor: .controlBackgroundColor))
+                                RoundedRectangle(cornerRadius: DSCornerRadius.small)
+                                    .fill(languageManager.isSelected(language) ? Color.dsPrimary : Color.dsCard)
                             )
                             .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .stroke(Color(nsColor: .separatorColor), lineWidth: languageManager.isSelected(language) ? 0 : 0.5)
+                                RoundedRectangle(cornerRadius: DSCornerRadius.small)
+                                    .stroke(Color.dsBorder, lineWidth: languageManager.isSelected(language) ? 0 : 1)
                             )
                         }
                         .buttonStyle(.plain)
@@ -205,6 +206,7 @@ struct OnboardingView: View {
                 VStack(spacing: 16) {
                     Text("Set your preferred hotkey")
                         .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(Color.dsForeground)
 
                     HotkeyRecorderView(hotkeyManager: hotkeyManager)
                         .frame(maxWidth: 300)
@@ -215,7 +217,7 @@ struct OnboardingView: View {
                     }) {
                         Text("Back to Fn key")
                             .font(.system(size: 12))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.dsMutedForeground)
                     }
                     .buttonStyle(.plain)
                 }
@@ -226,30 +228,30 @@ struct OnboardingView: View {
                     // Fn key option (visual representation)
                     Text("Fn")
                         .font(.system(size: 40, weight: .semibold))
-                        .foregroundStyle(hotkeyManager.currentHotkey?.keyCode == 63 ? Color(nsColor: .systemGreen) : .primary)
+                        .foregroundStyle(hotkeyManager.currentHotkey?.keyCode == 63 ? Color.dsSecondary : Color.dsForeground)
                         .frame(width: 100, height: 100)
                         .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.quaternarySystemFill)
-                                .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
+                            RoundedRectangle(cornerRadius: DSCornerRadius.medium)
+                                .fill(Color.dsMuted)
+                                .dsShadow(.medium)
                         )
                         .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(hotkeyManager.currentHotkey?.keyCode == 63 ? Color(nsColor: .systemGreen) : Color.clear, lineWidth: 3)
+                            RoundedRectangle(cornerRadius: DSCornerRadius.medium)
+                                .stroke(hotkeyManager.currentHotkey?.keyCode == 63 ? Color.dsSecondary : Color.clear, lineWidth: 3)
                         )
 
                     if hotkeyManager.currentHotkey?.keyCode == 63 {
                         HStack(spacing: 6) {
                             Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(Color(nsColor: .systemGreen))
+                                .foregroundStyle(Color.dsSecondary)
                             Text("Fn key detected")
                                 .font(.system(size: 12))
-                                .foregroundStyle(Color(nsColor: .systemGreen))
+                                .foregroundStyle(Color.dsSecondary)
                         }
                     } else {
                         Text("Press Fn to use it")
                             .font(.system(size: 12))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.dsMutedForeground)
                     }
 
                     // Small text link to select custom hotkey
@@ -259,7 +261,7 @@ struct OnboardingView: View {
                     }) {
                         Text("Use a different hotkey")
                             .font(.system(size: 12))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.dsMutedForeground)
                     }
                     .buttonStyle(.plain)
                     .padding(.top, 4)
@@ -289,16 +291,10 @@ struct OnboardingView: View {
                 }
             }) {
                 Text(onboardingManager.isMicrophoneGranted() ? "Continue" : "Enable Microphone")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
-                    .background(
-                        Capsule()
-                            .fill(Color.accentColor)
-                    )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(DSPrimaryButtonStyle())
 
         case .accessibility:
             Button(action: {
@@ -315,7 +311,9 @@ struct OnboardingView: View {
                     .frame(height: 44)
                     .background(
                         Capsule()
-                            .fill(onboardingManager.isAccessibilityGranted() ? Color.accentColor : Color(nsColor: .systemOrange))
+                            .fill(onboardingManager.isAccessibilityGranted() ?
+                                  LinearGradient(gradient: Gradient(colors: [Color.dsPrimary, Color.dsPrimaryGlow]), startPoint: .leading, endPoint: .trailing) :
+                                  LinearGradient(gradient: Gradient(colors: [Color.dsAccent, Color.dsAccent]), startPoint: .leading, endPoint: .trailing))
                     )
             }
             .buttonStyle(.plain)
@@ -325,16 +323,10 @@ struct OnboardingView: View {
                 onboardingManager.moveToNextStep()
             }) {
                 Text("Continue")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
-                    .background(
-                        Capsule()
-                            .fill(Color.accentColor)
-                    )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(DSPrimaryButtonStyle())
 
         case .hotkey:
             Button(action: {
@@ -347,7 +339,9 @@ struct OnboardingView: View {
                     .frame(height: 44)
                     .background(
                         Capsule()
-                            .fill(hotkeyManager.currentHotkey != nil ? Color.accentColor : Color.gray)
+                            .fill(hotkeyManager.currentHotkey != nil ?
+                                  LinearGradient(gradient: Gradient(colors: [Color.dsPrimary, Color.dsPrimaryGlow]), startPoint: .leading, endPoint: .trailing) :
+                                  LinearGradient(gradient: Gradient(colors: [Color.dsMutedForeground, Color.dsMutedForeground]), startPoint: .leading, endPoint: .trailing))
                     )
             }
             .buttonStyle(.plain)

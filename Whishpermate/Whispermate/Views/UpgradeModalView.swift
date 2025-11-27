@@ -19,7 +19,7 @@ struct UpgradeModalView: View {
                 Button(action: { dismiss() }) {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 20))
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(Color.dsMutedForeground)
                 }
                 .buttonStyle(.plain)
                 .padding()
@@ -30,6 +30,7 @@ struct UpgradeModalView: View {
                 .padding(.bottom, 20)
         }
         .frame(width: 700, height: 650)
+        .background(Color.dsBackground)
     }
 }
 

@@ -19,7 +19,8 @@ struct HistoryView: View {
             // Header with title and close button (matching Settings style)
             HStack {
                 Text("History")
-                    .font(.system(size: 20, weight: .semibold))
+                    .dsFont(.h5)
+                    .foregroundStyle(Color.dsForeground)
 
                 Spacer()
 
@@ -28,7 +29,7 @@ struct HistoryView: View {
                 }) {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 20))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.dsMutedForeground)
                 }
                 .buttonStyle(.plain)
             }
@@ -41,11 +42,12 @@ struct HistoryView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.dsMutedForeground)
 
                     TextField("Search transcriptions...", text: $searchText)
                         .textFieldStyle(.plain)
                         .font(.system(size: 13))
+                        .foregroundStyle(Color.dsForeground)
 
                     if !searchText.isEmpty {
                         Button(action: {
@@ -53,7 +55,7 @@ struct HistoryView: View {
                         }) {
                             Image(systemName: "xmark.circle.fill")
                                 .font(.system(size: 13))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.dsMutedForeground)
                         }
                         .buttonStyle(.plain)
                     }
@@ -61,8 +63,12 @@ struct HistoryView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color(nsColor: .controlBackgroundColor))
+                    RoundedRectangle(cornerRadius: DSCornerRadius.small)
+                        .fill(Color.dsCard)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: DSCornerRadius.small)
+                        .stroke(Color.dsBorder, lineWidth: 1)
                 )
                 .padding(.horizontal, 24)
                 .padding(.vertical, 12)
@@ -73,14 +79,14 @@ struct HistoryView: View {
                         Spacer()
                         Image(systemName: searchText.isEmpty ? "mic.slash" : "magnifyingglass")
                             .font(.system(size: 48))
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(Color.dsMuted)
                         Text(searchText.isEmpty ? "No recordings yet" : "No results found")
                             .font(.system(size: 15, weight: .medium))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.dsMutedForeground)
                         if searchText.isEmpty {
                             Text("Start recording to build your history")
                                 .font(.system(size: 12))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.dsMutedForeground)
                         }
                         Spacer()
                     }
@@ -148,24 +154,24 @@ struct RecordingRow: View {
             // Status indicator
             Image(systemName: recording.status == .success ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                 .font(.system(size: 16))
-                .foregroundStyle(recording.status == .success ? .green : .orange)
+                .foregroundStyle(recording.status == .success ? Color.dsSecondary : Color.dsAccent)
 
             // Timestamp
             VStack(alignment: .leading, spacing: 2) {
                 Text(recording.formattedDate)
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(Color.dsForeground)
 
                 if let duration = recording.formattedDuration {
                     Text(duration)
                         .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.dsMutedForeground)
                 }
 
                 if recording.retryCount > 0 {
                     Text("Retried \(recording.retryCount)x")
                         .font(.system(size: 11))
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Color.dsAccent)
                 }
             }
             .frame(minWidth: 120, alignment: .leading)
@@ -174,17 +180,17 @@ struct RecordingRow: View {
             if let transcription = recording.transcription {
                 Text(transcription)
                     .font(.system(size: 13))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(Color.dsForeground)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .textSelection(.enabled)
             } else if let errorMessage = recording.errorMessage {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Failed")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Color.dsAccent)
                     Text(errorMessage)
                         .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.dsMutedForeground)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -199,7 +205,7 @@ struct RecordingRow: View {
                     }) {
                         Image(systemName: "doc.on.doc")
                             .font(.system(size: 13))
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(Color.dsPrimary)
                     }
                     .buttonStyle(.plain)
                     .help("Copy")
@@ -210,7 +216,7 @@ struct RecordingRow: View {
                     }) {
                         Image(systemName: "arrow.clockwise")
                             .font(.system(size: 13))
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(Color.dsPrimary)
                     }
                     .buttonStyle(.plain)
                     .help("Retry")
@@ -233,7 +239,7 @@ struct RecordingRow: View {
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 16)
-        .background(isHovering ? Color(nsColor: .controlBackgroundColor).opacity(0.5) : Color.clear)
+        .background(isHovering ? Color.dsMuted.opacity(0.5) : Color.clear)
         .onHover { hovering in
             isHovering = hovering
         }
