@@ -1,3 +1,5 @@
+using System;
+using System.Drawing;
 using System.Windows;
 using AIDictation.Services;
 using AIDictation.Views;
@@ -31,10 +33,18 @@ public partial class App : Application
 
     private void InitializeSystemTray()
     {
+        // Load icon from embedded resource
+        var iconStream = GetResourceStream(new Uri("pack://application:,,,/Assets/app.ico"))?.Stream;
+        Icon? icon = null;
+        if (iconStream != null)
+        {
+            icon = new Icon(iconStream);
+        }
+
         _taskbarIcon = new TaskbarIcon
         {
             ToolTipText = "AIDictation",
-            // Icon will be loaded from resources
+            Icon = icon
         };
 
         _taskbarIcon.TrayMouseDoubleClick += (s, e) => ShowMainWindow();
