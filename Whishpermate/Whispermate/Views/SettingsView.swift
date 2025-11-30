@@ -17,11 +17,7 @@ struct SettingsCard<Content: View>: View {
             .padding(12)
             .background(
                 RoundedRectangle(cornerRadius: DSCornerRadius.small)
-                    .fill(Color.dsCard)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: DSCornerRadius.small)
-                    .stroke(Color.dsBorder, lineWidth: 1)
+                    .fill(Color(nsColor: .controlBackgroundColor))
             )
     }
 }
