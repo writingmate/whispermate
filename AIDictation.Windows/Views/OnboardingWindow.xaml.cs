@@ -59,26 +59,39 @@ public partial class OnboardingWindow : Window
         Step4.Visibility = Visibility.Collapsed;
         Step5.Visibility = Visibility.Collapsed;
 
-        // Show current step
+        // Hide all navigation buttons
+        MicrophoneEnableButton.Visibility = Visibility.Collapsed;
+        MicrophoneContinueButton.Visibility = Visibility.Collapsed;
+        ScreenRecordingButtons.Visibility = Visibility.Collapsed;
+        LanguageContinueButton.Visibility = Visibility.Collapsed;
+        HotkeyContinueButton.Visibility = Visibility.Collapsed;
+        CompleteButton.Visibility = Visibility.Collapsed;
+
+        // Show current step and appropriate buttons
         switch (_currentStep)
         {
             case 1:
                 Step1.Visibility = Visibility.Visible;
                 StartPermissionCheck();
+                UpdateMicrophoneButtons();
                 break;
             case 2:
                 Step2.Visibility = Visibility.Visible;
+                ScreenRecordingButtons.Visibility = Visibility.Visible;
                 StopPermissionCheck();
                 break;
             case 3:
                 Step3.Visibility = Visibility.Visible;
+                LanguageContinueButton.Visibility = Visibility.Visible;
                 UpdateLanguageButtons();
                 break;
             case 4:
                 Step4.Visibility = Visibility.Visible;
+                HotkeyContinueButton.Visibility = Visibility.Visible;
                 break;
             case 5:
                 Step5.Visibility = Visibility.Visible;
+                CompleteButton.Visibility = Visibility.Visible;
                 break;
         }
 
@@ -88,20 +101,16 @@ public partial class OnboardingWindow : Window
         Dot3.Fill = _currentStep >= 3 ? _activeDotBrush : _inactiveDotBrush;
         Dot4.Fill = _currentStep >= 4 ? _activeDotBrush : _inactiveDotBrush;
         Dot5.Fill = _currentStep >= 5 ? _activeDotBrush : _inactiveDotBrush;
-
-        // Update navigation
-        BackButton.Visibility = _currentStep > 1 ? Visibility.Visible : Visibility.Collapsed;
-        NextButton.Content = _currentStep == 5 ? "Get Started" : "Next →";
     }
 
-    private void BackButton_Click(object sender, RoutedEventArgs e)
+    private void UpdateMicrophoneButtons()
     {
-        if (_currentStep > 1)
-        {
-            _currentStep--;
-            UpdateUI();
-        }
+        var hasDevices = NAudio.Wave.WaveInEvent.DeviceCount > 0;
+        MicrophoneEnableButton.Visibility = hasDevices ? Visibility.Collapsed : Visibility.Visible;
+        MicrophoneContinueButton.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
+        MicrophoneGrantedIndicator.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
     }
+
 
     private void NextButton_Click(object sender, RoutedEventArgs e)
     {
@@ -118,13 +127,6 @@ public partial class OnboardingWindow : Window
                 // Register the hotkey
                 HotkeyService.Instance.RegisterHotkey(_capturedKey, _capturedModifiers);
                 break;
-
-            case 5:
-                // Complete onboarding
-                SettingsService.Instance.HasCompletedOnboarding = true;
-                DialogResult = true;
-                Close();
-                return;
         }
 
         if (_currentStep < 5)
@@ -274,14 +276,7 @@ public partial class OnboardingWindow : Window
     {
         try
         {
-            // Check if microphone devices are available
-            var hasDevices = NAudio.Wave.WaveInEvent.DeviceCount > 0;
-
-            // Update UI to show checkmark or pending state
-            if (MicrophoneCheckmark != null)
-            {
-                MicrophoneCheckmark.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
-            }
+            UpdateMicrophoneButtons();
         }
         catch (Exception ex)
         {
@@ -292,17 +287,29 @@ public partial class OnboardingWindow : Window
     private void UpdateLanguageButtons()
     {
         // Update all language button states based on current settings
-        // This method will be called when entering the language selection step
-        // The actual button state updates should be handled in the XAML with binding
-        // or you can manually update button states here if needed
+        foreach (var child in LanguagePanel.Children)
+        {
+            if (child is ToggleButton button && button.Tag is string languageCode)
+            {
+                button.IsChecked = SettingsService.Instance.IsLanguageSelected(languageCode);
+            }
+        }
     }
 
-    private void LanguageToggle_Click(object sender, RoutedEventArgs e)
+    private void LanguageButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is ToggleButton button && button.Tag is string languageCode)
         {
             SettingsService.Instance.ToggleLanguage(languageCode);
-            button.IsChecked = SettingsService.Instance.IsLanguageSelected(languageCode);
+            UpdateLanguageButtons();
         }
+    }
+
+    private void CompleteButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Complete onboarding
+        SettingsService.Instance.HasCompletedOnboarding = true;
+        DialogResult = true;
+        Close();
     }
 }
