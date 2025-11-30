@@ -25,7 +25,8 @@ public class SettingsService
         _settings = LoadSettings();
     }
 
-    // Properties
+    // MARK: - Properties
+
     public bool HasCompletedOnboarding
     {
         get => _settings.HasCompletedOnboarding;
@@ -80,6 +81,33 @@ public class SettingsService
         set { _settings.MuteAudioWhenRecording = value; Save(); }
     }
 
+    // MARK: - Dictionary Entries
+
+    public List<DictionaryEntry> DictionaryEntries
+    {
+        get => _settings.DictionaryEntries ?? new List<DictionaryEntry>();
+        set { _settings.DictionaryEntries = value; Save(); }
+    }
+
+    public void AddDictionaryEntry(string trigger, string replacement)
+    {
+        var entries = DictionaryEntries;
+        entries.Add(new DictionaryEntry { Trigger = trigger, Replacement = replacement, IsEnabled = true });
+        DictionaryEntries = entries;
+    }
+
+    public void RemoveDictionaryEntry(int index)
+    {
+        var entries = DictionaryEntries;
+        if (index >= 0 && index < entries.Count)
+        {
+            entries.RemoveAt(index);
+            DictionaryEntries = entries;
+        }
+    }
+
+    // MARK: - Prompt Rules (Context Rules)
+
     public List<PromptRule> PromptRules
     {
         get => _settings.PromptRules ?? new List<PromptRule>();
@@ -121,6 +149,33 @@ public class SettingsService
         return string.Join(". ", enabledRules.ConvertAll(r => r.Text));
     }
 
+    // MARK: - Voice Shortcuts
+
+    public List<VoiceShortcut> Shortcuts
+    {
+        get => _settings.Shortcuts ?? new List<VoiceShortcut>();
+        set { _settings.Shortcuts = value; Save(); }
+    }
+
+    public void AddShortcut(string voiceTrigger, string expansion)
+    {
+        var shortcuts = Shortcuts;
+        shortcuts.Add(new VoiceShortcut { VoiceTrigger = voiceTrigger, Expansion = expansion, IsEnabled = true });
+        Shortcuts = shortcuts;
+    }
+
+    public void RemoveShortcut(int index)
+    {
+        var shortcuts = Shortcuts;
+        if (index >= 0 && index < shortcuts.Count)
+        {
+            shortcuts.RemoveAt(index);
+            Shortcuts = shortcuts;
+        }
+    }
+
+    // MARK: - Persistence
+
     private SettingsData LoadSettings()
     {
         try
@@ -155,6 +210,8 @@ public class SettingsService
     }
 }
 
+// MARK: - Data Models
+
 public class SettingsData
 {
     public bool HasCompletedOnboarding { get; set; }
@@ -166,11 +223,27 @@ public class SettingsData
     public bool AutoPaste { get; set; } = true;
     public bool LaunchAtStartup { get; set; }
     public bool MuteAudioWhenRecording { get; set; } = true;
+    public List<DictionaryEntry>? DictionaryEntries { get; set; }
     public List<PromptRule>? PromptRules { get; set; }
+    public List<VoiceShortcut>? Shortcuts { get; set; }
+}
+
+public class DictionaryEntry
+{
+    public string Trigger { get; set; } = string.Empty;
+    public string Replacement { get; set; } = string.Empty;
+    public bool IsEnabled { get; set; } = true;
 }
 
 public class PromptRule
 {
     public string Text { get; set; } = string.Empty;
+    public bool IsEnabled { get; set; } = true;
+}
+
+public class VoiceShortcut
+{
+    public string VoiceTrigger { get; set; } = string.Empty;
+    public string Expansion { get; set; } = string.Empty;
     public bool IsEnabled { get; set; } = true;
 }

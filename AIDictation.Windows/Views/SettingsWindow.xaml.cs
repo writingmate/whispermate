@@ -63,15 +63,10 @@ public partial class SettingsWindow : Window
             default: LangAuto.IsChecked = true; break;
         }
 
-        // Load rules
+        // Load dictionary, rules, and shortcuts
+        RefreshDictionaryList();
         RefreshRulesList();
-
-        // Load API key (masked)
-        var apiKey = SettingsService.Instance.ApiKey;
-        if (!string.IsNullOrEmpty(apiKey))
-        {
-            ApiKeyPasswordBox.Password = apiKey;
-        }
+        RefreshShortcutsList();
     }
 
     private void Tab_Checked(object sender, RoutedEventArgs e)
@@ -83,10 +78,13 @@ public partial class SettingsWindow : Window
         PermissionsPanel.Visibility = PermissionsTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         AudioPanel.Visibility = AudioTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         LanguagePanel.Visibility = LanguageTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        DictionaryPanel.Visibility = DictionaryTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         RulesPanel.Visibility = RulesTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        ShortcutsPanel.Visibility = ShortcutsTab.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    // General Tab
+    // MARK: - General Tab
+
     private void HotkeyBox_Click(object sender, MouseButtonEventArgs e)
     {
         _isCapturingHotkey = true;
@@ -163,11 +161,40 @@ public partial class SettingsWindow : Window
         SettingsService.Instance.AutoPaste = AutoPasteCheck.IsChecked == true;
     }
 
-    // Account Tab
-    private void SaveApiKey_Click(object sender, RoutedEventArgs e)
+    // MARK: - Account Tab
+
+    private void SignIn_Click(object sender, RoutedEventArgs e)
     {
-        SettingsService.Instance.ApiKey = ApiKeyPasswordBox.Password.Trim();
-        MessageBox.Show("API key saved successfully.", "Saved", MessageBoxButton.OK, MessageBoxImage.Information);
+        // TODO: Open sign-in URL in browser
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://aidictation.com/login",
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to open URL: {ex.Message}");
+        }
+    }
+
+    private void Upgrade_Click(object sender, RoutedEventArgs e)
+    {
+        // TODO: Open upgrade URL in browser
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://aidictation.com/upgrade",
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to open URL: {ex.Message}");
+        }
     }
 
     private void ResetApp_Click(object sender, RoutedEventArgs e)
@@ -204,7 +231,8 @@ public partial class SettingsWindow : Window
         }
     }
 
-    // Permissions Tab
+    // MARK: - Permissions Tab
+
     private void OpenMicrophoneSettings_Click(object sender, RoutedEventArgs e)
     {
         try
@@ -221,7 +249,8 @@ public partial class SettingsWindow : Window
         }
     }
 
-    // Audio Tab
+    // MARK: - Audio Tab
+
     private void AudioDevice_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
         if (AudioDeviceCombo.SelectedIndex >= 0)
@@ -235,7 +264,8 @@ public partial class SettingsWindow : Window
         SettingsService.Instance.MuteAudioWhenRecording = MuteAudioCheck.IsChecked == true;
     }
 
-    // Language Tab
+    // MARK: - Language Tab
+
     private void Language_Checked(object sender, RoutedEventArgs e)
     {
         string lang = "auto";
@@ -253,7 +283,43 @@ public partial class SettingsWindow : Window
         SettingsService.Instance.SelectedLanguage = lang;
     }
 
-    // Rules Tab
+    // MARK: - Dictionary Tab
+
+    private void AddDictEntry_Click(object sender, RoutedEventArgs e)
+    {
+        var trigger = DictTriggerTextBox.Text.Trim();
+        var replacement = DictReplacementTextBox.Text.Trim();
+        if (!string.IsNullOrEmpty(trigger) && !string.IsNullOrEmpty(replacement))
+        {
+            SettingsService.Instance.AddDictionaryEntry(trigger, replacement);
+            DictTriggerTextBox.Text = "";
+            DictReplacementTextBox.Text = "";
+            RefreshDictionaryList();
+        }
+    }
+
+    private void DeleteDictEntry_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Button btn && btn.Tag is DictionaryEntry entry)
+        {
+            var entries = SettingsService.Instance.DictionaryEntries;
+            var index = entries.FindIndex(d => d.Trigger == entry.Trigger);
+            if (index >= 0)
+            {
+                SettingsService.Instance.RemoveDictionaryEntry(index);
+                RefreshDictionaryList();
+            }
+        }
+    }
+
+    private void RefreshDictionaryList()
+    {
+        DictionaryList.ItemsSource = null;
+        DictionaryList.ItemsSource = SettingsService.Instance.DictionaryEntries;
+    }
+
+    // MARK: - Context Rules Tab
+
     private void AddRule_Click(object sender, RoutedEventArgs e)
     {
         var rule = NewRuleTextBox.Text.Trim();
@@ -289,5 +355,40 @@ public partial class SettingsWindow : Window
     {
         RulesList.ItemsSource = null;
         RulesList.ItemsSource = SettingsService.Instance.PromptRules;
+    }
+
+    // MARK: - Shortcuts Tab
+
+    private void AddShortcut_Click(object sender, RoutedEventArgs e)
+    {
+        var trigger = ShortcutTriggerTextBox.Text.Trim();
+        var expansion = ShortcutExpansionTextBox.Text.Trim();
+        if (!string.IsNullOrEmpty(trigger) && !string.IsNullOrEmpty(expansion))
+        {
+            SettingsService.Instance.AddShortcut(trigger, expansion);
+            ShortcutTriggerTextBox.Text = "";
+            ShortcutExpansionTextBox.Text = "";
+            RefreshShortcutsList();
+        }
+    }
+
+    private void DeleteShortcut_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Button btn && btn.Tag is VoiceShortcut shortcut)
+        {
+            var shortcuts = SettingsService.Instance.Shortcuts;
+            var index = shortcuts.FindIndex(s => s.VoiceTrigger == shortcut.VoiceTrigger);
+            if (index >= 0)
+            {
+                SettingsService.Instance.RemoveShortcut(index);
+                RefreshShortcutsList();
+            }
+        }
+    }
+
+    private void RefreshShortcutsList()
+    {
+        ShortcutsList.ItemsSource = null;
+        ShortcutsList.ItemsSource = SettingsService.Instance.Shortcuts;
     }
 }

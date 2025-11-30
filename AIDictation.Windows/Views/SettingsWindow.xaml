@@ -48,8 +48,20 @@
                              Margin="0,4"
                              Padding="12,8"
                              Checked="Tab_Checked"/>
+                <RadioButton x:Name="DictionaryTab"
+                             Content="📖 Dictionary"
+                             GroupName="SettingsTabs"
+                             Margin="0,4"
+                             Padding="12,8"
+                             Checked="Tab_Checked"/>
                 <RadioButton x:Name="RulesTab"
                              Content="📝 Context Rules"
+                             GroupName="SettingsTabs"
+                             Margin="0,4"
+                             Padding="12,8"
+                             Checked="Tab_Checked"/>
+                <RadioButton x:Name="ShortcutsTab"
+                             Content="⌨️ Shortcuts"
                              GroupName="SettingsTabs"
                              Margin="0,4"
                              Padding="12,8"
@@ -100,7 +112,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="Launch at Startup" Style="{StaticResource BodyText}" FontWeight="SemiBold"/>
+                                <TextBlock Text="Launch at Login" Style="{StaticResource BodyText}" FontWeight="SemiBold"/>
                                 <TextBlock Text="Automatically start AIDictation when you log in"
                                            Style="{StaticResource CaptionText}" Margin="0,4,0,0"/>
                             </StackPanel>
@@ -131,22 +143,43 @@
                 <StackPanel x:Name="AccountPanel" Visibility="Collapsed">
                     <TextBlock Text="Account" Style="{StaticResource HeadlineText}"/>
 
-                    <!-- API Key -->
+                    <!-- Account Status -->
                     <Border Style="{StaticResource Card}" Margin="0,16,0,0">
-                        <StackPanel>
-                            <TextBlock Text="OpenAI API Key" Style="{StaticResource BodyText}" FontWeight="SemiBold"/>
-                            <TextBlock Text="Your API key is stored securely on your device"
-                                       Style="{StaticResource CaptionText}" Margin="0,4,0,0"/>
-                            <PasswordBox x:Name="ApiKeyPasswordBox"
-                                         Margin="0,12,0,0"
-                                         Padding="12,10"
-                                         FontSize="14"/>
-                            <Button Content="Save API Key"
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Account" Style="{StaticResource BodyText}" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="AccountStatusText"
+                                           Text="Sign in to track usage and unlock Pro features"
+                                           Style="{StaticResource CaptionText}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <Button x:Name="SignInButton" Content="Sign In"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Grid.Column="1"
+                                    Click="SignIn_Click"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Upgrade to Pro -->
+                    <Border x:Name="UpgradeCard" Style="{StaticResource Card}" Margin="0,12,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Upgrade to Pro" Style="{StaticResource BodyText}" FontWeight="SemiBold"/>
+                                <TextBlock Text="Unlimited transcriptions, priority support"
+                                           Style="{StaticResource CaptionText}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <Button Content="Upgrade"
                                     Style="{StaticResource PrimaryButton}"
-                                    HorizontalAlignment="Left"
-                                    Margin="0,12,0,0"
-                                    Click="SaveApiKey_Click"/>
-                        </StackPanel>
+                                    Grid.Column="1"
+                                    Click="Upgrade_Click"/>
+                        </Grid>
                     </Border>
 
                     <!-- Reset Application -->
@@ -187,14 +220,8 @@
                                 <TextBlock Text="Required to record audio for transcription"
                                            Style="{StaticResource CaptionText}" Margin="0,4,0,0"/>
                             </StackPanel>
-                            <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                <TextBlock x:Name="MicPermissionStatus" Text="✓" Foreground="{StaticResource SuccessBrush}"
-                                           FontSize="18" VerticalAlignment="Center"/>
-                                <Button x:Name="MicPermissionButton" Content="Grant Access"
-                                        Style="{StaticResource SecondaryButton}"
-                                        Visibility="Collapsed"
-                                        Click="OpenMicrophoneSettings_Click"/>
-                            </StackPanel>
+                            <TextBlock x:Name="MicPermissionStatus" Text="✓" Foreground="{StaticResource SuccessBrush}"
+                                       FontSize="18" VerticalAlignment="Center" Grid.Column="2"/>
                         </Grid>
                     </Border>
 
@@ -202,6 +229,12 @@
                                Style="{StaticResource CaptionText}"
                                TextWrapping="Wrap"
                                Margin="0,12,0,0"/>
+
+                    <Button Content="Open Windows Privacy Settings"
+                            Style="{StaticResource SecondaryButton}"
+                            HorizontalAlignment="Left"
+                            Margin="0,12,0,0"
+                            Click="OpenMicrophoneSettings_Click"/>
                 </StackPanel>
 
                 <!-- Audio Settings -->
@@ -266,6 +299,68 @@
                     </WrapPanel>
                 </StackPanel>
 
+                <!-- Dictionary Settings -->
+                <StackPanel x:Name="DictionaryPanel" Visibility="Collapsed">
+                    <TextBlock Text="Dictionary" Style="{StaticResource HeadlineText}"/>
+                    <TextBlock Text="Dictionary entries help recognize and format specific words correctly (e.g., 'gonna' → 'going to')"
+                               Style="{StaticResource CaptionText}" Margin="0,4,0,16"/>
+
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="DictTriggerTextBox"
+                                 Style="{StaticResource ModernTextBox}"
+                                 Grid.Column="0"
+                                 ToolTip="Trigger word"/>
+                        <TextBox x:Name="DictReplacementTextBox"
+                                 Style="{StaticResource ModernTextBox}"
+                                 Grid.Column="2"
+                                 ToolTip="Replacement"/>
+                        <Button Content="+"
+                                Style="{StaticResource PrimaryButton}"
+                                Grid.Column="3"
+                                Margin="8,0,0,0"
+                                Width="40"
+                                Click="AddDictEntry_Click"/>
+                    </Grid>
+
+                    <ItemsControl x:Name="DictionaryList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource SurfaceBrush}"
+                                        CornerRadius="6"
+                                        Padding="12,8"
+                                        Margin="0,4">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox IsChecked="{Binding IsEnabled}"
+                                                  Grid.Column="0"
+                                                  VerticalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1" Margin="8,0">
+                                            <TextBlock Text="{Binding Trigger}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Replacement, StringFormat='→ {0}'}"
+                                                       Style="{StaticResource CaptionText}"/>
+                                        </StackPanel>
+                                        <Button Content="🗑"
+                                                Style="{StaticResource IconButton}"
+                                                Grid.Column="2"
+                                                Tag="{Binding}"
+                                                Click="DeleteDictEntry_Click"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
                 <!-- Context Rules Settings -->
                 <StackPanel x:Name="RulesPanel" Visibility="Collapsed">
                     <TextBlock Text="Context Rules" Style="{StaticResource HeadlineText}"/>
@@ -316,6 +411,69 @@
                                                 Grid.Column="2"
                                                 Tag="{Binding}"
                                                 Click="DeleteRule_Click"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <!-- Shortcuts Settings -->
+                <StackPanel x:Name="ShortcutsPanel" Visibility="Collapsed">
+                    <TextBlock Text="Shortcuts" Style="{StaticResource HeadlineText}"/>
+                    <TextBlock Text="Shortcuts let you say a phrase and have it expand to longer text (e.g., 'my email' → 'hello@example.com')"
+                               Style="{StaticResource CaptionText}" Margin="0,4,0,16"/>
+
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="ShortcutTriggerTextBox"
+                                 Style="{StaticResource ModernTextBox}"
+                                 Grid.Column="0"
+                                 ToolTip="Voice trigger"/>
+                        <TextBox x:Name="ShortcutExpansionTextBox"
+                                 Style="{StaticResource ModernTextBox}"
+                                 Grid.Column="2"
+                                 ToolTip="Expansion text"/>
+                        <Button Content="+"
+                                Style="{StaticResource PrimaryButton}"
+                                Grid.Column="3"
+                                Margin="8,0,0,0"
+                                Width="40"
+                                Click="AddShortcut_Click"/>
+                    </Grid>
+
+                    <ItemsControl x:Name="ShortcutsList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource SurfaceBrush}"
+                                        CornerRadius="6"
+                                        Padding="12,8"
+                                        Margin="0,4">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox IsChecked="{Binding IsEnabled}"
+                                                  Grid.Column="0"
+                                                  VerticalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1" Margin="8,0">
+                                            <TextBlock Text="{Binding VoiceTrigger}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Expansion, StringFormat='→ {0}'}"
+                                                       Style="{StaticResource CaptionText}"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                        <Button Content="🗑"
+                                                Style="{StaticResource IconButton}"
+                                                Grid.Column="2"
+                                                Tag="{Binding}"
+                                                Click="DeleteShortcut_Click"/>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
