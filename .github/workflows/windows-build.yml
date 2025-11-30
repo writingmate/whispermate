@@ -1,0 +1,89 @@
+name: Windows Build
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'AIDictation.Windows/**'
+      - '.github/workflows/windows-build.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'AIDictation.Windows/**'
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  PROJECT_PATH: 'AIDictation.Windows/AIDictation.Windows.csproj'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.PROJECT_PATH }}
+
+    - name: Build
+      run: dotnet build ${{ env.PROJECT_PATH }} --configuration Release --no-restore
+
+    - name: Test
+      run: dotnet test ${{ env.PROJECT_PATH }} --no-build --verbosity normal
+      continue-on-error: true
+
+    - name: Publish
+      run: dotnet publish ${{ env.PROJECT_PATH }} --configuration Release --output ./publish --self-contained true -r win-x64 -p:PublishSingleFile=true
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: AIDictation-Windows-x64
+        path: ./publish/
+        retention-days: 30
+
+  release:
+    needs: build
+    runs-on: windows-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Get version
+      id: version
+      shell: pwsh
+      run: |
+        $xml = [xml](Get-Content ${{ env.PROJECT_PATH }})
+        $version = $xml.Project.PropertyGroup.Version
+        if (-not $version) { $version = "0.0.1" }
+        echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+
+    - name: Publish Release Build
+      run: |
+        dotnet publish ${{ env.PROJECT_PATH }} --configuration Release --output ./release --self-contained true -r win-x64 -p:PublishSingleFile=true -p:PublishReadyToRun=true
+
+    - name: Create ZIP
+      shell: pwsh
+      run: |
+        Compress-Archive -Path ./release/* -DestinationPath ./AIDictation-Windows-v${{ steps.version.outputs.VERSION }}.zip
+
+    - name: Upload Release Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: AIDictation-Windows-Release-v${{ steps.version.outputs.VERSION }}
+        path: ./AIDictation-Windows-v${{ steps.version.outputs.VERSION }}.zip
+        retention-days: 90
