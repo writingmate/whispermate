@@ -85,7 +85,7 @@ public partial class OnboardingWindow : Window
                 break;
 
             case 3:
-                var apiKey = ApiKeyTextBox.Text.Trim();
+                var apiKey = ApiKeyPasswordBox.Password.Trim();
                 if (string.IsNullOrEmpty(apiKey))
                 {
                     MessageBox.Show("Please enter your OpenAI API key to continue.", "API Key Required",

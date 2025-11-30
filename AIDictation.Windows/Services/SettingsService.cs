@@ -68,6 +68,18 @@ public class SettingsService
         set { _settings.AutoPaste = value; Save(); }
     }
 
+    public bool LaunchAtStartup
+    {
+        get => _settings.LaunchAtStartup;
+        set { _settings.LaunchAtStartup = value; Save(); }
+    }
+
+    public bool MuteAudioWhenRecording
+    {
+        get => _settings.MuteAudioWhenRecording;
+        set { _settings.MuteAudioWhenRecording = value; Save(); }
+    }
+
     public List<PromptRule> PromptRules
     {
         get => _settings.PromptRules ?? new List<PromptRule>();
@@ -152,6 +164,8 @@ public class SettingsData
     public int HotkeyKeyCode { get; set; }
     public int HotkeyModifiers { get; set; }
     public bool AutoPaste { get; set; } = true;
+    public bool LaunchAtStartup { get; set; }
+    public bool MuteAudioWhenRecording { get; set; } = true;
     public List<PromptRule>? PromptRules { get; set; }
 }
 

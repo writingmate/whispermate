@@ -82,11 +82,11 @@
                            MaxWidth="400"
                            Margin="0,16,0,0"/>
 
-                <TextBox x:Name="ApiKeyTextBox"
-                         Style="{StaticResource ModernTextBox}"
-                         Width="400"
-                         Margin="0,24,0,0"
-                         PasswordChar="•"/>
+                <PasswordBox x:Name="ApiKeyPasswordBox"
+                             Width="400"
+                             Margin="0,24,0,0"
+                             Padding="12,10"
+                             FontSize="14"/>
 
                 <TextBlock Style="{StaticResource CaptionText}"
                            HorizontalAlignment="Center"
