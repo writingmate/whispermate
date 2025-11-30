@@ -104,6 +104,42 @@
                         </Grid>
                     </Border>
 
+                    <!-- Show Overlay When Idle -->
+                    <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Show Overlay When Idle" Style="{StaticResource BodyText}" FontWeight="SemiBold"/>
+                                <TextBlock Text="When disabled, overlay only appears during recording or processing"
+                                           Style="{StaticResource CaptionText}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <CheckBox x:Name="ShowOverlayWhenIdleCheck" Grid.Column="1" VerticalAlignment="Center"
+                                      Checked="ShowOverlayWhenIdle_Changed" Unchecked="ShowOverlayWhenIdle_Changed"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Overlay Position -->
+                    <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Overlay Position" Style="{StaticResource BodyText}" FontWeight="SemiBold"/>
+                                <TextBlock Text="Choose where the overlay indicator appears on your screen"
+                                           Style="{StaticResource CaptionText}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <ComboBox x:Name="OverlayPositionCombo"
+                                      Grid.Column="1"
+                                      Width="150"
+                                      SelectionChanged="OverlayPosition_SelectionChanged"/>
+                        </Grid>
+                    </Border>
+
                     <!-- Launch at Startup -->
                     <Border Style="{StaticResource Card}" Margin="0,12,0,0">
                         <Grid>
@@ -118,6 +154,23 @@
                             </StackPanel>
                             <CheckBox x:Name="LaunchAtStartupCheck" Grid.Column="1" VerticalAlignment="Center"
                                       Checked="LaunchAtStartup_Changed" Unchecked="LaunchAtStartup_Changed"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Include Screen Context -->
+                    <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Include Screen Context" Style="{StaticResource BodyText}" FontWeight="SemiBold"/>
+                                <TextBlock Text="Capture and send screen content (via OCR) to improve transcription accuracy"
+                                           Style="{StaticResource CaptionText}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <CheckBox x:Name="IncludeScreenContextCheck" Grid.Column="1" VerticalAlignment="Center"
+                                      Checked="IncludeScreenContext_Changed" Unchecked="IncludeScreenContext_Changed"/>
                         </Grid>
                     </Border>
 
@@ -145,22 +198,56 @@
 
                     <!-- Account Status -->
                     <Border Style="{StaticResource Card}" Margin="0,16,0,0">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="Account" Style="{StaticResource BodyText}" FontWeight="SemiBold"/>
-                                <TextBlock x:Name="AccountStatusText"
-                                           Text="Sign in to track usage and unlock Pro features"
-                                           Style="{StaticResource CaptionText}" Margin="0,4,0,0"/>
-                            </StackPanel>
-                            <Button x:Name="SignInButton" Content="Sign In"
-                                    Style="{StaticResource SecondaryButton}"
-                                    Grid.Column="1"
-                                    Click="SignIn_Click"/>
-                        </Grid>
+                        <StackPanel>
+                            <!-- Email / Account Row -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Account" Style="{StaticResource BodyText}" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="AccountStatusText"
+                                               Text="Sign in to track usage and unlock Pro features"
+                                               Style="{StaticResource CaptionText}" Margin="0,4,0,0"/>
+                                </StackPanel>
+                                <Button x:Name="SignInButton" Content="Sign In"
+                                        Style="{StaticResource SecondaryButton}"
+                                        Grid.Column="1"
+                                        Click="SignIn_Click"/>
+                                <Button x:Name="SignOutButton" Content="Sign Out"
+                                        Style="{StaticResource SecondaryButton}"
+                                        Grid.Column="1"
+                                        Visibility="Collapsed"
+                                        Click="SignOut_Click"/>
+                            </Grid>
+
+                            <!-- Subscription Status Row (shown when signed in) -->
+                            <Border x:Name="SubscriptionRow" Visibility="Collapsed" Padding="0,12,0,0">
+                                <StackPanel>
+                                    <Rectangle Height="1" Fill="{StaticResource BorderBrush}" Margin="0,0,0,12"/>
+                                    <StackPanel>
+                                        <TextBlock Text="Subscription" Style="{StaticResource BodyText}" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="SubscriptionText"
+                                                   Text="Free"
+                                                   Style="{StaticResource CaptionText}" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Word Usage Row (shown when signed in and Free tier) -->
+                            <Border x:Name="WordUsageRow" Visibility="Collapsed" Padding="0,12,0,0">
+                                <StackPanel>
+                                    <Rectangle Height="1" Fill="{StaticResource BorderBrush}" Margin="0,0,0,12"/>
+                                    <StackPanel>
+                                        <TextBlock Text="Word Usage" Style="{StaticResource BodyText}" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="WordUsageText"
+                                                   Text="0 of 2,000 words this month"
+                                                   Style="{StaticResource CaptionText}" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
                     </Border>
 
                     <!-- Upgrade to Pro -->
@@ -220,21 +307,61 @@
                                 <TextBlock Text="Required to record audio for transcription"
                                            Style="{StaticResource CaptionText}" Margin="0,4,0,0"/>
                             </StackPanel>
-                            <TextBlock x:Name="MicPermissionStatus" Text="✓" Foreground="{StaticResource SuccessBrush}"
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock x:Name="MicPermissionStatus" Text="✓" Foreground="{StaticResource SuccessBrush}"
+                                           FontSize="18" VerticalAlignment="Center" Visibility="Collapsed"/>
+                                <Button x:Name="MicPermissionButton" Content="Grant Access"
+                                        Style="{StaticResource SecondaryButton}"
+                                        Click="OpenMicrophoneSettings_Click"
+                                        Visibility="Collapsed"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Auto-paste (Windows handles this automatically) -->
+                    <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="✋" FontSize="24" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Auto-paste" Style="{StaticResource BodyText}" FontWeight="SemiBold"/>
+                                <TextBlock Text="Works automatically on Windows"
+                                           Style="{StaticResource CaptionText}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <TextBlock Text="✓" Foreground="{StaticResource SuccessBrush}"
                                        FontSize="18" VerticalAlignment="Center" Grid.Column="2"/>
                         </Grid>
                     </Border>
 
-                    <TextBlock Text="Windows automatically manages microphone permissions. If you experience issues, check Windows Privacy Settings."
+                    <!-- Screen Recording -->
+                    <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="🖥️" FontSize="24" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Screen Recording" Style="{StaticResource BodyText}" FontWeight="SemiBold"/>
+                                <TextBlock Text="Required for screen context feature (OCR of active window)"
+                                           Style="{StaticResource CaptionText}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <Button Content="Open Settings"
+                                    Style="{StaticResource SecondaryButton}"
+                                    Click="OpenScreenCaptureSettings_Click"/>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Text="Note: Windows handles permissions differently than macOS. Most permissions are managed automatically through Windows Privacy Settings."
                                Style="{StaticResource CaptionText}"
                                TextWrapping="Wrap"
-                               Margin="0,12,0,0"/>
-
-                    <Button Content="Open Windows Privacy Settings"
-                            Style="{StaticResource SecondaryButton}"
-                            HorizontalAlignment="Left"
-                            Margin="0,12,0,0"
-                            Click="OpenMicrophoneSettings_Click"/>
+                               Margin="0,16,0,0"
+                               Foreground="{StaticResource MutedForegroundBrush}"/>
                 </StackPanel>
 
                 <!-- Audio Settings -->
@@ -280,22 +407,22 @@
 
                 <!-- Language Settings -->
                 <StackPanel x:Name="LanguagePanel" Visibility="Collapsed">
-                    <TextBlock Text="Language" Style="{StaticResource HeadlineText}"/>
-                    <TextBlock Text="Select language for transcription. Auto-detect works for all languages."
+                    <TextBlock Text="Transcription Language" Style="{StaticResource HeadlineText}"/>
+                    <TextBlock Text="Select languages for transcription. Auto-detect works for all languages."
                                Style="{StaticResource CaptionText}" Margin="0,4,0,16"/>
 
                     <WrapPanel>
-                        <RadioButton x:Name="LangAuto" Content="🌍 Auto" GroupName="Language" IsChecked="True" Margin="0,4,16,4" Checked="Language_Checked"/>
-                        <RadioButton x:Name="LangEn" Content="🇺🇸 English" GroupName="Language" Margin="0,4,16,4" Checked="Language_Checked"/>
-                        <RadioButton x:Name="LangRu" Content="🇷🇺 Russian" GroupName="Language" Margin="0,4,16,4" Checked="Language_Checked"/>
-                        <RadioButton x:Name="LangDe" Content="🇩🇪 German" GroupName="Language" Margin="0,4,16,4" Checked="Language_Checked"/>
-                        <RadioButton x:Name="LangFr" Content="🇫🇷 French" GroupName="Language" Margin="0,4,16,4" Checked="Language_Checked"/>
-                        <RadioButton x:Name="LangEs" Content="🇪🇸 Spanish" GroupName="Language" Margin="0,4,16,4" Checked="Language_Checked"/>
-                        <RadioButton x:Name="LangIt" Content="🇮🇹 Italian" GroupName="Language" Margin="0,4,16,4" Checked="Language_Checked"/>
-                        <RadioButton x:Name="LangPt" Content="🇵🇹 Portuguese" GroupName="Language" Margin="0,4,16,4" Checked="Language_Checked"/>
-                        <RadioButton x:Name="LangZh" Content="🇨🇳 Chinese" GroupName="Language" Margin="0,4,16,4" Checked="Language_Checked"/>
-                        <RadioButton x:Name="LangJa" Content="🇯🇵 Japanese" GroupName="Language" Margin="0,4,16,4" Checked="Language_Checked"/>
-                        <RadioButton x:Name="LangKo" Content="🇰🇷 Korean" GroupName="Language" Margin="0,4,16,4" Checked="Language_Checked"/>
+                        <ToggleButton x:Name="LangAuto" Content="🌐 Auto-detect" Style="{StaticResource LanguageToggleButton}" Tag="auto" Click="LanguageToggle_Click"/>
+                        <ToggleButton x:Name="LangEn" Content="🇬🇧 English" Style="{StaticResource LanguageToggleButton}" Tag="en" Click="LanguageToggle_Click"/>
+                        <ToggleButton x:Name="LangRu" Content="🇷🇺 Russian" Style="{StaticResource LanguageToggleButton}" Tag="ru" Click="LanguageToggle_Click"/>
+                        <ToggleButton x:Name="LangDe" Content="🇩🇪 German" Style="{StaticResource LanguageToggleButton}" Tag="de" Click="LanguageToggle_Click"/>
+                        <ToggleButton x:Name="LangFr" Content="🇫🇷 French" Style="{StaticResource LanguageToggleButton}" Tag="fr" Click="LanguageToggle_Click"/>
+                        <ToggleButton x:Name="LangEs" Content="🇪🇸 Spanish" Style="{StaticResource LanguageToggleButton}" Tag="es" Click="LanguageToggle_Click"/>
+                        <ToggleButton x:Name="LangIt" Content="🇮🇹 Italian" Style="{StaticResource LanguageToggleButton}" Tag="it" Click="LanguageToggle_Click"/>
+                        <ToggleButton x:Name="LangPt" Content="🇵🇹 Portuguese" Style="{StaticResource LanguageToggleButton}" Tag="pt" Click="LanguageToggle_Click"/>
+                        <ToggleButton x:Name="LangZh" Content="🇨🇳 Chinese" Style="{StaticResource LanguageToggleButton}" Tag="zh" Click="LanguageToggle_Click"/>
+                        <ToggleButton x:Name="LangJa" Content="🇯🇵 Japanese" Style="{StaticResource LanguageToggleButton}" Tag="ja" Click="LanguageToggle_Click"/>
+                        <ToggleButton x:Name="LangKo" Content="🇰🇷 Korean" Style="{StaticResource LanguageToggleButton}" Tag="ko" Click="LanguageToggle_Click"/>
                     </WrapPanel>
                 </StackPanel>
 

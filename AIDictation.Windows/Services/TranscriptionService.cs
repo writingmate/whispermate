@@ -64,8 +64,8 @@ public class TranscriptionService : IDisposable
             // Add model
             content.Add(new StringContent("whisper-1"), "model");
 
-            // Add language if specified
-            var language = SettingsService.Instance.SelectedLanguage;
+            // Add language if specified (supports multi-select, comma-separated)
+            var language = SettingsService.Instance.GetApiLanguageCode();
             if (!string.IsNullOrEmpty(language) && language != "auto")
             {
                 content.Add(new StringContent(language), "language");

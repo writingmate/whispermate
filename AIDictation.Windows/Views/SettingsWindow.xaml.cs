@@ -28,7 +28,17 @@ public partial class SettingsWindow : Window
     {
         // Load General settings
         CurrentHotkeyDisplay.Text = HotkeyService.Instance.GetHotkeyDisplayString();
+        ShowOverlayWhenIdleCheck.IsChecked = SettingsService.Instance.ShowOverlayWhenIdle;
+
+        // Load overlay position combo
+        OverlayPositionCombo.Items.Clear();
+        OverlayPositionCombo.Items.Add("Top");
+        OverlayPositionCombo.Items.Add("Bottom");
+        var currentPosition = SettingsService.Instance.OverlayPosition;
+        OverlayPositionCombo.SelectedItem = currentPosition;
+
         LaunchAtStartupCheck.IsChecked = SettingsService.Instance.LaunchAtStartup;
+        IncludeScreenContextCheck.IsChecked = SettingsService.Instance.IncludeScreenContext;
         AutoPasteCheck.IsChecked = SettingsService.Instance.AutoPaste;
 
         // Load audio devices
@@ -46,27 +56,61 @@ public partial class SettingsWindow : Window
         // Load mute audio setting
         MuteAudioCheck.IsChecked = SettingsService.Instance.MuteAudioWhenRecording;
 
-        // Load language
-        var lang = SettingsService.Instance.SelectedLanguage;
-        switch (lang)
-        {
-            case "en": LangEn.IsChecked = true; break;
-            case "ru": LangRu.IsChecked = true; break;
-            case "de": LangDe.IsChecked = true; break;
-            case "fr": LangFr.IsChecked = true; break;
-            case "es": LangEs.IsChecked = true; break;
-            case "it": LangIt.IsChecked = true; break;
-            case "pt": LangPt.IsChecked = true; break;
-            case "zh": LangZh.IsChecked = true; break;
-            case "ja": LangJa.IsChecked = true; break;
-            case "ko": LangKo.IsChecked = true; break;
-            default: LangAuto.IsChecked = true; break;
-        }
+        // Load languages (multi-select)
+        UpdateLanguageButtons();
+
+        // Check microphone permission status
+        CheckMicrophonePermission();
 
         // Load dictionary, rules, and shortcuts
         RefreshDictionaryList();
         RefreshRulesList();
         RefreshShortcutsList();
+
+        // Update Account UI
+        UpdateAccountUI();
+    }
+
+    private void UpdateAccountUI()
+    {
+        var settings = SettingsService.Instance;
+        var isAuthenticated = settings.IsAuthenticated;
+        var isPro = settings.SubscriptionTier == SubscriptionTier.Pro;
+
+        if (isAuthenticated)
+        {
+            // Show email and Sign Out button
+            AccountStatusText.Text = settings.UserEmail;
+            SignInButton.Visibility = Visibility.Collapsed;
+            SignOutButton.Visibility = Visibility.Visible;
+
+            // Show subscription status
+            SubscriptionRow.Visibility = Visibility.Visible;
+            SubscriptionText.Text = isPro ? "Pro" : "Free";
+
+            // Show word usage only for Free tier
+            if (!isPro)
+            {
+                WordUsageRow.Visibility = Visibility.Visible;
+                WordUsageText.Text = $"{settings.MonthlyWordCount} of 2,000 words this month";
+                UpgradeCard.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                WordUsageRow.Visibility = Visibility.Collapsed;
+                UpgradeCard.Visibility = Visibility.Collapsed;
+            }
+        }
+        else
+        {
+            // Not authenticated - show Sign In button
+            AccountStatusText.Text = "Sign in to track usage and unlock Pro features";
+            SignInButton.Visibility = Visibility.Visible;
+            SignOutButton.Visibility = Visibility.Collapsed;
+            SubscriptionRow.Visibility = Visibility.Collapsed;
+            WordUsageRow.Visibility = Visibility.Collapsed;
+            UpgradeCard.Visibility = Visibility.Visible;
+        }
     }
 
     private void Tab_Checked(object sender, RoutedEventArgs e)
@@ -156,6 +200,24 @@ public partial class SettingsWindow : Window
         }
     }
 
+    private void ShowOverlayWhenIdle_Changed(object sender, RoutedEventArgs e)
+    {
+        SettingsService.Instance.ShowOverlayWhenIdle = ShowOverlayWhenIdleCheck.IsChecked == true;
+    }
+
+    private void OverlayPosition_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (OverlayPositionCombo.SelectedItem != null)
+        {
+            SettingsService.Instance.OverlayPosition = OverlayPositionCombo.SelectedItem.ToString() ?? "Top";
+        }
+    }
+
+    private void IncludeScreenContext_Changed(object sender, RoutedEventArgs e)
+    {
+        SettingsService.Instance.IncludeScreenContext = IncludeScreenContextCheck.IsChecked == true;
+    }
+
     private void AutoPaste_Changed(object sender, RoutedEventArgs e)
     {
         SettingsService.Instance.AutoPaste = AutoPasteCheck.IsChecked == true;
@@ -177,6 +239,27 @@ public partial class SettingsWindow : Window
         catch (Exception ex)
         {
             Debug.WriteLine($"Failed to open URL: {ex.Message}");
+        }
+    }
+
+    private void SignOut_Click(object sender, RoutedEventArgs e)
+    {
+        var result = MessageBox.Show(
+            "Are you sure you want to sign out?",
+            "Sign Out",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+
+        if (result == MessageBoxResult.Yes)
+        {
+            // Clear authentication data
+            SettingsService.Instance.IsAuthenticated = false;
+            SettingsService.Instance.UserEmail = string.Empty;
+            SettingsService.Instance.SubscriptionTier = SubscriptionTier.Free;
+            SettingsService.Instance.MonthlyWordCount = 0;
+
+            // Update UI
+            UpdateAccountUI();
         }
     }
 
@@ -233,6 +316,34 @@ public partial class SettingsWindow : Window
 
     // MARK: - Permissions Tab
 
+    private void CheckMicrophonePermission()
+    {
+        try
+        {
+            // Try to enumerate audio devices - if we can get devices, permission is granted
+            var deviceCount = NAudio.Wave.WaveInEvent.DeviceCount;
+            var hasPermission = deviceCount > 0;
+
+            if (hasPermission)
+            {
+                MicPermissionStatus.Visibility = Visibility.Visible;
+                MicPermissionButton.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                MicPermissionStatus.Visibility = Visibility.Collapsed;
+                MicPermissionButton.Visibility = Visibility.Visible;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to check microphone permission: {ex.Message}");
+            // On error, show button to allow user to fix
+            MicPermissionStatus.Visibility = Visibility.Collapsed;
+            MicPermissionButton.Visibility = Visibility.Visible;
+        }
+    }
+
     private void OpenMicrophoneSettings_Click(object sender, RoutedEventArgs e)
     {
         try
@@ -246,6 +357,22 @@ public partial class SettingsWindow : Window
         catch (Exception ex)
         {
             Debug.WriteLine($"Failed to open settings: {ex.Message}");
+        }
+    }
+
+    private void OpenScreenCaptureSettings_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "ms-settings:privacy-graphicsCaptureWithoutBorder",
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to open screen capture settings: {ex.Message}");
         }
     }
 
@@ -266,21 +393,28 @@ public partial class SettingsWindow : Window
 
     // MARK: - Language Tab
 
-    private void Language_Checked(object sender, RoutedEventArgs e)
+    private void LanguageToggle_Click(object sender, RoutedEventArgs e)
     {
-        string lang = "auto";
-        if (LangEn.IsChecked == true) lang = "en";
-        else if (LangRu.IsChecked == true) lang = "ru";
-        else if (LangDe.IsChecked == true) lang = "de";
-        else if (LangFr.IsChecked == true) lang = "fr";
-        else if (LangEs.IsChecked == true) lang = "es";
-        else if (LangIt.IsChecked == true) lang = "it";
-        else if (LangPt.IsChecked == true) lang = "pt";
-        else if (LangZh.IsChecked == true) lang = "zh";
-        else if (LangJa.IsChecked == true) lang = "ja";
-        else if (LangKo.IsChecked == true) lang = "ko";
+        if (sender is System.Windows.Controls.Primitives.ToggleButton button && button.Tag is string languageCode)
+        {
+            SettingsService.Instance.ToggleLanguage(languageCode);
+            UpdateLanguageButtons();
+        }
+    }
 
-        SettingsService.Instance.SelectedLanguage = lang;
+    private void UpdateLanguageButtons()
+    {
+        LangAuto.IsChecked = SettingsService.Instance.IsLanguageSelected("auto");
+        LangEn.IsChecked = SettingsService.Instance.IsLanguageSelected("en");
+        LangRu.IsChecked = SettingsService.Instance.IsLanguageSelected("ru");
+        LangDe.IsChecked = SettingsService.Instance.IsLanguageSelected("de");
+        LangFr.IsChecked = SettingsService.Instance.IsLanguageSelected("fr");
+        LangEs.IsChecked = SettingsService.Instance.IsLanguageSelected("es");
+        LangIt.IsChecked = SettingsService.Instance.IsLanguageSelected("it");
+        LangPt.IsChecked = SettingsService.Instance.IsLanguageSelected("pt");
+        LangZh.IsChecked = SettingsService.Instance.IsLanguageSelected("zh");
+        LangJa.IsChecked = SettingsService.Instance.IsLanguageSelected("ja");
+        LangKo.IsChecked = SettingsService.Instance.IsLanguageSelected("ko");
     }
 
     // MARK: - Dictionary Tab

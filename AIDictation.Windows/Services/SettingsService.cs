@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 
 namespace AIDictation.Services;
@@ -45,10 +46,60 @@ public class SettingsService
         set { _settings.SelectedAudioDevice = value; Save(); }
     }
 
-    public string SelectedLanguage
+    public List<string> SelectedLanguages
     {
-        get => _settings.SelectedLanguage ?? "auto";
-        set { _settings.SelectedLanguage = value; Save(); }
+        get => _settings.SelectedLanguages ?? new List<string> { "auto" };
+        set { _settings.SelectedLanguages = value; Save(); }
+    }
+
+    public void ToggleLanguage(string languageCode)
+    {
+        var languages = SelectedLanguages;
+
+        if (languageCode == "auto")
+        {
+            // If selecting auto-detect, clear all others
+            languages = new List<string> { "auto" };
+        }
+        else
+        {
+            // Remove auto-detect if selecting a specific language
+            languages.Remove("auto");
+
+            if (languages.Contains(languageCode))
+            {
+                languages.Remove(languageCode);
+                // If no languages left, default to auto
+                if (languages.Count == 0)
+                {
+                    languages.Add("auto");
+                }
+            }
+            else
+            {
+                languages.Add(languageCode);
+            }
+        }
+
+        SelectedLanguages = languages;
+    }
+
+    public bool IsLanguageSelected(string languageCode)
+    {
+        return SelectedLanguages.Contains(languageCode);
+    }
+
+    public string GetApiLanguageCode()
+    {
+        var languages = SelectedLanguages;
+        if (languages.Contains("auto"))
+        {
+            return "auto";
+        }
+
+        // Return all selected language codes, comma-separated
+        var languageCodes = languages.Where(lang => lang != "auto").OrderBy(lang => lang).ToList();
+        return languageCodes.Count == 0 ? "auto" : string.Join(",", languageCodes);
     }
 
     public int HotkeyKeyCode
@@ -79,6 +130,50 @@ public class SettingsService
     {
         get => _settings.MuteAudioWhenRecording;
         set { _settings.MuteAudioWhenRecording = value; Save(); }
+    }
+
+    public bool ShowOverlayWhenIdle
+    {
+        get => _settings.ShowOverlayWhenIdle;
+        set { _settings.ShowOverlayWhenIdle = value; Save(); }
+    }
+
+    public string OverlayPosition
+    {
+        get => _settings.OverlayPosition ?? "Top";
+        set { _settings.OverlayPosition = value; Save(); }
+    }
+
+    public bool IncludeScreenContext
+    {
+        get => _settings.IncludeScreenContext;
+        set { _settings.IncludeScreenContext = value; Save(); }
+    }
+
+    // MARK: - Authentication
+
+    public bool IsAuthenticated
+    {
+        get => _settings.IsAuthenticated;
+        set { _settings.IsAuthenticated = value; Save(); }
+    }
+
+    public string UserEmail
+    {
+        get => _settings.UserEmail ?? string.Empty;
+        set { _settings.UserEmail = value; Save(); }
+    }
+
+    public SubscriptionTier SubscriptionTier
+    {
+        get => _settings.SubscriptionTier;
+        set { _settings.SubscriptionTier = value; Save(); }
+    }
+
+    public int MonthlyWordCount
+    {
+        get => _settings.MonthlyWordCount;
+        set { _settings.MonthlyWordCount = value; Save(); }
     }
 
     // MARK: - Dictionary Entries
@@ -183,7 +278,13 @@ public class SettingsService
             if (File.Exists(_settingsPath))
             {
                 var json = File.ReadAllText(_settingsPath);
-                return JsonSerializer.Deserialize<SettingsData>(json) ?? new SettingsData();
+                var settings = JsonSerializer.Deserialize<SettingsData>(json) ?? new SettingsData();
+
+                // Migrate from old SelectedLanguage (string) to SelectedLanguages (List<string>)
+                // This will be handled by the property getter defaulting to new List { "auto" }
+                // if SelectedLanguages is null
+
+                return settings;
             }
         }
         catch (Exception ex)
@@ -212,17 +313,30 @@ public class SettingsService
 
 // MARK: - Data Models
 
+public enum SubscriptionTier
+{
+    Free,
+    Pro
+}
+
 public class SettingsData
 {
     public bool HasCompletedOnboarding { get; set; }
     public string? ApiKey { get; set; }
     public int SelectedAudioDevice { get; set; }
-    public string? SelectedLanguage { get; set; } = "auto";
+    public List<string>? SelectedLanguages { get; set; }
     public int HotkeyKeyCode { get; set; }
     public int HotkeyModifiers { get; set; }
     public bool AutoPaste { get; set; } = true;
     public bool LaunchAtStartup { get; set; }
     public bool MuteAudioWhenRecording { get; set; } = true;
+    public bool ShowOverlayWhenIdle { get; set; } = true;
+    public string? OverlayPosition { get; set; } = "Top";
+    public bool IncludeScreenContext { get; set; }
+    public bool IsAuthenticated { get; set; }
+    public string? UserEmail { get; set; }
+    public SubscriptionTier SubscriptionTier { get; set; }
+    public int MonthlyWordCount { get; set; }
     public List<DictionaryEntry>? DictionaryEntries { get; set; }
     public List<PromptRule>? PromptRules { get; set; }
     public List<VoiceShortcut>? Shortcuts { get; set; }
