@@ -152,6 +152,10 @@ public partial class OnboardingWindow : Window
 
     private async void RequestMicrophonePermission_Click(object sender, RoutedEventArgs e)
     {
+        // Disable button during check
+        MicrophoneEnableButton.IsEnabled = false;
+        MicrophoneEnableButton.Content = "Checking...";
+
         try
         {
             // For desktop (unpackaged) WPF apps, we just need to verify
@@ -165,19 +169,21 @@ public partial class OnboardingWindow : Window
 
             // Brief recording test to verify access
             waveIn.StartRecording();
-            await System.Threading.Tasks.Task.Delay(100);
+            await System.Threading.Tasks.Task.Delay(200);
             waveIn.StopRecording();
 
-            // Success - microphone access works
-            UpdateMicrophoneButtons();
-
-            // Auto-advance to next step since permission is granted
+            // Success - microphone access works, advance to next step
             _currentStep++;
             UpdateUI();
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Microphone access failed: {ex.Message}");
+
+            // Re-enable button
+            MicrophoneEnableButton.IsEnabled = true;
+            MicrophoneEnableButton.Content = "Enable Microphone";
+
             // Open settings so user can enable "Let desktop apps access your microphone"
             try
             {
@@ -190,6 +196,8 @@ public partial class OnboardingWindow : Window
             catch (Exception settingsEx)
             {
                 Debug.WriteLine($"Failed to open settings: {settingsEx.Message}");
+                MessageBox.Show("Please enable microphone access in Windows Settings > Privacy & security > Microphone",
+                    "Microphone Access Required", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
     }
@@ -308,7 +316,17 @@ public partial class OnboardingWindow : Window
     {
         try
         {
-            UpdateMicrophoneButtons();
+            var hasDevices = NAudio.Wave.WaveInEvent.DeviceCount > 0;
+
+            MicrophoneEnableButton.Visibility = hasDevices ? Visibility.Collapsed : Visibility.Visible;
+            MicrophoneContinueButton.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
+            MicrophoneGrantedIndicator.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
+
+            // If microphone is available, stop polling
+            if (hasDevices)
+            {
+                StopPermissionCheck();
+            }
         }
         catch (Exception ex)
         {
