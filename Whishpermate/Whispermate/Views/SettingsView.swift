@@ -17,7 +17,7 @@ struct SettingsCard<Content: View>: View {
             .padding(12)
             .background(
                 RoundedRectangle(cornerRadius: DSCornerRadius.small)
-                    .fill(Color(nsColor: .controlBackgroundColor))
+                    .fill(Color(nsColor: .quaternarySystemFill))
             )
     }
 }
@@ -367,123 +367,100 @@ struct SettingsView: View {
 
     private var generalSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // RECORDING HOTKEY (Most Important - First!)
+            // Recording Hotkey (standalone - most important)
             SettingsCard {
                 HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Recording Hotkey")
-                            .dsFont(.label)
-                            .foregroundStyle(Color.dsForeground)
-                        Text("Press this key combination to toggle recording from anywhere")
-                            .dsFont(.tiny)
-                            .foregroundStyle(Color.dsMutedForeground)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-
+                    Text("Recording Hotkey")
+                        .dsFont(.label)
+                        .foregroundStyle(Color.dsForeground)
                     Spacer()
-
                     HotkeyRecorderView(hotkeyManager: hotkeyManager)
                         .frame(width: 200, height: 28)
                 }
             }
 
-            // SHOW OVERLAY WHEN IDLE
+            // Overlay Settings Group
             SettingsCard {
-                HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
+                VStack(spacing: 0) {
+                    // Show Overlay When Idle
+                    HStack(spacing: 12) {
                         Text("Show Overlay When Idle")
                             .dsFont(.label)
                             .foregroundStyle(Color.dsForeground)
-                        Text("When disabled, overlay only appears during recording or processing")
-                            .dsFont(.tiny)
-                            .foregroundStyle(Color.dsMutedForeground)
-                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { !overlayManager.hideIdleState },
+                            set: { overlayManager.hideIdleState = !$0 }
+                        ))
+                        .toggleStyle(.switch)
+                        .controlSize(.mini)
+                        .labelsHidden()
                     }
-                    Spacer()
-                    Toggle("", isOn: Binding(
-                        get: { !overlayManager.hideIdleState },
-                        set: { overlayManager.hideIdleState = !$0 }
-                    ))
-                    .toggleStyle(.switch)
-                    .controlSize(.mini)
-                    .labelsHidden()
-                }
-            }
+                    .padding(.vertical, 4)
 
-            // OVERLAY POSITION
-            SettingsCard {
-                HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
+                    Divider()
+                        .padding(.vertical, 8)
+
+                    // Overlay Position
+                    HStack(spacing: 12) {
                         Text("Overlay Position")
                             .dsFont(.label)
                             .foregroundStyle(Color.dsForeground)
-                        Text("Choose where the overlay indicator appears on your screen")
-                            .dsFont(.tiny)
-                            .foregroundStyle(Color.dsMutedForeground)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-
-                    Spacer()
-
-                    Picker("", selection: $overlayManager.position) {
-                        ForEach(OverlayPosition.allCases, id: \.self) { position in
-                            Text(position.rawValue).tag(position)
+                        Spacer()
+                        Picker("", selection: $overlayManager.position) {
+                            ForEach(OverlayPosition.allCases, id: \.self) { position in
+                                Text(position.rawValue).tag(position)
+                            }
                         }
+                        .pickerStyle(.menu)
+                        .fixedSize()
                     }
-                    .pickerStyle(.menu)
-                    .fixedSize()
+                    .padding(.vertical, 4)
                 }
             }
 
-            // LAUNCH AT LOGIN
+            // Startup & Screen Context Group
             SettingsCard {
-                HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
+                VStack(spacing: 0) {
+                    // Launch at Login
+                    HStack(spacing: 12) {
                         Text("Launch at Login")
                             .dsFont(.label)
                             .foregroundStyle(Color.dsForeground)
-                        Text("Automatically start AI Dictation when you log in")
-                            .dsFont(.tiny)
-                            .foregroundStyle(Color.dsMutedForeground)
-                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { launchAtLoginManager.isEnabled },
+                            set: { _ in launchAtLoginManager.toggle() }
+                        ))
+                        .toggleStyle(.switch)
+                        .controlSize(.mini)
+                        .labelsHidden()
                     }
-                    Spacer()
-                    Toggle("", isOn: Binding(
-                        get: { launchAtLoginManager.isEnabled },
-                        set: { _ in launchAtLoginManager.toggle() }
-                    ))
-                    .toggleStyle(.switch)
-                    .controlSize(.mini)
-                    .labelsHidden()
-                }
-            }
+                    .padding(.vertical, 4)
 
-            // SCREEN CONTEXT
-            SettingsCard {
-                HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
+                    Divider()
+                        .padding(.vertical, 8)
+
+                    // Screen Context
+                    HStack(spacing: 12) {
                         Text("Include Screen Context")
                             .dsFont(.label)
                             .foregroundStyle(Color.dsForeground)
-                        Text("Capture and send screen content (via OCR) to improve transcription accuracy")
-                            .dsFont(.tiny)
-                            .foregroundStyle(Color.dsMutedForeground)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    Spacer()
-                    Toggle("", isOn: Binding(
-                        get: { screenCaptureManager.includeScreenContext },
-                        set: { newValue in
-                            if newValue, !screenCaptureManager.hasScreenRecordingPermission {
-                                // Request permission when enabling
-                                screenCaptureManager.requestScreenRecordingPermission()
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { screenCaptureManager.includeScreenContext },
+                            set: { newValue in
+                                if newValue, !screenCaptureManager.hasScreenRecordingPermission {
+                                    screenCaptureManager.requestScreenRecordingPermission()
+                                }
+                                screenCaptureManager.includeScreenContext = newValue
                             }
-                            screenCaptureManager.includeScreenContext = newValue
-                        }
-                    ))
-                    .toggleStyle(.switch)
-                    .controlSize(.mini)
-                    .labelsHidden()
+                        ))
+                        .toggleStyle(.switch)
+                        .controlSize(.mini)
+                        .labelsHidden()
+                    }
+                    .padding(.vertical, 4)
                 }
             }
         }
@@ -493,12 +470,14 @@ struct SettingsView: View {
 
     private var permissionsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Microphone Permission
+            // All Permissions in one card
             SettingsCard {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(spacing: 0) {
+                    // Microphone Permission
                     HStack {
                         Image(systemName: "mic.fill")
                             .foregroundStyle(Color.dsMutedForeground)
+                            .frame(width: 20)
                         Text("Microphone")
                             .dsFont(.label)
                             .foregroundStyle(Color.dsForeground)
@@ -515,18 +494,16 @@ struct SettingsView: View {
                             .controlSize(.small)
                         }
                     }
-                    Text("Required to record audio for transcription")
-                        .dsFont(.tiny)
-                        .foregroundStyle(Color.dsMutedForeground)
-                }
-            }
+                    .padding(.vertical, 4)
 
-            // Accessibility Permission
-            SettingsCard {
-                VStack(alignment: .leading, spacing: 8) {
+                    Divider()
+                        .padding(.vertical, 8)
+
+                    // Accessibility Permission
                     HStack {
                         Image(systemName: "hand.raised.fill")
                             .foregroundStyle(Color.dsMutedForeground)
+                            .frame(width: 20)
                         Text("Accessibility")
                             .dsFont(.label)
                             .foregroundStyle(Color.dsForeground)
@@ -536,25 +513,22 @@ struct SettingsView: View {
                                 .foregroundStyle(Color.dsSecondary)
                         } else {
                             Button("Open Settings") {
-                                // Trigger the accessibility permission dialog
                                 let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true]
                                 let _ = AXIsProcessTrustedWithOptions(options)
                             }
                             .controlSize(.small)
                         }
                     }
-                    Text("Required to auto-paste transcriptions")
-                        .dsFont(.tiny)
-                        .foregroundStyle(Color.dsMutedForeground)
-                }
-            }
+                    .padding(.vertical, 4)
 
-            // Screen Recording Permission
-            SettingsCard {
-                VStack(alignment: .leading, spacing: 8) {
+                    Divider()
+                        .padding(.vertical, 8)
+
+                    // Screen Recording Permission
                     HStack {
                         Image(systemName: "rectangle.dashed.badge.record")
                             .foregroundStyle(Color.dsMutedForeground)
+                            .frame(width: 20)
                         Text("Screen Recording")
                             .dsFont(.label)
                             .foregroundStyle(Color.dsForeground)
@@ -569,9 +543,7 @@ struct SettingsView: View {
                             .controlSize(.small)
                         }
                     }
-                    Text("Required for screen context feature (OCR of active window)")
-                        .dsFont(.tiny)
-                        .foregroundStyle(Color.dsMutedForeground)
+                    .padding(.vertical, 4)
                 }
             }
         }
@@ -581,51 +553,43 @@ struct SettingsView: View {
 
     private var audioSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Audio Input Device
+            // Audio Settings Group
             SettingsCard {
-                HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
+                VStack(spacing: 0) {
+                    // Input Device
+                    HStack(spacing: 12) {
                         Text("Input Device")
                             .dsFont(.label)
                             .foregroundStyle(Color.dsForeground)
-                        Text("Select your microphone or audio input device")
-                            .dsFont(.tiny)
-                            .foregroundStyle(Color.dsMutedForeground)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-
-                    Spacer()
-
-                    Picker("", selection: $selectedAudioDevice) {
-                        ForEach(audioDevices) { device in
-                            Text(device.localizedName).tag(device as AudioDeviceManager.AudioDevice?)
+                        Spacer()
+                        Picker("", selection: $selectedAudioDevice) {
+                            ForEach(audioDevices) { device in
+                                Text(device.localizedName).tag(device as AudioDeviceManager.AudioDevice?)
+                            }
                         }
+                        .pickerStyle(.menu)
+                        .fixedSize()
                     }
-                    .pickerStyle(.menu)
-                    .fixedSize()
-                }
-            }
+                    .padding(.vertical, 4)
 
-            // Mute Other Audio
-            SettingsCard {
-                HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
+                    Divider()
+                        .padding(.vertical, 8)
+
+                    // Mute Other Audio
+                    HStack(spacing: 12) {
                         Text("Mute Other Audio When Recording")
                             .dsFont(.label)
                             .foregroundStyle(Color.dsForeground)
-                        Text("Automatically lower system volume to 30% while recording")
-                            .dsFont(.tiny)
-                            .foregroundStyle(Color.dsMutedForeground)
-                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { UserDefaults.standard.object(forKey: "muteAudioWhenRecording") as? Bool ?? true },
+                            set: { UserDefaults.standard.set($0, forKey: "muteAudioWhenRecording") }
+                        ))
+                        .toggleStyle(.switch)
+                        .controlSize(.mini)
+                        .labelsHidden()
                     }
-                    Spacer()
-                    Toggle("", isOn: Binding(
-                        get: { UserDefaults.standard.object(forKey: "muteAudioWhenRecording") as? Bool ?? true },
-                        set: { UserDefaults.standard.set($0, forKey: "muteAudioWhenRecording") }
-                    ))
-                    .toggleStyle(.switch)
-                    .controlSize(.mini)
-                    .labelsHidden()
+                    .padding(.vertical, 4)
                 }
             }
         }
