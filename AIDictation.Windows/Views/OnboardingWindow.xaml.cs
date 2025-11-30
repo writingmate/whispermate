@@ -105,14 +105,10 @@ public partial class OnboardingWindow : Window
 
     private void UpdateMicrophoneButtons()
     {
-        // For desktop apps, check if microphone devices are available
-        // Desktop apps don't need explicit permission - they use
-        // "Let desktop apps access your microphone" setting
-        var hasDevices = NAudio.Wave.WaveInEvent.DeviceCount > 0;
-
-        MicrophoneEnableButton.Visibility = hasDevices ? Visibility.Collapsed : Visibility.Visible;
-        MicrophoneContinueButton.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
-        MicrophoneGrantedIndicator.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
+        // Initial state - show enable button, will be updated by CheckMicrophonePermission
+        MicrophoneEnableButton.Visibility = Visibility.Visible;
+        MicrophoneContinueButton.Visibility = Visibility.Collapsed;
+        MicrophoneGrantedIndicator.Visibility = Visibility.Collapsed;
     }
 
 
@@ -312,20 +308,43 @@ public partial class OnboardingWindow : Window
         }
     }
 
-    private void CheckMicrophonePermission()
+    private async void CheckMicrophonePermission()
     {
         try
         {
             var hasDevices = NAudio.Wave.WaveInEvent.DeviceCount > 0;
 
-            MicrophoneEnableButton.Visibility = hasDevices ? Visibility.Collapsed : Visibility.Visible;
-            MicrophoneContinueButton.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
-            MicrophoneGrantedIndicator.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
-
-            // If microphone is available, stop polling
-            if (hasDevices)
+            if (!hasDevices)
             {
+                // No devices at all
+                MicrophoneEnableButton.Visibility = Visibility.Visible;
+                MicrophoneContinueButton.Visibility = Visibility.Collapsed;
+                MicrophoneGrantedIndicator.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            // Try a brief recording test to verify actual access
+            try
+            {
+                using var waveIn = new NAudio.Wave.WaveInEvent();
+                waveIn.DeviceNumber = 0;
+                waveIn.WaveFormat = new NAudio.Wave.WaveFormat(16000, 16, 1);
+                waveIn.StartRecording();
+                await System.Threading.Tasks.Task.Delay(100);
+                waveIn.StopRecording();
+
+                // Recording succeeded - permission granted
+                MicrophoneEnableButton.Visibility = Visibility.Collapsed;
+                MicrophoneContinueButton.Visibility = Visibility.Visible;
+                MicrophoneGrantedIndicator.Visibility = Visibility.Visible;
                 StopPermissionCheck();
+            }
+            catch
+            {
+                // Recording failed - permission likely denied
+                MicrophoneEnableButton.Visibility = Visibility.Visible;
+                MicrophoneContinueButton.Visibility = Visibility.Collapsed;
+                MicrophoneGrantedIndicator.Visibility = Visibility.Collapsed;
             }
         }
         catch (Exception ex)
