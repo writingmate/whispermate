@@ -4,16 +4,20 @@
 <dict>
 	<key>ATSApplicationFontsPath</key>
 	<string>.</string>
+	<key>CFBundleDisplayName</key>
+	<string>AIDictation</string>
+	<key>CFBundleName</key>
+	<string>AIDictation</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>ai.writingmate.whispermate</string>
+			<string>ai.writingmate.aidictation</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>whispermate</string>
+				<string>aidictation</string>
 			</array>
 		</dict>
 	</array>

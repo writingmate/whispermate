@@ -12,7 +12,7 @@ public class AuthManager: ObservableObject {
     // MARK: - Constants
 
     private enum Constants {
-        static let authCallbackScheme = "whispermate://auth-callback"
+        static let authCallbackScheme = "aidictation://auth-callback"
         static let userAuthChangedNotification = "UserAuthenticationChanged"
     }
 

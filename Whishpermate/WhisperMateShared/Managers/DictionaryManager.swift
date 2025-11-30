@@ -33,7 +33,7 @@ public class DictionaryManager: ObservableObject {
             // Add default entries with real-world examples (all disabled by default)
             entries = [
                 // Words needing correction (with replacements)
-                DictionaryEntry(trigger: "whisper mate", replacement: "WhisperMate", isEnabled: false),
+                DictionaryEntry(trigger: "AI dictation", replacement: "AIDictation", isEnabled: false),
                 DictionaryEntry(trigger: "calendly", replacement: "Calendly", isEnabled: false),
                 DictionaryEntry(trigger: "open AI", replacement: "OpenAI", isEnabled: false),
                 DictionaryEntry(trigger: "chat GPT", replacement: "ChatGPT", isEnabled: false),

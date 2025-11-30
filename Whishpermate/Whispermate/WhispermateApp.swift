@@ -374,27 +374,27 @@ struct WhishpermateApp: App {
     private func handleURL(_ url: URL) {
         DebugLog.info("Received URL callback: \(url.absoluteString)", context: "WhispermateApp")
 
-        // Handle authentication callback (whispermate://auth-callback)
-        if url.scheme == "whispermate", url.host == "auth-callback" || url.host == "auth" {
+        // Handle authentication callback (aidictation://auth-callback)
+        if url.scheme == "aidictation", url.host == "auth-callback" || url.host == "auth" {
             Task {
                 await authManager.handleAuthCallback(url: url)
             }
         }
         // Handle payment success callback
-        else if url.scheme == "whispermate", url.host == "payment", url.path == "/success" {
+        else if url.scheme == "aidictation", url.host == "payment", url.path == "/success" {
             Task {
                 await subscriptionManager.handlePaymentSuccess()
             }
         }
         // Handle payment cancel callback
-        else if url.scheme == "whispermate", url.host == "payment", url.path == "/cancel" {
+        else if url.scheme == "aidictation", url.host == "payment", url.path == "/cancel" {
             subscriptionManager.handlePaymentCancel()
         }
     }
 
     var body: some Scene {
         // Use Window instead of WindowGroup to prevent multiple instances
-        Window("Whispermate", id: "main") {
+        Window("AIDictation", id: "main") {
             HistoryMasterDetailView()
                 .onOpenURL { url in
                     handleURL(url)

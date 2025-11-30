@@ -53,7 +53,7 @@ class StatusBarManager {
         } else {
             // Fallback to SF Symbol
             let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .regular)
-            button.image = NSImage(systemSymbolName: "waveform", accessibilityDescription: "WhisperMate")?.withSymbolConfiguration(config)
+            button.image = NSImage(systemSymbolName: "waveform", accessibilityDescription: "AIDictation")?.withSymbolConfiguration(config)
         }
 
         // Create menu
@@ -61,7 +61,7 @@ class StatusBarManager {
 
         // Show/Hide Window
         let showHideItem = NSMenuItem(
-            title: "Show WhisperMate",
+            title: "Show AIDictation",
             action: #selector(toggleWindow),
             keyEquivalent: ""
         )
@@ -103,7 +103,7 @@ class StatusBarManager {
 
         // Quit
         let quitItem = NSMenuItem(
-            title: "Quit WhisperMate",
+            title: "Quit AIDictation",
             action: #selector(quit),
             keyEquivalent: "q"
         )

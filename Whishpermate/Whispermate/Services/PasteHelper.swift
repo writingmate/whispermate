@@ -80,9 +80,9 @@ class PasteHelper {
         let targetApp = previousApp ?? NSWorkspace.shared.frontmostApplication
         DebugLog.info("Target app for paste: \(targetApp?.localizedName ?? "unknown")", context: "PasteHelper")
 
-        // Don't paste if target is WhisperMate itself (prevents beep when history window is active)
+        // Don't paste if target is AIDictation itself (prevents beep when history window is active)
         if targetApp?.bundleIdentifier == Bundle.main.bundleIdentifier {
-            DebugLog.info("⚠️ Target is WhisperMate - skipping paste to avoid beep", context: "PasteHelper")
+            DebugLog.info("⚠️ Target is AIDictation - skipping paste to avoid beep", context: "PasteHelper")
             previousApp = nil
             return
         }

@@ -33,9 +33,9 @@ enum OnboardingStep: Int, CaseIterable {
     var explanation: String {
         switch self {
         case .microphone:
-            return "Whispermate needs access to your microphone to record your voice for transcription."
+            return "AIDictation needs access to your microphone to record your voice for transcription."
         case .accessibility:
-            return "Whispermate needs accessibility permissions to automatically paste transcriptions into your apps."
+            return "AIDictation needs accessibility permissions to automatically paste transcriptions into your apps."
         case .language:
             return "Select the languages you speak. You can choose multiple languages or use auto-detect."
         case .hotkey:
