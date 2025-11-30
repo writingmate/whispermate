@@ -105,28 +105,14 @@ public partial class OnboardingWindow : Window
 
     private void UpdateMicrophoneButtons()
     {
-        try
-        {
-            // Check microphone permission using WinRT API
-            var deviceAccessInfo = Windows.Devices.Enumeration.DeviceAccessInformation
-                .CreateFromDeviceClass(Windows.Devices.Enumeration.DeviceClass.AudioCapture);
-            var accessStatus = deviceAccessInfo.CurrentStatus;
+        // For desktop apps, check if microphone devices are available
+        // Desktop apps don't need explicit permission - they use
+        // "Let desktop apps access your microphone" setting
+        var hasDevices = NAudio.Wave.WaveInEvent.DeviceCount > 0;
 
-            var hasPermission = accessStatus == Windows.Devices.Enumeration.DeviceAccessStatus.Allowed;
-
-            MicrophoneEnableButton.Visibility = hasPermission ? Visibility.Collapsed : Visibility.Visible;
-            MicrophoneContinueButton.Visibility = hasPermission ? Visibility.Visible : Visibility.Collapsed;
-            MicrophoneGrantedIndicator.Visibility = hasPermission ? Visibility.Visible : Visibility.Collapsed;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Failed to check microphone permission: {ex.Message}");
-            // Fall back to checking device count
-            var hasDevices = NAudio.Wave.WaveInEvent.DeviceCount > 0;
-            MicrophoneEnableButton.Visibility = hasDevices ? Visibility.Collapsed : Visibility.Visible;
-            MicrophoneContinueButton.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
-            MicrophoneGrantedIndicator.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
-        }
+        MicrophoneEnableButton.Visibility = hasDevices ? Visibility.Collapsed : Visibility.Visible;
+        MicrophoneContinueButton.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
+        MicrophoneGrantedIndicator.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
     }
 
 
@@ -168,41 +154,31 @@ public partial class OnboardingWindow : Window
     {
         try
         {
-            // Use WinRT MediaCapture API to request microphone permission
-            // This triggers the Windows permission prompt
-            var mediaCapture = new Windows.Media.Capture.MediaCapture();
-            var settings = new Windows.Media.Capture.MediaCaptureInitializationSettings
-            {
-                StreamingCaptureMode = Windows.Media.Capture.StreamingCaptureMode.Audio
-            };
+            // For desktop (unpackaged) WPF apps, we just need to verify
+            // the microphone works - no system prompt is shown.
+            // Desktop apps use the "Let desktop apps access your microphone" setting.
 
-            await mediaCapture.InitializeAsync(settings);
-            mediaCapture.Dispose();
+            // Try to access microphone to verify it works
+            using var waveIn = new NAudio.Wave.WaveInEvent();
+            waveIn.DeviceNumber = 0;
+            waveIn.WaveFormat = new NAudio.Wave.WaveFormat(16000, 16, 1);
 
-            // Update UI after permission granted
+            // Brief recording test to verify access
+            waveIn.StartRecording();
+            await System.Threading.Tasks.Task.Delay(100);
+            waveIn.StopRecording();
+
+            // Success - microphone access works
             UpdateMicrophoneButtons();
-        }
-        catch (UnauthorizedAccessException)
-        {
-            // Permission denied - open settings
-            Debug.WriteLine("Microphone permission denied");
-            try
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = "ms-settings:privacy-microphone",
-                    UseShellExecute = true
-                });
-            }
-            catch (Exception settingsEx)
-            {
-                Debug.WriteLine($"Failed to open settings: {settingsEx.Message}");
-            }
+
+            // Auto-advance to next step since permission is granted
+            _currentStep++;
+            UpdateUI();
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Failed to request microphone: {ex.Message}");
-            // Fall back to opening settings
+            Debug.WriteLine($"Microphone access failed: {ex.Message}");
+            // Open settings so user can enable "Let desktop apps access your microphone"
             try
             {
                 Process.Start(new ProcessStartInfo
