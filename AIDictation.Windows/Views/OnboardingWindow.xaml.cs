@@ -7,7 +7,6 @@ using System.Windows.Navigation;
 using System.Windows.Threading;
 using System.Windows.Controls.Primitives;
 using AIDictation.Services;
-using Windows.Media.Capture;
 
 namespace AIDictation.Views;
 
@@ -147,62 +146,14 @@ public partial class OnboardingWindow : Window
         }
     }
 
-    private async void RequestMicrophonePermission_Click(object sender, RoutedEventArgs e)
+    private void RequestMicrophonePermission_Click(object sender, RoutedEventArgs e)
     {
-        // Disable button during check
-        MicrophoneEnableButton.IsEnabled = false;
-        MicrophoneEnableButton.Content = "Requesting...";
+        // Check if any microphone devices exist using NAudio
+        var deviceCount = NAudio.Wave.WaveInEvent.DeviceCount;
 
-        try
+        if (deviceCount == 0)
         {
-            // First check if any audio input devices exist
-            var devices = await Windows.Devices.Enumeration.DeviceInformation.FindAllAsync(
-                Windows.Devices.Enumeration.DeviceClass.AudioCapture);
-
-            if (devices.Count == 0)
-            {
-                // No microphone hardware - let user skip
-                var result = MessageBox.Show(
-                    "No microphone detected on this device. You can continue without a microphone, but recording won't work until one is connected.\n\nContinue anyway?",
-                    "No Microphone Found",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning);
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    _currentStep++;
-                    UpdateUI();
-                }
-                else
-                {
-                    MicrophoneEnableButton.IsEnabled = true;
-                    MicrophoneEnableButton.Content = "Enable Microphone";
-                }
-                return;
-            }
-
-            // Use WinRT MediaCapture to trigger the permission dialog
-            var mediaCapture = new MediaCapture();
-            var settings = new MediaCaptureInitializationSettings
-            {
-                StreamingCaptureMode = StreamingCaptureMode.Audio
-            };
-            await mediaCapture.InitializeAsync(settings);
-            mediaCapture.Dispose();
-
-            // Success - permission granted, advance to next step
-            _currentStep++;
-            UpdateUI();
-        }
-        catch (UnauthorizedAccessException)
-        {
-            Debug.WriteLine("Microphone access denied by user or system");
-
-            // Re-enable button
-            MicrophoneEnableButton.IsEnabled = true;
-            MicrophoneEnableButton.Content = "Enable Microphone";
-
-            // Open settings so user can enable microphone access
+            // No microphone - open settings and let user skip
             try
             {
                 Process.Start(new ProcessStartInfo
@@ -211,42 +162,21 @@ public partial class OnboardingWindow : Window
                     UseShellExecute = true
                 });
             }
-            catch (Exception settingsEx)
+            catch (Exception ex)
             {
-                Debug.WriteLine($"Failed to open settings: {settingsEx.Message}");
-                MessageBox.Show("Please enable microphone access in Windows Settings > Privacy & security > Microphone",
-                    "Microphone Access Required", MessageBoxButton.OK, MessageBoxImage.Information);
+                Debug.WriteLine($"Failed to open settings: {ex.Message}");
             }
+
+            MessageBox.Show(
+                "No microphone detected. Please connect a microphone and enable it in Windows Settings.\n\nYou can continue setup, but recording won't work until a microphone is available.",
+                "No Microphone Found",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
         }
-        catch (Exception ex)
-        {
-            Debug.WriteLine($"Microphone access failed: {ex.Message}");
 
-            // Re-enable button
-            MicrophoneEnableButton.IsEnabled = true;
-            MicrophoneEnableButton.Content = "Enable Microphone";
-
-            // Check if it's a "no devices" error
-            if (ex.Message.Contains("No capture devices") || ex.Message.Contains("0xC00DABE0"))
-            {
-                var result = MessageBox.Show(
-                    "No microphone detected. Continue without a microphone?",
-                    "No Microphone",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question);
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    _currentStep++;
-                    UpdateUI();
-                }
-            }
-            else
-            {
-                MessageBox.Show($"Failed to access microphone: {ex.Message}",
-                    "Microphone Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-        }
+        // Always advance - desktop apps don't need explicit permission
+        _currentStep++;
+        UpdateUI();
     }
 
     private void OpenScreenRecordingSettings_Click(object sender, RoutedEventArgs e)
@@ -359,49 +289,26 @@ public partial class OnboardingWindow : Window
         }
     }
 
-    private async void CheckMicrophonePermission()
+    private void CheckMicrophonePermission()
     {
         try
         {
-            // First check if any audio devices exist
-            var devices = await Windows.Devices.Enumeration.DeviceInformation.FindAllAsync(
-                Windows.Devices.Enumeration.DeviceClass.AudioCapture);
+            var hasDevices = NAudio.Wave.WaveInEvent.DeviceCount > 0;
 
-            if (devices.Count == 0)
+            // Show appropriate UI based on device availability
+            MicrophoneEnableButton.Visibility = hasDevices ? Visibility.Collapsed : Visibility.Visible;
+            MicrophoneContinueButton.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
+            MicrophoneGrantedIndicator.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
+
+            if (hasDevices)
             {
-                // No devices - show enable button which will allow skip
-                MicrophoneEnableButton.Visibility = Visibility.Visible;
-                MicrophoneContinueButton.Visibility = Visibility.Collapsed;
-                MicrophoneGrantedIndicator.Visibility = Visibility.Collapsed;
-                return;
+                StopPermissionCheck();
             }
-
-            // Use WinRT MediaCapture to check permission status
-            var mediaCapture = new MediaCapture();
-            var settings = new MediaCaptureInitializationSettings
-            {
-                StreamingCaptureMode = StreamingCaptureMode.Audio
-            };
-            await mediaCapture.InitializeAsync(settings);
-            mediaCapture.Dispose();
-
-            // Permission granted
-            MicrophoneEnableButton.Visibility = Visibility.Collapsed;
-            MicrophoneContinueButton.Visibility = Visibility.Visible;
-            MicrophoneGrantedIndicator.Visibility = Visibility.Visible;
-            StopPermissionCheck();
-        }
-        catch (UnauthorizedAccessException)
-        {
-            // Permission denied
-            MicrophoneEnableButton.Visibility = Visibility.Visible;
-            MicrophoneContinueButton.Visibility = Visibility.Collapsed;
-            MicrophoneGrantedIndicator.Visibility = Visibility.Collapsed;
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Failed to check microphone permission: {ex.Message}");
-            // Assume permission needed
+            Debug.WriteLine($"Failed to check microphone: {ex.Message}");
+            // Show enable button on error
             MicrophoneEnableButton.Visibility = Visibility.Visible;
             MicrophoneContinueButton.Visibility = Visibility.Collapsed;
             MicrophoneGrantedIndicator.Visibility = Visibility.Collapsed;
