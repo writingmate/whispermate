@@ -105,10 +105,28 @@ public partial class OnboardingWindow : Window
 
     private void UpdateMicrophoneButtons()
     {
-        var hasDevices = NAudio.Wave.WaveInEvent.DeviceCount > 0;
-        MicrophoneEnableButton.Visibility = hasDevices ? Visibility.Collapsed : Visibility.Visible;
-        MicrophoneContinueButton.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
-        MicrophoneGrantedIndicator.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
+        try
+        {
+            // Check microphone permission using WinRT API
+            var deviceAccessInfo = Windows.Devices.Enumeration.DeviceAccessInformation
+                .CreateFromDeviceClass(Windows.Devices.Enumeration.DeviceClass.AudioCapture);
+            var accessStatus = deviceAccessInfo.CurrentStatus;
+
+            var hasPermission = accessStatus == Windows.Devices.Enumeration.DeviceAccessStatus.Allowed;
+
+            MicrophoneEnableButton.Visibility = hasPermission ? Visibility.Collapsed : Visibility.Visible;
+            MicrophoneContinueButton.Visibility = hasPermission ? Visibility.Visible : Visibility.Collapsed;
+            MicrophoneGrantedIndicator.Visibility = hasPermission ? Visibility.Visible : Visibility.Collapsed;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to check microphone permission: {ex.Message}");
+            // Fall back to checking device count
+            var hasDevices = NAudio.Wave.WaveInEvent.DeviceCount > 0;
+            MicrophoneEnableButton.Visibility = hasDevices ? Visibility.Collapsed : Visibility.Visible;
+            MicrophoneContinueButton.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
+            MicrophoneGrantedIndicator.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
+        }
     }
 
 
@@ -150,24 +168,41 @@ public partial class OnboardingWindow : Window
     {
         try
         {
-            // Request microphone access by attempting to use it
+            // Use WinRT MediaCapture API to request microphone permission
             // This triggers the Windows permission prompt
-            using var waveIn = new NAudio.Wave.WaveInEvent();
-            waveIn.DeviceNumber = 0;
-            waveIn.WaveFormat = new NAudio.Wave.WaveFormat(16000, 16, 1);
+            var mediaCapture = new Windows.Media.Capture.MediaCapture();
+            var settings = new Windows.Media.Capture.MediaCaptureInitializationSettings
+            {
+                StreamingCaptureMode = Windows.Media.Capture.StreamingCaptureMode.Audio
+            };
 
-            // Start and immediately stop to trigger permission request
-            waveIn.StartRecording();
-            await System.Threading.Tasks.Task.Delay(100);
-            waveIn.StopRecording();
+            await mediaCapture.InitializeAsync(settings);
+            mediaCapture.Dispose();
 
-            // Update UI after permission request
+            // Update UI after permission granted
             UpdateMicrophoneButtons();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // Permission denied - open settings
+            Debug.WriteLine("Microphone permission denied");
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "ms-settings:privacy-microphone",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception settingsEx)
+            {
+                Debug.WriteLine($"Failed to open settings: {settingsEx.Message}");
+            }
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Failed to request microphone: {ex.Message}");
-            // If direct access fails, fall back to opening settings
+            // Fall back to opening settings
             try
             {
                 Process.Start(new ProcessStartInfo
