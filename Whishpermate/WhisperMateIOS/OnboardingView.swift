@@ -1,5 +1,5 @@
-import SwiftUI
 import AVFoundation
+import SwiftUI
 import WhisperMateShared
 
 struct OnboardingView: View {
@@ -42,7 +42,8 @@ struct OnboardingView: View {
         .onAppear {
             // Load API key from Secrets.plist into keychain on first launch
             if KeychainHelper.get(key: "custom_transcription_api_key") == nil,
-               let apiKey = SecretsLoader.transcriptionKey(for: .custom) {
+               let apiKey = SecretsLoader.transcriptionKey(for: .custom)
+            {
                 KeychainHelper.save(key: "custom_transcription_api_key", value: apiKey)
             }
 
@@ -117,7 +118,6 @@ struct OnboardingView: View {
             }
         }
     }
-
 
     private var keyboardSetupStep: some View {
         VStack(spacing: 20) {

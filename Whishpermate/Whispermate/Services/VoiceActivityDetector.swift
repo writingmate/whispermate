@@ -1,5 +1,5 @@
-import Foundation
 import AVFoundation
+import Foundation
 
 /// Voice Activity Detection service using Silero VAD CoreML model
 /// Analyzes completed audio files to determine if they contain speech

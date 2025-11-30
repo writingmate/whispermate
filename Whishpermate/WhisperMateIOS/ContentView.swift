@@ -1,6 +1,6 @@
+import AVFoundation
 import SwiftUI
 import WhisperMateShared
-import AVFoundation
 
 struct ContentView: View {
     @StateObject private var historyManager = HistoryManager()
@@ -464,7 +464,6 @@ struct ContentView: View {
         // Fallback to general settings if keyboard shortcut doesn't work
         openAppSettings()
     }
-
 }
 
 // MARK: - Permission Row Component

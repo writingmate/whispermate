@@ -16,7 +16,8 @@ public class SupabaseManager {
     private init() {
         guard let supabaseURL = SecretsLoader.getValue(for: "SUPABASE_URL"),
               let supabaseKey = SecretsLoader.getValue(for: "SUPABASE_ANON_KEY"),
-              let url = URL(string: supabaseURL) else {
+              let url = URL(string: supabaseURL)
+        else {
             fatalError("Missing Supabase credentials in Secrets.plist")
         }
 
@@ -49,7 +50,7 @@ public class SupabaseManager {
 
         guard let user = response.first else {
             throw NSError(domain: "SupabaseManager", code: 404, userInfo: [
-                NSLocalizedDescriptionKey: "User not found in database"
+                NSLocalizedDescriptionKey: "User not found in database",
             ])
         }
 
@@ -83,7 +84,7 @@ public class SupabaseManager {
 
         guard let updatedUser = response.first else {
             throw NSError(domain: "SupabaseManager", code: 500, userInfo: [
-                NSLocalizedDescriptionKey: "Failed to update user word count"
+                NSLocalizedDescriptionKey: "Failed to update user word count",
             ])
         }
 

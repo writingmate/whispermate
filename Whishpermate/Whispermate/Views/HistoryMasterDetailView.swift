@@ -1,5 +1,6 @@
-import SwiftUI
 import AppKit
+import SwiftUI
+import WhisperMateShared
 
 enum AIApp: String, CaseIterable, Identifiable {
     case writingmate = "Writingmate"
@@ -94,13 +95,13 @@ struct HistoryMasterDetailView: View {
                 // Empty state when no recording is selected
                 VStack(spacing: 12) {
                     Image(systemName: "mic.circle")
-                        .font(.system(size: 64))
+                        .dsFont(.iconLarge)
                         .foregroundStyle(.tertiary)
                     Text("Select a recording")
-                        .font(.title2)
+                        .dsFont(.title2)
                         .foregroundStyle(.secondary)
                     Text("Press Fn to start recording")
-                        .font(.caption)
+                        .dsFont(.caption)
                         .foregroundStyle(.tertiary)
                 }
                 .navigationTitle("")
@@ -174,12 +175,12 @@ struct HistorySidebarView: View {
             if filteredRecordings.isEmpty {
                 VStack(spacing: 12) {
                     Image(systemName: searchText.isEmpty ? "mic.slash" : "magnifyingglass")
-                        .font(.system(size: 36))
+                        .dsFont(.h2)
                         .foregroundStyle(.tertiary)
                     Text(searchText.isEmpty ? "No Recordings" : "No Results")
-                        .font(.headline)
+                        .dsFont(.headline)
                     Text(searchText.isEmpty ? "Your recordings will appear here" : "Try a different search")
-                        .font(.caption)
+                        .dsFont(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -228,7 +229,7 @@ struct HistorySidebarView: View {
         NSPasteboard.general.setString(transcription, forType: .string)
     }
 
-    private func retryTranscription(_ recording: Recording) {
+    private func retryTranscription(_: Recording) {
         // TODO: Implement retry logic
         // This would need to re-transcribe the audio file from recording.audioFileURL
     }
@@ -267,14 +268,14 @@ struct HistorySidebarRow: View {
             // Main content
             if let transcription = recording.transcription {
                 Text(transcription)
-                    .font(.body)
+                    .dsFont(.body)
                     .lineLimit(3)
             } else {
                 Label("Failed", systemImage: "exclamationmark.triangle.fill")
                     .foregroundStyle(.orange)
                 if let errorMessage = recording.errorMessage {
                     Text(errorMessage)
-                        .font(.caption)
+                        .dsFont(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                 }
@@ -283,15 +284,15 @@ struct HistorySidebarRow: View {
             // Metadata
             HStack(spacing: 4) {
                 Text(recording.formattedDate)
-                    .font(.caption)
+                    .dsFont(.caption)
                     .foregroundStyle(.secondary)
 
                 if let duration = recording.formattedDuration {
                     Text("•")
-                        .font(.caption)
+                        .dsFont(.caption)
                         .foregroundStyle(.tertiary)
                     Text(duration)
-                        .font(.caption)
+                        .dsFont(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -325,16 +326,16 @@ struct RecordingDetailView: View {
                     if let transcription = recording.transcription {
                         Text(transcription)
                             .textSelection(.enabled)
-                            .font(.body)
+                            .dsFont(.body)
                     } else {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Transcription Failed")
-                                .font(.headline)
+                                .dsFont(.headline)
                                 .foregroundStyle(.orange)
 
                             if let errorMessage = recording.errorMessage {
                                 Text(errorMessage)
-                                    .font(.body)
+                                    .dsFont(.body)
                                     .foregroundStyle(.secondary)
                             }
                         }
@@ -350,7 +351,7 @@ struct RecordingDetailView: View {
             HStack {
                 Spacer()
                 Text("Press Fn to start a new recording")
-                    .font(.caption)
+                    .dsFont(.caption)
                     .foregroundStyle(.tertiary)
                 Spacer()
             }
@@ -360,7 +361,6 @@ struct RecordingDetailView: View {
         .background(Color(nsColor: .windowBackgroundColor))
         .navigationTitle(recording.formattedDate)
         .toolbar {
-
             // All action buttons grouped together
             ToolbarItemGroup(placement: .automatic) {
                 // Status indicator for failed recordings

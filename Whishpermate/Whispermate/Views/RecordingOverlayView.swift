@@ -10,7 +10,7 @@ struct RecordingOverlayView: View {
     // MARK: - Size Constants (single source of truth)
 
     // Recording/Processing state
-    private let activeStateWidth: CGFloat = 95  // Narrow for 14 bars
+    private let activeStateWidth: CGFloat = 95 // Narrow for 14 bars
     private let activeStateHeight: CGFloat = 24
 
     // Idle state
@@ -115,7 +115,7 @@ struct RecordingOverlayView: View {
     }
 
     @ViewBuilder
-    private func overlayContent(geometry: GeometryProxy) -> some View {
+    private func overlayContent(geometry _: GeometryProxy) -> some View {
         // Horizontal layout for top/bottom positions
         HStack(spacing: itemSpacing) {
             contentView
@@ -155,7 +155,7 @@ struct RecordingOverlayView: View {
             // Overlay the actual content only after expansion is complete
             if manager.isRecording && shouldShowContent {
                 AudioVisualizationView(audioLevel: manager.audioLevel, color: .white, frequencyBands: manager.frequencyBands)
-                    .frame(maxHeight: activeStateHeight)  // Constrain to container height
+                    .frame(maxHeight: activeStateHeight) // Constrain to container height
             } else if manager.isProcessing && shouldShowContent {
                 ProgressView()
                     .tint(.white)
@@ -165,13 +165,13 @@ struct RecordingOverlayView: View {
         }
         .animation(.easeInOut(duration: 0.25), value: shouldShowExpandedPill)
     }
-    
+
     private var expandButton: some View {
         Button(action: {
             manager.expandToFullMode()
         }) {
             Image(systemName: "arrow.up.left.and.arrow.down.right")
-                .font(.system(size: 9, weight: .medium))
+                .dsFont(.micro)
                 .foregroundStyle(.white.opacity(0.9))
                 .padding(4)
                 .background(
@@ -186,7 +186,7 @@ struct RecordingOverlayView: View {
 }
 
 #Preview {
-    let manager = OverlayWindowManager()
+    let manager = OverlayWindowManager.shared
     manager.isRecording = true
     manager.isProcessing = false
     return RecordingOverlayView(manager: manager)

@@ -90,10 +90,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		C18566D32EA0D31000B46F55 /* Whispermate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = Whispermate.app; path = /Users/avysotsky/Projects/vood/whispermate/Whishpermate/build/Debug/Whispermate.app; sourceTree = "<absolute>"; };
-		C1E7D2AD2EBA925200A07338 /* WhisperMateShared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = WhisperMateShared.framework; path = /Users/avysotsky/Projects/vood/whispermate/Whishpermate/build/Debug/WhisperMateShared.framework; sourceTree = "<absolute>"; };
-		C1E7D2EE2EBA92A500A07338 /* WhisperMateIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = WhisperMateIOS.app; path = "/Users/avysotsky/Projects/vood/whispermate/Whishpermate/build/Debug-iphoneos/WhisperMateIOS.app"; sourceTree = "<absolute>"; };
-		C1E7D3052EBA92C900A07338 /* WhisperMateKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; name = WhisperMateKeyboard.appex; path = "/Users/avysotsky/Projects/vood/whispermate/Whishpermate/build/Debug-iphoneos/WhisperMateKeyboard.appex"; sourceTree = "<absolute>"; };
+		C1CE643F2ED8417000D24235 /* Whispermate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Whispermate.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C1CE64402ED8417000D24235 /* WhisperMateIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhisperMateIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C1CE64412ED8417000D24235 /* WhisperMateKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WhisperMateKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		C1E7D2AD2EBA925200A07338 /* WhisperMateShared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WhisperMateShared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -132,8 +132,6 @@
 		};
 		C1E7D2AE2EBA925200A07338 /* WhisperMateShared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = WhisperMateShared;
 			sourceTree = "<group>";
 		};
@@ -206,7 +204,19 @@
 				C1E7D2EF2EBA92A500A07338 /* WhisperMateIOS */,
 				C1E7D3062EBA92C900A07338 /* WhisperMateKeyboard */,
 				C12A3A0E2ED4CFAA002D97E6 /* Frameworks */,
+				C1CE643E2ED8417000D24235 /* Recovered References */,
+				C1CE643F2ED8417000D24235 /* Whispermate.app */,
+				C1CE64402ED8417000D24235 /* WhisperMateIOS.app */,
+				C1CE64412ED8417000D24235 /* WhisperMateKeyboard.appex */,
 			);
+			sourceTree = "<group>";
+		};
+		C1CE643E2ED8417000D24235 /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				C1E7D2AD2EBA925200A07338 /* WhisperMateShared.framework */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -242,7 +252,7 @@
 			);
 			name = Whispermate;
 			productName = Whishpermate;
-			productReference = C18566D32EA0D31000B46F55 /* Whispermate.app */;
+			productReference = C1CE643F2ED8417000D24235 /* Whispermate.app */;
 			productType = "com.apple.product-type.application";
 		};
 		C1E7D2AC2EBA925200A07338 /* WhisperMateShared */ = {
@@ -287,7 +297,7 @@
 			);
 			name = WhisperMateIOS;
 			productName = WhisperMateIOS;
-			productReference = C1E7D2EE2EBA92A500A07338 /* WhisperMateIOS.app */;
+			productReference = C1CE64402ED8417000D24235 /* WhisperMateIOS.app */;
 			productType = "com.apple.product-type.application";
 		};
 		C1E7D3042EBA92C900A07338 /* WhisperMateKeyboard */ = {
@@ -309,7 +319,7 @@
 			);
 			name = WhisperMateKeyboard;
 			productName = WhisperMateKeyboard;
-			productReference = C1E7D3052EBA92C900A07338 /* WhisperMateKeyboard.appex */;
+			productReference = C1CE64412ED8417000D24235 /* WhisperMateKeyboard.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */

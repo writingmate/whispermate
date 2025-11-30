@@ -1,16 +1,12 @@
-//
-//  AudioDeviceManager.swift
-//  Whispermate
-//
-//  Manages audio input device selection on macOS using Core Audio
-//
-
-import Foundation
-import CoreAudio
 import AVFoundation
+import CoreAudio
+import Foundation
 
+/// Manages audio input device enumeration and selection using Core Audio
 class AudioDeviceManager {
     static let shared = AudioDeviceManager()
+
+    // MARK: - Types
 
     struct AudioDevice: Identifiable, Equatable, Hashable {
         let id: AudioDeviceID
@@ -28,11 +24,13 @@ class AudioDeviceManager {
         }
     }
 
+    // MARK: - Initialization
+
     private init() {
         setupDeviceChangeListener()
     }
 
-    // MARK: - Device Enumeration
+    // MARK: - Public API
 
     func getInputDevices() -> [AudioDevice] {
         var devices: [AudioDevice] = []
@@ -73,7 +71,8 @@ class AudioDeviceManager {
         for deviceID in audioDevices {
             if hasInputStreams(deviceID: deviceID),
                let name = getDeviceName(deviceID: deviceID),
-               let uid = getDeviceUID(deviceID: deviceID) {
+               let uid = getDeviceUID(deviceID: deviceID)
+            {
                 devices.append(AudioDevice(id: deviceID, name: name, uniqueID: uid))
             }
         }
@@ -102,7 +101,8 @@ class AudioDeviceManager {
 
         guard status == noErr,
               let name = getDeviceName(deviceID: deviceID),
-              let uid = getDeviceUID(deviceID: deviceID) else {
+              let uid = getDeviceUID(deviceID: deviceID)
+        else {
             return nil
         }
 
@@ -137,7 +137,7 @@ class AudioDeviceManager {
         }
     }
 
-    // MARK: - Helper Functions
+    // MARK: - Private Methods
 
     private func hasInputStreams(deviceID: AudioDeviceID) -> Bool {
         var propertyAddress = AudioObjectPropertyAddress(
@@ -269,10 +269,10 @@ class AudioDeviceManager {
 
 // Callback for device changes
 private func deviceListChangedCallback(
-    _ inObjectID: AudioObjectID,
-    _ inNumberAddresses: UInt32,
-    _ inAddresses: UnsafePointer<AudioObjectPropertyAddress>,
-    _ inClientData: UnsafeMutableRawPointer?
+    _: AudioObjectID,
+    _: UInt32,
+    _: UnsafePointer<AudioObjectPropertyAddress>,
+    _: UnsafeMutableRawPointer?
 ) -> OSStatus {
     DispatchQueue.main.async {
         NotificationCenter.default.post(

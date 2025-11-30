@@ -4,9 +4,9 @@ internal import Combine
 // MARK: - Transcription Provider
 
 enum TranscriptionProvider: String, CaseIterable, Identifiable {
-    case groq = "groq"
-    case openai = "openai"
-    case custom = "custom"
+    case groq
+    case openai
+    case custom
 
     var id: String { rawValue }
 
@@ -62,7 +62,8 @@ class TranscriptionProviderManager: ObservableObject {
 
     func loadSettings() {
         if let savedProvider = UserDefaults.standard.string(forKey: providerKey),
-           let provider = TranscriptionProvider(rawValue: savedProvider) {
+           let provider = TranscriptionProvider(rawValue: savedProvider)
+        {
             selectedProvider = provider
         } else {
             // Default to custom provider if no saved preference
@@ -118,10 +119,10 @@ class TranscriptionProviderManager: ObservableObject {
 // MARK: - LLM Provider
 
 enum LLMProvider: String, CaseIterable, Identifiable {
-    case groq = "groq"
-    case openai = "openai"
-    case anthropic = "anthropic"
-    case custom = "custom"
+    case groq
+    case openai
+    case anthropic
+    case custom
 
     var id: String { rawValue }
 
@@ -181,7 +182,8 @@ class LLMProviderManager: ObservableObject {
 
     func loadSettings() {
         if let savedProvider = UserDefaults.standard.string(forKey: providerKey),
-           let provider = LLMProvider(rawValue: savedProvider) {
+           let provider = LLMProvider(rawValue: savedProvider)
+        {
             selectedProvider = provider
         }
         customEndpoint = UserDefaults.standard.string(forKey: endpointKey) ?? ""

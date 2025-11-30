@@ -1,7 +1,7 @@
 import Foundation
 import Security
 
-public struct KeychainHelper {
+public enum KeychainHelper {
     // Use a consistent service identifier for the app
     private static let service = "com.whispermate.app"
 
@@ -15,7 +15,7 @@ public struct KeychainHelper {
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrAccount as String: key,
             kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
+            kSecMatchLimit as String: kSecMatchLimitOne,
         ]
 
         var dataTypeRef: AnyObject?
@@ -38,12 +38,12 @@ public struct KeychainHelper {
             kSecAttrService as String: service,
             kSecAttrAccount as String: key,
             kSecValueData as String: data,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
         ]
 
         // Add access group for iOS to enable sharing between app and keyboard extension
         #if os(iOS)
-        query[kSecAttrAccessGroup as String] = accessGroup
+            query[kSecAttrAccessGroup as String] = accessGroup
         #endif
 
         // Delete any existing item
@@ -64,12 +64,12 @@ public struct KeychainHelper {
             kSecAttrService as String: service,
             kSecAttrAccount as String: key,
             kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne
+            kSecMatchLimit as String: kSecMatchLimitOne,
         ]
 
         // Add access group for iOS
         #if os(iOS)
-        query[kSecAttrAccessGroup as String] = accessGroup
+            query[kSecAttrAccessGroup as String] = accessGroup
         #endif
 
         var dataTypeRef: AnyObject?
@@ -90,12 +90,12 @@ public struct KeychainHelper {
         var query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
-            kSecAttrAccount as String: key
+            kSecAttrAccount as String: key,
         ]
 
         // Add access group for iOS
         #if os(iOS)
-        query[kSecAttrAccessGroup as String] = accessGroup
+            query[kSecAttrAccessGroup as String] = accessGroup
         #endif
 
         let status = SecItemDelete(query as CFDictionary)

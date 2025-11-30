@@ -3,7 +3,8 @@ import Foundation
 public enum SecretsLoader {
     private static let secretsDictionary: NSDictionary? = {
         guard let url = Bundle.main.url(forResource: "Secrets", withExtension: "plist"),
-              let dictionary = NSDictionary(contentsOf: url) else {
+              let dictionary = NSDictionary(contentsOf: url)
+        else {
             return nil
         }
         return dictionary

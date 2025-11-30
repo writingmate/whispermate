@@ -44,14 +44,14 @@ public enum SubscriptionTier: String, Codable {
             return [
                 "2,000 words total",
                 "Full transcription features",
-                "Local storage"
+                "Local storage",
             ]
         case .pro:
             return [
                 "Unlimited transcriptions",
                 "Included API access",
                 "Priority support",
-                "Cloud sync (coming soon)"
+                "Cloud sync (coming soon)",
             ]
         }
     }

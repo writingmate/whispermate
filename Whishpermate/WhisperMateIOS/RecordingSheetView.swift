@@ -1,5 +1,5 @@
-import SwiftUI
 import AVFoundation
+import SwiftUI
 import WhisperMateShared
 
 struct RecordingSheetView: View {
@@ -31,9 +31,9 @@ struct RecordingSheetView: View {
         self.toneStyleManager = toneStyleManager
         self.shortcutManager = shortcutManager
         if let recording = recording {
-            self._sheetState = State(initialValue: .viewing)
-            self._transcription = State(initialValue: recording.transcription)
-            self._currentRecording = State(initialValue: recording)
+            _sheetState = State(initialValue: .viewing)
+            _transcription = State(initialValue: recording.transcription)
+            _currentRecording = State(initialValue: recording)
         }
     }
 

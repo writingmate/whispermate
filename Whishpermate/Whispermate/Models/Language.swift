@@ -2,7 +2,7 @@ import Foundation
 internal import Combine
 
 enum Language: String, CaseIterable, Identifiable {
-    case auto = "auto"
+    case auto
     case english = "en"
     case russian = "ru"
     case spanish = "es"

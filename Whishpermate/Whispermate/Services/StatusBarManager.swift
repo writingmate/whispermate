@@ -1,8 +1,9 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 
 // MARK: - Window Identifiers
-struct WindowIdentifiers {
+
+enum WindowIdentifiers {
     static let main = NSUserInterfaceItemIdentifier("main")
     static let settings = NSUserInterfaceItemIdentifier("settings")
     static let history = NSUserInterfaceItemIdentifier("history")
@@ -10,6 +11,7 @@ struct WindowIdentifiers {
 }
 
 // MARK: - Notification Names
+
 extension NSNotification.Name {
     static let showHistory = NSNotification.Name("ShowHistory")
     static let showSettings = NSNotification.Name("ShowSettings")
@@ -20,10 +22,18 @@ extension NSNotification.Name {
     static let recordingReadyForTranscription = NSNotification.Name("RecordingReadyForTranscription")
 }
 
+// MARK: - StatusBarManager
+
+/// Manages the macOS menu bar icon and dropdown menu
 class StatusBarManager {
+    // MARK: - Properties
+
+    weak var appWindow: NSWindow?
+
     private var statusItem: NSStatusItem?
     private var menu: NSMenu?
-    weak var appWindow: NSWindow?
+
+    // MARK: - Public API
 
     func setupMenuBar() {
         // Create status bar item
@@ -36,7 +46,8 @@ class StatusBarManager {
 
         // Use app icon for menu bar
         if let appIcon = NSImage(named: "AppIcon"),
-           let icon = appIcon.copy() as? NSImage {
+           let icon = appIcon.copy() as? NSImage
+        {
             icon.size = NSSize(width: 18, height: 18)
             button.image = icon
         } else {
@@ -103,6 +114,8 @@ class StatusBarManager {
 
         DebugLog.info("Menu bar icon created successfully", context: "StatusBarManager")
     }
+
+    // MARK: - Private Methods
 
     @objc private func toggleWindow() {
         // Use stored window reference if available, otherwise fall back to first window

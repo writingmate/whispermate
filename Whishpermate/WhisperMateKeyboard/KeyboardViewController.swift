@@ -1,12 +1,12 @@
-import UIKit
 import AVFoundation
 import Combine
 import SwiftUI
+import UIKit
 import WhisperMateShared
 
 class KeyboardViewController: UIInputViewController {
-
     // MARK: - Properties
+
     private var audioRecorder: AudioRecorder!
     private var openAIClient: OpenAIClient!
     private var hostingController: UIHostingController<KeyboardRecordingView>!
@@ -133,7 +133,7 @@ class KeyboardViewController: UIInputViewController {
             statusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             statusLabel.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -16),
             statusLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            statusLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
+            statusLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
         ])
     }
 

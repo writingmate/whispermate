@@ -3,7 +3,7 @@ import WhisperMateShared
 
 struct TranscriptionSettingsView: View {
     @ObservedObject var dictionaryManager: DictionaryManager
-    @ObservedObject var toneStyleManager: ToneStyleManager
+    @ObservedObject var contextRulesManager: ContextRulesManager
     @ObservedObject var shortcutManager: ShortcutManager
 
     @State private var selectedTab = 0
@@ -12,7 +12,7 @@ struct TranscriptionSettingsView: View {
         VStack(spacing: 0) {
             Picker("Feature", selection: $selectedTab) {
                 Text("Dictionary").tag(0)
-                Text("Tone & Style").tag(1)
+                Text("Context Rules").tag(1)
                 Text("Shortcuts").tag(2)
             }
             .pickerStyle(.segmented)
@@ -22,7 +22,7 @@ struct TranscriptionSettingsView: View {
                 DictionaryTabView(manager: dictionaryManager)
                     .tag(0)
 
-                ToneStyleTabView(manager: toneStyleManager)
+                ContextRulesTabView(manager: contextRulesManager)
                     .tag(1)
 
                 ShortcutsTabView(manager: shortcutManager)
@@ -43,7 +43,7 @@ struct DictionaryTabView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Existing entries
-            ForEach(Array(manager.entries.enumerated()), id: \.element.id) { index, entry in
+            ForEach(Array(manager.entries.enumerated()), id: \.element.id) { _, entry in
                 DictionaryEntryRow(
                     entry: entry,
                     onToggle: { manager.toggleEntry(entry) },
@@ -58,16 +58,16 @@ struct DictionaryTabView: View {
             HStack(spacing: 12) {
                 TextField("Trigger word", text: $newTrigger)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 13))
+                    .dsFont(.label)
                     .frame(maxWidth: .infinity)
 
                 Image(systemName: "arrow.right")
-                    .font(.system(size: 11))
+                    .dsFont(.tiny)
                     .foregroundStyle(.secondary)
 
                 TextField("Replacement (optional)", text: $newReplacement)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 13))
+                    .dsFont(.label)
                     .foregroundStyle(newReplacement.isEmpty ? .secondary : .primary)
                     .frame(maxWidth: .infinity)
 
@@ -80,8 +80,8 @@ struct DictionaryTabView: View {
                     }
                 }) {
                     Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 16))
-                        .foregroundStyle(Color(nsColor: .systemGreen))
+                        .dsFont(.body)
+                        .foregroundStyle(Color.dsSecondary)
                 }
                 .buttonStyle(.plain)
                 .frame(width: 16, height: 16)
@@ -92,13 +92,13 @@ struct DictionaryTabView: View {
             .padding(.vertical, 12)
             .background(
                 Rectangle()
-                    .fill(Color(nsColor: .controlBackgroundColor))
+                    .fill(Color.dsCard)
             )
         }
-        .cornerRadius(6)
+        .cornerRadius(DSCornerRadius.small)
         .overlay(
-            RoundedRectangle(cornerRadius: 6)
-                .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
+            RoundedRectangle(cornerRadius: DSCornerRadius.small)
+                .stroke(Color.dsBorder, lineWidth: 1)
         )
     }
 }
@@ -119,16 +119,16 @@ struct DictionaryEntryRow: View {
             if isEditing {
                 TextField("Trigger", text: $editTrigger)
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 13))
+                    .dsFont(.label)
                     .frame(maxWidth: .infinity)
 
                 Image(systemName: "arrow.right")
-                    .font(.system(size: 11))
+                    .dsFont(.tiny)
                     .foregroundStyle(.tertiary)
 
                 TextField("Replacement (optional)", text: $editReplacement)
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 13))
+                    .dsFont(.label)
                     .frame(maxWidth: .infinity)
 
                 Spacer()
@@ -139,7 +139,7 @@ struct DictionaryEntryRow: View {
                     isEditing = false
                 }) {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 16))
+                        .dsFont(.body)
                         .foregroundStyle(.green)
                 }
                 .buttonStyle(.plain)
@@ -150,29 +150,29 @@ struct DictionaryEntryRow: View {
                     isEditing = false
                 }) {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 16))
+                        .dsFont(.body)
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
                 .frame(width: 16, height: 16)
             } else {
                 Text(entry.trigger)
-                    .font(.system(size: 13))
+                    .dsFont(.label)
                     .foregroundStyle(entry.isEnabled ? .primary : .secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 if entry.replacement != nil {
                     Image(systemName: "arrow.right")
-                        .font(.system(size: 11))
+                        .dsFont(.tiny)
                         .foregroundStyle(.tertiary)
 
                     Text(entry.replacement!)
-                        .font(.system(size: 13))
+                        .dsFont(.label)
                         .foregroundStyle(entry.isEnabled ? .primary : .secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 } else {
                     Text("(no replacement)")
-                        .font(.system(size: 11))
+                        .dsFont(.tiny)
                         .foregroundStyle(.tertiary)
                         .italic()
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -186,7 +186,7 @@ struct DictionaryEntryRow: View {
                     isEditing = true
                 }) {
                     Image(systemName: "pencil.circle.fill")
-                        .font(.system(size: 16))
+                        .dsFont(.body)
                         .foregroundStyle(.blue)
                 }
                 .buttonStyle(.plain)
@@ -195,7 +195,7 @@ struct DictionaryEntryRow: View {
 
                 Button(action: onDelete) {
                     Image(systemName: "minus.circle.fill")
-                        .font(.system(size: 16))
+                        .dsFont(.body)
                         .foregroundStyle(.red)
                 }
                 .buttonStyle(.plain)
@@ -231,34 +231,34 @@ struct DictionaryEntryRow: View {
     }
 }
 
-// MARK: - Tone & Style Tab
+// MARK: - Context Rules Tab
 
-struct ToneStyleTabView: View {
-    @ObservedObject var manager: ToneStyleManager
+struct ContextRulesTabView: View {
+    @ObservedObject var manager: ContextRulesManager
     @State private var showingAddSheet = false
 
     var body: some View {
         VStack(spacing: 0) {
-            // Existing styles
-            ForEach(Array(manager.styles.enumerated()), id: \.element.id) { index, style in
-                ToneStyleRow(
-                    style: style,
-                    onToggle: { manager.toggleStyle(style) },
+            // Existing rules
+            ForEach(Array(manager.rules.enumerated()), id: \.element.id) { _, rule in
+                ContextRuleRow(
+                    rule: rule,
+                    onToggle: { manager.toggleRule(rule) },
                     onEdit: { name, bundleIds, titlePatterns, instructions in
-                        manager.updateStyle(style, name: name, appBundleIds: bundleIds, titlePatterns: titlePatterns, instructions: instructions)
+                        manager.updateRule(rule, name: name, appBundleIds: bundleIds, titlePatterns: titlePatterns, instructions: instructions)
                     },
-                    onDelete: { manager.removeStyle(style) }
+                    onDelete: { manager.removeRule(rule) }
                 )
             }
 
-            // Add new style button
+            // Add new rule button
             Button(action: { showingAddSheet = true }) {
                 HStack {
                     Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 16))
+                        .dsFont(.body)
                         .foregroundStyle(Color(nsColor: .systemGreen))
-                    Text("Add Tone/Style")
-                        .font(.system(size: 13))
+                    Text("Add Context Rule")
+                        .dsFont(.label)
                     Spacer()
                 }
             }
@@ -276,7 +276,7 @@ struct ToneStyleTabView: View {
                 .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
         )
         .sheet(isPresented: $showingAddSheet) {
-            AddToneStyleSheet(manager: manager, isPresented: $showingAddSheet)
+            AddContextRuleSheet(manager: manager, isPresented: $showingAddSheet)
         }
     }
 }
@@ -311,11 +311,11 @@ struct AppTokenField: View {
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(.secondary)
-                        .font(.system(size: 11))
+                        .dsFont(.tiny)
 
                     TextField("Search apps to add...", text: $searchText)
                         .textFieldStyle(.plain)
-                        .font(.system(size: 12))
+                        .dsFont(.small)
                         .focused($isSearchFocused)
                         .onSubmit {
                             if let firstMatch = filteredApps.first {
@@ -352,12 +352,12 @@ struct AppTokenField: View {
                                             .frame(width: 16, height: 16)
                                     }
                                     Text(app.name)
-                                        .font(.system(size: 12))
+                                        .dsFont(.small)
                                     Spacer()
                                     if selectedAppBundleIds.contains(app.bundleID) {
                                         Image(systemName: "checkmark")
                                             .foregroundStyle(.secondary)
-                                            .font(.system(size: 10))
+                                            .dsFont(.micro)
                                     }
                                 }
                                 .contentShape(Rectangle())
@@ -391,7 +391,7 @@ struct AppTokenField: View {
             }
 
             Text("Leave empty to apply to all apps • \(selectedAppBundleIds.count) selected")
-                .font(.system(size: 10))
+                .dsFont(.micro)
                 .foregroundStyle(.secondary)
         }
     }
@@ -406,8 +406,8 @@ struct AppTokenField: View {
         }
         return installedApps.filter { app in
             !selectedAppBundleIds.contains(app.bundleID) &&
-            (app.name.localizedCaseInsensitiveContains(searchText) ||
-             app.bundleID.localizedCaseInsensitiveContains(searchText))
+                (app.name.localizedCaseInsensitiveContains(searchText) ||
+                    app.bundleID.localizedCaseInsensitiveContains(searchText))
         }
     }
 }
@@ -426,12 +426,12 @@ struct AppToken: View {
                     .frame(width: 14, height: 14)
             }
             Text(app.name)
-                .font(.system(size: 11))
+                .dsFont(.tiny)
                 .lineLimit(1)
 
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 12))
+                    .dsFont(.small)
                     .foregroundStyle(.secondary)
             }
             .buttonStyle(.plain)
@@ -472,11 +472,11 @@ struct TitlePatternTokenField: View {
             HStack(spacing: 8) {
                 Image(systemName: "text.alignleft")
                     .foregroundStyle(.secondary)
-                    .font(.system(size: 11))
+                    .dsFont(.tiny)
 
                 TextField("Type pattern and press Enter (e.g., Gmail, *LinkedIn*)", text: $inputText)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 12))
+                    .dsFont(.small)
                     .focused($isInputFocused)
                     .onSubmit {
                         addPattern()
@@ -515,16 +515,16 @@ struct TitlePatternToken: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: "text.alignleft")
-                .font(.system(size: 10))
+                .dsFont(.micro)
                 .foregroundStyle(.secondary)
 
             Text(pattern)
-                .font(.system(size: 11))
+                .dsFont(.tiny)
                 .lineLimit(1)
 
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 12))
+                    .dsFont(.small)
                     .foregroundStyle(.secondary)
             }
             .buttonStyle(.plain)
@@ -544,12 +544,12 @@ struct TitlePatternToken: View {
 struct FlowLayout: Layout {
     var spacing: CGFloat = 8
 
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache _: inout ()) -> CGSize {
         let result = FlowResult(in: proposal.replacingUnspecifiedDimensions().width, subviews: subviews, spacing: spacing)
         return result.size
     }
 
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+    func placeSubviews(in bounds: CGRect, proposal _: ProposedViewSize, subviews: Subviews, cache _: inout ()) {
         let result = FlowResult(in: bounds.width, subviews: subviews, spacing: spacing)
         for (index, subview) in subviews.enumerated() {
             subview.place(at: CGPoint(x: bounds.minX + result.frames[index].minX, y: bounds.minY + result.frames[index].minY), proposal: .unspecified)
@@ -568,7 +568,7 @@ struct FlowLayout: Layout {
             for subview in subviews {
                 let size = subview.sizeThatFits(.unspecified)
 
-                if x + size.width > maxWidth && x > 0 {
+                if x + size.width > maxWidth, x > 0 {
                     x = 0
                     y += lineHeight + spacing
                     lineHeight = 0
@@ -579,13 +579,13 @@ struct FlowLayout: Layout {
                 x += size.width + spacing
             }
 
-            self.size = CGSize(width: maxWidth, height: y + lineHeight)
+            size = CGSize(width: maxWidth, height: y + lineHeight)
         }
     }
 }
 
-struct ToneStyleRow: View {
-    let style: ToneStyle
+struct ContextRuleRow: View {
+    let rule: ContextRule
     let onToggle: () -> Void
     let onEdit: (String, [String], [String], String) -> Void
     let onDelete: () -> Void
@@ -598,18 +598,18 @@ struct ToneStyleRow: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(style.name)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(style.isEnabled ? .primary : .secondary)
+                    Text(rule.name)
+                        .dsFont(.labelMedium)
+                        .foregroundStyle(rule.isEnabled ? .primary : .secondary)
 
-                    Text(style.instructions)
-                        .font(.system(size: 11))
+                    Text(rule.instructions)
+                        .dsFont(.tiny)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
 
-                    if style.appBundleIds.isEmpty {
+                    if rule.appBundleIds.isEmpty {
                         Text("Applies to all apps")
-                            .font(.system(size: 10))
+                            .dsFont(.micro)
                             .foregroundStyle(.secondary)
                             .italic()
                     } else if !appIcons.isEmpty {
@@ -623,7 +623,7 @@ struct ToneStyleRow: View {
                             }
                             if appIcons.count > 8 {
                                 Text("+\(appIcons.count - 8)")
-                                    .font(.system(size: 9))
+                                    .dsFont(.micro)
                                     .foregroundStyle(.tertiary)
                             }
                         }
@@ -634,7 +634,7 @@ struct ToneStyleRow: View {
 
                 Button(action: { showingEditSheet = true }) {
                     Image(systemName: "pencil.circle.fill")
-                        .font(.system(size: 16))
+                        .dsFont(.body)
                         .foregroundStyle(.blue)
                 }
                 .buttonStyle(.plain)
@@ -643,7 +643,7 @@ struct ToneStyleRow: View {
 
                 Button(action: onDelete) {
                     Image(systemName: "minus.circle.fill")
-                        .font(.system(size: 16))
+                        .dsFont(.body)
                         .foregroundStyle(.red)
                 }
                 .buttonStyle(.plain)
@@ -651,7 +651,7 @@ struct ToneStyleRow: View {
                 .opacity(isHovering ? 1 : 0)
 
                 Toggle("", isOn: Binding(
-                    get: { style.isEnabled },
+                    get: { rule.isEnabled },
                     set: { _ in onToggle() }
                 ))
                 .toggleStyle(.switch)
@@ -679,12 +679,12 @@ struct ToneStyleRow: View {
         .onAppear {
             loadAppIcons()
         }
-        .onChange(of: style.appBundleIds) { _ in
+        .onChange(of: rule.appBundleIds) { _ in
             loadAppIcons()
         }
         .sheet(isPresented: $showingEditSheet) {
-            EditToneStyleSheet(
-                style: style,
+            EditContextRuleSheet(
+                rule: rule,
                 onSave: onEdit,
                 isPresented: $showingEditSheet
             )
@@ -694,71 +694,71 @@ struct ToneStyleRow: View {
     private func loadAppIcons() {
         let installedApps = AppDiscoveryManager.shared.getInstalledApps()
         appIcons = installedApps.filter { app in
-            style.appBundleIds.contains(app.bundleID)
+            rule.appBundleIds.contains(app.bundleID)
         }
     }
 }
 
-struct EditToneStyleSheet: View {
-    let style: ToneStyle
+struct EditContextRuleSheet: View {
+    let rule: ContextRule
     let onSave: (String, [String], [String], String) -> Void
     @Binding var isPresented: Bool
 
     @State private var name: String
     @State private var selectedAppBundleIds: Set<String>
-    @State private var titlePatterns: [String]  // Array of window title patterns
+    @State private var titlePatterns: [String] // Array of window title patterns
     @State private var instructions: String
     @State private var installedApps: [InstalledApp] = []
 
-    init(style: ToneStyle, onSave: @escaping (String, [String], [String], String) -> Void, isPresented: Binding<Bool>) {
-        self.style = style
+    init(rule: ContextRule, onSave: @escaping (String, [String], [String], String) -> Void, isPresented: Binding<Bool>) {
+        self.rule = rule
         self.onSave = onSave
-        self._isPresented = isPresented
-        self._name = State(initialValue: style.name)
-        self._selectedAppBundleIds = State(initialValue: Set(style.appBundleIds))
-        self._titlePatterns = State(initialValue: style.titlePatterns)
-        self._instructions = State(initialValue: style.instructions)
+        _isPresented = isPresented
+        _name = State(initialValue: rule.name)
+        _selectedAppBundleIds = State(initialValue: Set(rule.appBundleIds))
+        _titlePatterns = State(initialValue: rule.titlePatterns)
+        _instructions = State(initialValue: rule.instructions)
     }
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("Edit Tone/Style")
-                .font(.headline)
+            Text("Edit Context Rule")
+                .dsFont(.headline)
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Name")
-                    .font(.system(size: 12, weight: .medium))
+                    .dsFont(.smallMedium)
                 TextField("e.g., Professional Work Chat", text: $name)
                     .textFieldStyle(.roundedBorder)
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Apps")
-                    .font(.system(size: 12, weight: .medium))
+                    .dsFont(.smallMedium)
 
                 AppTokenField(selectedAppBundleIds: $selectedAppBundleIds, installedApps: installedApps)
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Window Title Patterns")
-                    .font(.system(size: 12, weight: .medium))
+                    .dsFont(.smallMedium)
 
                 TitlePatternTokenField(titlePatterns: $titlePatterns)
 
                 Text("Leave empty to match all window titles")
-                    .font(.system(size: 10))
+                    .dsFont(.micro)
                     .foregroundStyle(.secondary)
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Instructions")
-                    .font(.system(size: 12, weight: .medium))
+                    .dsFont(.smallMedium)
                 TextEditor(text: $instructions)
-                    .font(.system(size: 12))
+                    .dsFont(.small)
                     .frame(height: 80)
                     .border(Color(nsColor: .separatorColor))
-                Text("Describe the tone, style, and formatting")
-                    .font(.system(size: 10))
+                Text("Describe the formatting rules for this context")
+                    .dsFont(.micro)
                     .foregroundStyle(.secondary)
             }
 
@@ -771,7 +771,7 @@ struct EditToneStyleSheet: View {
                 Spacer()
 
                 Button("Save") {
-                    saveStyle()
+                    saveRule()
                 }
                 .keyboardShortcut(.defaultAction)
                 .disabled(name.isEmpty || instructions.isEmpty)
@@ -784,61 +784,61 @@ struct EditToneStyleSheet: View {
         }
     }
 
-    private func saveStyle() {
+    private func saveRule() {
         onSave(name, Array(selectedAppBundleIds), titlePatterns, instructions)
         isPresented = false
     }
 }
 
-struct AddToneStyleSheet: View {
-    @ObservedObject var manager: ToneStyleManager
+struct AddContextRuleSheet: View {
+    @ObservedObject var manager: ContextRulesManager
     @Binding var isPresented: Bool
 
     @State private var name = ""
     @State private var selectedAppBundleIds: Set<String> = []
-    @State private var titlePatterns: [String] = []  // Array of window title patterns
+    @State private var titlePatterns: [String] = [] // Array of window title patterns
     @State private var instructions = ""
     @State private var installedApps: [InstalledApp] = []
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("Add Tone/Style")
-                .font(.headline)
+            Text("Add Context Rule")
+                .dsFont(.headline)
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Name")
-                    .font(.system(size: 12, weight: .medium))
+                    .dsFont(.smallMedium)
                 TextField("e.g., Professional Work Chat", text: $name)
                     .textFieldStyle(.roundedBorder)
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Apps")
-                    .font(.system(size: 12, weight: .medium))
+                    .dsFont(.smallMedium)
 
                 AppTokenField(selectedAppBundleIds: $selectedAppBundleIds, installedApps: installedApps)
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Window Title Patterns")
-                    .font(.system(size: 12, weight: .medium))
+                    .dsFont(.smallMedium)
 
                 TitlePatternTokenField(titlePatterns: $titlePatterns)
 
                 Text("Leave empty to match all window titles")
-                    .font(.system(size: 10))
+                    .dsFont(.micro)
                     .foregroundStyle(.secondary)
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Instructions")
-                    .font(.system(size: 12, weight: .medium))
+                    .dsFont(.smallMedium)
                 TextEditor(text: $instructions)
-                    .font(.system(size: 12))
+                    .dsFont(.small)
                     .frame(height: 80)
                     .border(Color(nsColor: .separatorColor))
-                Text("Describe the tone, style, and formatting")
-                    .font(.system(size: 10))
+                Text("Describe the formatting rules for this context")
+                    .dsFont(.micro)
                     .foregroundStyle(.secondary)
             }
 
@@ -851,7 +851,7 @@ struct AddToneStyleSheet: View {
                 Spacer()
 
                 Button("Add") {
-                    addStyle()
+                    addRule()
                 }
                 .keyboardShortcut(.defaultAction)
                 .disabled(name.isEmpty || instructions.isEmpty)
@@ -864,8 +864,8 @@ struct AddToneStyleSheet: View {
         }
     }
 
-    private func addStyle() {
-        manager.addStyle(name: name, appBundleIds: Array(selectedAppBundleIds), titlePatterns: titlePatterns, instructions: instructions)
+    private func addRule() {
+        manager.addRule(name: name, appBundleIds: Array(selectedAppBundleIds), titlePatterns: titlePatterns, instructions: instructions)
         isPresented = false
     }
 }
@@ -880,7 +880,7 @@ struct ShortcutsTabView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Existing shortcuts
-            ForEach(Array(manager.shortcuts.enumerated()), id: \.element.id) { index, shortcut in
+            ForEach(Array(manager.shortcuts.enumerated()), id: \.element.id) { _, shortcut in
                 ShortcutRow(
                     shortcut: shortcut,
                     onToggle: { manager.toggleShortcut(shortcut) },
@@ -895,27 +895,27 @@ struct ShortcutsTabView: View {
             HStack(spacing: 12) {
                 TextField("Voice trigger (e.g., 'my email')", text: $newTrigger)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 13))
+                    .dsFont(.label)
                     .frame(maxWidth: .infinity)
 
                 Image(systemName: "arrow.right")
-                    .font(.system(size: 11))
+                    .dsFont(.tiny)
                     .foregroundStyle(.secondary)
 
                 TextField("Expansion text", text: $newExpansion)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 13))
+                    .dsFont(.label)
                     .frame(maxWidth: .infinity)
 
                 Button(action: {
-                    if !newTrigger.isEmpty && !newExpansion.isEmpty {
+                    if !newTrigger.isEmpty, !newExpansion.isEmpty {
                         manager.addShortcut(voiceTrigger: newTrigger, expansion: newExpansion)
                         newTrigger = ""
                         newExpansion = ""
                     }
                 }) {
                     Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 16))
+                        .dsFont(.body)
                         .foregroundStyle(Color(nsColor: .systemGreen))
                 }
                 .buttonStyle(.plain)
@@ -954,16 +954,16 @@ struct ShortcutRow: View {
             if isEditing {
                 TextField("Voice trigger", text: $editTrigger)
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 13))
+                    .dsFont(.label)
                     .frame(maxWidth: .infinity)
 
                 Image(systemName: "arrow.right")
-                    .font(.system(size: 11))
+                    .dsFont(.tiny)
                     .foregroundStyle(.tertiary)
 
                 TextField("Expansion", text: $editExpansion)
                     .textFieldStyle(.roundedBorder)
-                    .font(.system(size: 13))
+                    .dsFont(.label)
                     .frame(maxWidth: .infinity)
 
                 Spacer()
@@ -973,7 +973,7 @@ struct ShortcutRow: View {
                     isEditing = false
                 }) {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 16))
+                        .dsFont(.body)
                         .foregroundStyle(.green)
                 }
                 .buttonStyle(.plain)
@@ -984,23 +984,23 @@ struct ShortcutRow: View {
                     isEditing = false
                 }) {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 16))
+                        .dsFont(.body)
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
                 .frame(width: 16, height: 16)
             } else {
                 Text(shortcut.voiceTrigger)
-                    .font(.system(size: 13))
+                    .dsFont(.label)
                     .foregroundStyle(shortcut.isEnabled ? .primary : .secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Image(systemName: "arrow.right")
-                    .font(.system(size: 11))
+                    .dsFont(.tiny)
                     .foregroundStyle(.tertiary)
 
                 Text(shortcut.expansion)
-                    .font(.system(size: 13))
+                    .dsFont(.label)
                     .foregroundStyle(shortcut.isEnabled ? .primary : .secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .lineLimit(1)
@@ -1013,7 +1013,7 @@ struct ShortcutRow: View {
                     isEditing = true
                 }) {
                     Image(systemName: "pencil.circle.fill")
-                        .font(.system(size: 16))
+                        .dsFont(.body)
                         .foregroundStyle(.blue)
                 }
                 .buttonStyle(.plain)
@@ -1022,7 +1022,7 @@ struct ShortcutRow: View {
 
                 Button(action: onDelete) {
                     Image(systemName: "minus.circle.fill")
-                        .font(.system(size: 16))
+                        .dsFont(.body)
                         .foregroundStyle(.red)
                 }
                 .buttonStyle(.plain)

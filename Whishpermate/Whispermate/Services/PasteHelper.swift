@@ -44,7 +44,7 @@ class PasteHelper {
             if let existingText = getTextFromElement(focusedElement) {
                 DebugLog.info("Existing text found: \"\(existingText.prefix(50))...\"", context: "PasteHelper")
                 // Add space if there's existing text and it doesn't end with whitespace
-                if !existingText.isEmpty && !existingText.hasSuffix(" ") && !existingText.hasSuffix("\n") && !existingText.hasSuffix("\t") {
+                if !existingText.isEmpty, !existingText.hasSuffix(" "), !existingText.hasSuffix("\n"), !existingText.hasSuffix("\t") {
                     textToPaste = " " + text
                     DebugLog.info("✅ Added space before text", context: "PasteHelper")
                 } else {
@@ -135,8 +135,8 @@ class PasteHelper {
         DebugLog.info("Creating keyboard events...", context: "PasteHelper")
 
         // Key codes
-        let cmdKeyCode: CGKeyCode = 0x37  // Left Command
-        let vKeyCode: CGKeyCode = 0x09    // V key
+        let cmdKeyCode: CGKeyCode = 0x37 // Left Command
+        let vKeyCode: CGKeyCode = 0x09 // V key
 
         // Create Cmd key down event
         guard let cmdDown = CGEvent(keyboardEventSource: source, virtualKey: cmdKeyCode, keyDown: true) else {

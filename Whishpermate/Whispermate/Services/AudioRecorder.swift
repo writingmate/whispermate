@@ -7,8 +7,8 @@ class AudioRecorder: NSObject, ObservableObject {
     static let shared = AudioRecorder()
 
     @Published var isRecording = false
-    @Published var audioLevel: Float = 0.0  // Audio level for visualization (0.0 to 1.0)
-    @Published var frequencyBands: [Float] = Array(repeating: 0.0, count: 14)  // Frequency spectrum data
+    @Published var audioLevel: Float = 0.0 // Audio level for visualization (0.0 to 1.0)
+    @Published var frequencyBands: [Float] = Array(repeating: 0.0, count: 14) // Frequency spectrum data
 
     private var audioEngine: AVAudioEngine?
     private var audioFile: AVAudioFile?
@@ -18,7 +18,7 @@ class AudioRecorder: NSObject, ObservableObject {
     private var inputFormat: AVAudioFormat?
     private var outputFormat: AVAudioFormat?
 
-    private override init() {
+    override private init() {
         super.init()
         // Microphone permission is now handled by OnboardingManager
 
@@ -34,7 +34,7 @@ class AudioRecorder: NSObject, ObservableObject {
         setupAudioEngine()
     }
 
-    @objc private func handleAudioDeviceChanged(_ notification: Notification) {
+    @objc private func handleAudioDeviceChanged(_: Notification) {
         DebugLog.info("Audio input device changed", context: "AudioRecorder LOG")
         // Don't restart if currently recording - let the current recording finish
         // Only reinitialize the engine when not recording
@@ -192,14 +192,14 @@ class AudioRecorder: NSObject, ObservableObject {
                     AVFormatIDKey: kAudioFormatMPEG4AAC,
                     AVSampleRateKey: 44100.0,
                     AVNumberOfChannelsKey: 1,
-                    AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+                    AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
                 ]
             )
 
             // Update UI state synchronously so ContentView can check it immediately
             // Ensure we're on main thread for @Published property updates
             if Thread.isMainThread {
-                self.isRecording = true
+                isRecording = true
             } else {
                 DispatchQueue.main.sync {
                     self.isRecording = true
@@ -257,9 +257,9 @@ class AudioRecorder: NSObject, ObservableObject {
         // Update UI state synchronously so ContentView can check it immediately
         // Ensure we're on main thread for @Published property updates
         if Thread.isMainThread {
-            self.isRecording = false
-            self.audioLevel = 0.0
-            self.frequencyBands = Array(repeating: 0.0, count: 14)
+            isRecording = false
+            audioLevel = 0.0
+            frequencyBands = Array(repeating: 0.0, count: 14)
         } else {
             DispatchQueue.main.sync {
                 self.isRecording = false

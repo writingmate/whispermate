@@ -1,6 +1,6 @@
-import Foundation
-import CoreML
 import AVFoundation
+import CoreML
+import Foundation
 
 /// Direct CoreML wrapper for Silero VAD model
 class SileroVAD {
@@ -36,12 +36,12 @@ class SileroVAD {
             DebugLog.info("❌ Could not find VAD model in bundle. Searched for .mlpackage and .mlmodelc", context: "SileroVAD")
             DebugLog.info("Bundle path: \(bundle.bundlePath)", context: "SileroVAD")
             DebugLog.info("Resources path: \(bundle.resourcePath ?? "none")", context: "SileroVAD")
-            self.modelURL = URL(fileURLWithPath: "")
+            modelURL = URL(fileURLWithPath: "")
             return
         }
 
         DebugLog.info("✅ Found VAD model at: \(foundPath)", context: "SileroVAD")
-        self.modelURL = URL(fileURLWithPath: foundPath)
+        modelURL = URL(fileURLWithPath: foundPath)
 
         Task {
             await loadModel()
@@ -88,24 +88,24 @@ class SileroVAD {
         let samples = try loadAudio(url: url)
 
         // Process in chunks
-        let chunkSize = 576  // Silero VAD v6 expects 576 samples
+        let chunkSize = 576 // Silero VAD v6 expects 576 samples
         var probabilities: [Float] = []
 
         // Initialize hidden state (1 x 128) - Silero VAD v6 state dimensions
         var hiddenState = try MLMultiArray(shape: [1, 128], dataType: .float32)
-        for i in 0..<128 {
+        for i in 0 ..< 128 {
             hiddenState[i] = 0.0
         }
 
         // Initialize cell state (1 x 128) - LSTM cell state
         var cellState = try MLMultiArray(shape: [1, 128], dataType: .float32)
-        for i in 0..<128 {
+        for i in 0 ..< 128 {
             cellState[i] = 0.0
         }
 
         for i in stride(from: 0, to: samples.count, by: chunkSize) {
             let end = min(i + chunkSize, samples.count)
-            var chunk = Array(samples[i..<end])
+            var chunk = Array(samples[i ..< end])
 
             // Pad if necessary
             if chunk.count < chunkSize {
@@ -122,7 +122,7 @@ class SileroVAD {
             let input = try MLDictionaryFeatureProvider(dictionary: [
                 "audio_input": inputArray,
                 "hidden_state": hiddenState,
-                "cell_state": cellState
+                "cell_state": cellState,
             ])
             let output = try model.prediction(from: input)
 
@@ -150,7 +150,7 @@ class SileroVAD {
 
         DebugLog.info(
             "VAD Analysis - Avg: \(String(format: "%.3f", avgProb)), " +
-            "Ratio: \(String(format: "%.3f", speechRatio)) (\(speechCount)/\(probabilities.count))",
+                "Ratio: \(String(format: "%.3f", speechRatio)) (\(speechCount)/\(probabilities.count))",
             context: "SileroVAD"
         )
 

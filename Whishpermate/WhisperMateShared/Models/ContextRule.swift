@@ -1,10 +1,10 @@
 import Foundation
 
-public struct ToneStyle: Identifiable, Codable {
+public struct ContextRule: Identifiable, Codable {
     public let id: UUID
     public var name: String
     public var appBundleIds: [String]
-    public var titlePatterns: [String]  // Window title patterns like "Gmail", "LinkedIn *", etc.
+    public var titlePatterns: [String] // Window title patterns like "Gmail", "LinkedIn *", etc.
     public var instructions: String
     public var isEnabled: Bool
 
@@ -17,3 +17,8 @@ public struct ToneStyle: Identifiable, Codable {
         self.isEnabled = isEnabled
     }
 }
+
+// MARK: - Migration Support
+
+/// Type alias for backward compatibility during migration
+public typealias ToneStyle = ContextRule

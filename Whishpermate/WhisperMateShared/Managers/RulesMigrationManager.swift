@@ -17,7 +17,8 @@ public class RulesMigrationManager {
         let oldRulesKey = "prompt_rules"
         guard let data = UserDefaults.standard.data(forKey: oldRulesKey),
               let oldRules = try? JSONDecoder().decode([PromptRule].self, from: data),
-              !oldRules.isEmpty else {
+              !oldRules.isEmpty
+        else {
             DebugLog.info("No old rules found to migrate", context: "RulesMigrationManager")
             markMigrationComplete()
             return
@@ -39,7 +40,7 @@ public class RulesMigrationManager {
 
     private static func migrateRulesToNewSystem(_ oldRules: [PromptRule]) {
         let dictionaryManager = DictionaryManager.shared
-        let toneStyleManager = ToneStyleManager.shared
+        let contextRulesManager = ContextRulesManager.shared
         let shortcutManager = ShortcutManager.shared
 
         for rule in oldRules where rule.isEnabled {
@@ -64,20 +65,20 @@ public class RulesMigrationManager {
                 }
             }
 
-            // Default: migrate as tone/style instruction
-            let style = ToneStyle(
+            // Default: migrate as context rule instruction
+            let contextRule = ContextRule(
                 name: "Migrated Rule",
                 appBundleIds: [], // Universal (applies to all apps)
                 instructions: rule.text,
                 isEnabled: true
             )
-            toneStyleManager.styles.append(style)
-            DebugLog.info("Migrated as tone/style: \(rule.text)", context: "RulesMigrationManager")
+            contextRulesManager.rules.append(contextRule)
+            DebugLog.info("Migrated as context rule: \(rule.text)", context: "RulesMigrationManager")
         }
 
         // Save all managers
         dictionaryManager.saveEntries()
-        toneStyleManager.saveStyles()
+        contextRulesManager.saveRules()
         shortcutManager.saveShortcuts()
     }
 

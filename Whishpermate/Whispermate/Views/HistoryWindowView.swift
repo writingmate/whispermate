@@ -7,11 +7,11 @@ struct HistoryWindowView: View {
 
     var body: some View {
         HistoryView(historyManager: historyManager)
-        .onAppear {
-            // Set window identifier for identification
-            if let window = NSApplication.shared.windows.first(where: { $0.title == "History" }) {
-                window.identifier = WindowIdentifiers.history
+            .onAppear {
+                // Set window identifier for identification
+                if let window = NSApplication.shared.windows.first(where: { $0.title == "History" }) {
+                    window.identifier = WindowIdentifiers.history
+                }
             }
-        }
     }
 }

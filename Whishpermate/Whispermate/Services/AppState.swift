@@ -40,6 +40,7 @@ class AppState: ObservableObject {
     private var capturedAppContext: String?
     private var capturedAppBundleId: String?
     private var capturedWindowTitle: String?
+    private var capturedScreenContext: String?
 
     // MARK: - Dependencies (singletons)
 
@@ -51,9 +52,10 @@ class AppState: ObservableObject {
     private let transcriptionProviderManager = TranscriptionProviderManager()
     private let llmProviderManager = LLMProviderManager()
     private let dictionaryManager = DictionaryManager.shared
-    private let toneStyleManager = ToneStyleManager.shared
+    private let contextRulesManager = ContextRulesManager.shared
     private let shortcutManager = ShortcutManager.shared
     private let languageManager = LanguageManager()
+    private let screenCaptureManager = ScreenCaptureManager.shared
 
     private var openAIClient: OpenAIClient?
 
@@ -101,6 +103,19 @@ class AppState: ObservableObject {
             capturedAppBundleId = context.bundleId
             capturedWindowTitle = context.windowTitle
             DebugLog.info("Captured app context: \(context.description)", context: "AppState")
+        }
+
+        // Capture screen context if enabled
+        capturedScreenContext = nil
+        if screenCaptureManager.includeScreenContext {
+            Task {
+                if let screenContext = await screenCaptureManager.captureAndExtractText() {
+                    await MainActor.run {
+                        self.capturedScreenContext = screenContext
+                        DebugLog.info("Captured screen context", context: "AppState")
+                    }
+                }
+            }
         }
 
         // Store previous app for pasting
@@ -188,7 +203,7 @@ class AppState: ObservableObject {
 
         guard !onboardingManager.showOnboarding else { return }
 
-        if isContinuousRecording && recordingState == .recording {
+        if isContinuousRecording, recordingState == .recording {
             // Stop continuous recording
             isContinuousRecording = false
             shouldAutoPaste = false
@@ -306,7 +321,7 @@ class AppState: ObservableObject {
                 if let instructions = shortcutManager.formattingInstructions {
                     promptComponents.append(instructions)
                 }
-                if let instructions = toneStyleManager.instructions(for: capturedAppBundleId, windowTitle: capturedWindowTitle) {
+                if let instructions = contextRulesManager.instructions(for: capturedAppBundleId, windowTitle: capturedWindowTitle) {
                     promptComponents.append(instructions)
                 }
 
@@ -348,7 +363,8 @@ class AppState: ObservableObject {
                     languageCodes: languageManager.apiLanguageCode,
                     appContext: capturedAppContext,
                     llmApiKey: llmApiKey,
-                    clipboardContent: clipboardContent
+                    clipboardContent: clipboardContent,
+                    screenContext: capturedScreenContext
                 )
 
                 // Success - save to history

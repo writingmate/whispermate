@@ -14,7 +14,8 @@ public class ShortcutManager: ObservableObject {
 
     public func loadShortcuts() {
         if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
-           let decoded = try? JSONDecoder().decode([Shortcut].self, from: data) {
+           let decoded = try? JSONDecoder().decode([Shortcut].self, from: data)
+        {
             shortcuts = decoded
             DebugLog.info("Loaded \(shortcuts.count) shortcuts", context: "ShortcutManager")
         } else {
@@ -39,7 +40,7 @@ public class ShortcutManager: ObservableObject {
                     voiceTrigger: "my address",
                     expansion: "123 Main Street, City, State 12345",
                     isEnabled: false
-                )
+                ),
             ]
             saveShortcuts()
             DebugLog.info("Created default shortcuts", context: "ShortcutManager")

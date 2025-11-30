@@ -1,5 +1,5 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 
 struct HotkeyRecorderView: View {
     @ObservedObject var hotkeyManager: HotkeyManager
@@ -59,7 +59,7 @@ struct HotkeyEventHandler: NSViewRepresentable {
     @Binding var isRecording: Bool
     let hotkeyManager: HotkeyManager
 
-    func makeNSView(context: Context) -> NSView {
+    func makeNSView(context _: Context) -> NSView {
         DebugLog.info("[HotkeyRecorder LOG] Creating KeyEventView", context: "HotkeyRecorderView")
         let view = KeyEventView()
         view.onKeyDown = { event in
@@ -73,8 +73,8 @@ struct HotkeyEventHandler: NSViewRepresentable {
 
                 // Check if it's a function key (F1-F20, keyCode 122-145, or individual codes)
                 let functionKeys: [UInt16] = [
-                    122, 120, 99, 118, 96, 97, 98, 100, 101, 109, 103, 111,  // F1-F12
-                    105, 107, 113, 106                                          // F13-F16
+                    122, 120, 99, 118, 96, 97, 98, 100, 101, 109, 103, 111, // F1-F12
+                    105, 107, 113, 106, // F13-F16
                 ]
                 let isFunctionKey = functionKeys.contains(event.keyCode)
 
@@ -123,7 +123,7 @@ struct HotkeyEventHandler: NSViewRepresentable {
         return view
     }
 
-    func updateNSView(_ nsView: NSView, context: Context) {
+    func updateNSView(_ nsView: NSView, context _: Context) {
         if isRecording {
             DebugLog.info("[HotkeyRecorder LOG] updateNSView: Making view first responder", context: "HotkeyRecorderView")
             let didBecomeFirstResponder = nsView.window?.makeFirstResponder(nsView)
@@ -152,7 +152,7 @@ class KeyEventView: NSView {
         onFlagsChanged?(event)
     }
 
-    override func mouseDown(with event: NSEvent) {
+    override func mouseDown(with _: NSEvent) {
         DebugLog.info("[KeyEventView LOG] mouseDown - accepting click to become first responder", context: "HotkeyRecorderView")
         // Accept clicks to become first responder
         let result = window?.makeFirstResponder(self)

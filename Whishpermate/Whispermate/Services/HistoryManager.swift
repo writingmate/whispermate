@@ -1,44 +1,58 @@
 import Foundation
 internal import Combine
 
+/// Manages recording history persistence and audio file storage
 class HistoryManager: ObservableObject {
     static let shared = HistoryManager()
 
+    // MARK: - Published Properties
+
     @Published var recordings: [Recording] = []
 
-    private let maxRecordings = 100
-    private let storageKey = "recordings_history"
+    // MARK: - Private Properties
+
+    private enum Constants {
+        static let maxRecordings = 100
+        static let appDirectoryName = "WhisperMate"
+        static let recordingsDirectoryName = "Recordings"
+        static let historyFileName = "history.json"
+    }
+
     private let fileURL: URL
     private let audioDirectory: URL
+
+    // MARK: - Initialization
 
     private init() {
         // Get Application Support directory
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let appDirectory = appSupport.appendingPathComponent("WhisperMate", isDirectory: true)
+        let appDirectory = appSupport.appendingPathComponent(Constants.appDirectoryName, isDirectory: true)
 
         // Create directory if it doesn't exist
         try? FileManager.default.createDirectory(at: appDirectory, withIntermediateDirectories: true)
 
         // Create audio storage directory
-        audioDirectory = appDirectory.appendingPathComponent("Recordings", isDirectory: true)
+        audioDirectory = appDirectory.appendingPathComponent(Constants.recordingsDirectoryName, isDirectory: true)
         try? FileManager.default.createDirectory(at: audioDirectory, withIntermediateDirectories: true)
 
-        fileURL = appDirectory.appendingPathComponent("history.json")
+        fileURL = appDirectory.appendingPathComponent(Constants.historyFileName)
         loadRecordings()
     }
+
+    // MARK: - Public API
 
     func addRecording(_ recording: Recording) {
         // Add to beginning of list (most recent first)
         recordings.insert(recording, at: 0)
 
-        // Keep only the latest 100
-        if recordings.count > maxRecordings {
-            let removed = recordings.suffix(from: maxRecordings)
+        // Keep only the latest recordings
+        if recordings.count > Constants.maxRecordings {
+            let removed = recordings.suffix(from: Constants.maxRecordings)
             // Delete audio files for removed recordings
             for oldRecording in removed {
                 deleteAudioFile(at: oldRecording.audioFileURL)
             }
-            recordings = Array(recordings.prefix(maxRecordings))
+            recordings = Array(recordings.prefix(Constants.maxRecordings))
         }
 
         saveRecordings()
@@ -84,6 +98,27 @@ class HistoryManager: ObservableObject {
         }
     }
 
+    // MARK: - Search
+
+    func filteredRecordings(searchText: String) -> [Recording] {
+        if searchText.isEmpty {
+            return recordings
+        }
+        return recordings.filter { recording in
+            recording.transcription?.localizedCaseInsensitiveContains(searchText) ?? false
+        }
+    }
+
+    var failedRecordings: [Recording] {
+        return recordings.filter { $0.isFailed }
+    }
+
+    var successfulRecordings: [Recording] {
+        return recordings.filter { $0.isSuccessful }
+    }
+
+    // MARK: - Private Methods
+
     private func deleteAudioFile(at url: URL) {
         do {
             if FileManager.default.fileExists(atPath: url.path) {
@@ -115,23 +150,5 @@ class HistoryManager: ObservableObject {
         } catch {
             DebugLog.info("Failed to save recordings: \(error)", context: "HistoryManager")
         }
-    }
-
-    // Search functionality
-    func filteredRecordings(searchText: String) -> [Recording] {
-        if searchText.isEmpty {
-            return recordings
-        }
-        return recordings.filter { recording in
-            recording.transcription?.localizedCaseInsensitiveContains(searchText) ?? false
-        }
-    }
-
-    var failedRecordings: [Recording] {
-        return recordings.filter { $0.isFailed }
-    }
-
-    var successfulRecordings: [Recording] {
-        return recordings.filter { $0.isSuccessful }
     }
 }

@@ -65,7 +65,7 @@ struct DictionaryView: View {
                     }
                 }
                 .onDelete { indexSet in
-                    indexSet.forEach { index in
+                    for index in indexSet {
                         let entry = manager.entries[index]
                         manager.removeEntry(entry)
                     }
@@ -90,7 +90,7 @@ struct DictionaryView: View {
     }
 
     private func addEntry() {
-        guard !newTrigger.isEmpty && !newReplacement.isEmpty else { return }
+        guard !newTrigger.isEmpty, !newReplacement.isEmpty else { return }
         manager.addEntry(trigger: newTrigger, replacement: newReplacement)
         newTrigger = ""
         newReplacement = ""
@@ -133,7 +133,7 @@ struct ToneStyleView: View {
                     .padding(.vertical, 4)
                 }
                 .onDelete { indexSet in
-                    indexSet.forEach { index in
+                    for index in indexSet {
                         let style = manager.styles[index]
                         manager.removeStyle(style)
                     }
@@ -236,7 +236,7 @@ struct ShortcutsView: View {
                     }
                 }
                 .onDelete { indexSet in
-                    indexSet.forEach { index in
+                    for index in indexSet {
                         let shortcut = manager.shortcuts[index]
                         manager.removeShortcut(shortcut)
                     }
@@ -261,7 +261,7 @@ struct ShortcutsView: View {
     }
 
     private func addShortcut() {
-        guard !newTrigger.isEmpty && !newExpansion.isEmpty else { return }
+        guard !newTrigger.isEmpty, !newExpansion.isEmpty else { return }
         manager.addShortcut(voiceTrigger: newTrigger, expansion: newExpansion)
         newTrigger = ""
         newExpansion = ""

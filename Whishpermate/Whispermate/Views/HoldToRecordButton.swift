@@ -1,5 +1,5 @@
-import SwiftUI
 import AppKit
+import SwiftUI
 
 struct HoldToRecordButton: View {
     let isRecording: Bool
@@ -23,14 +23,14 @@ struct HoldButtonView: NSViewRepresentable {
     let onPressDown: () -> Void
     let onPressUp: () -> Void
 
-    func makeNSView(context: Context) -> HoldButton {
+    func makeNSView(context _: Context) -> HoldButton {
         let button = HoldButton()
         button.onPressDown = onPressDown
         button.onPressUp = onPressUp
         return button
     }
 
-    func updateNSView(_ nsView: HoldButton, context: Context) {
+    func updateNSView(_ nsView: HoldButton, context _: Context) {
         nsView.isRecording = isRecording
         nsView.isProcessing = isProcessing
         nsView.needsDisplay = true
@@ -103,7 +103,7 @@ class HoldButton: NSView {
         // Draw text
         let attributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: NSColor.white,
-            .font: NSFont.systemFont(ofSize: 14, weight: .medium)
+            .font: NSFont.systemFont(ofSize: 14, weight: .medium),
         ]
         let textSize = text.size(withAttributes: attributes)
         let textRect = NSRect(
@@ -115,7 +115,7 @@ class HoldButton: NSView {
         text.draw(in: textRect, withAttributes: attributes)
     }
 
-    override func mouseDown(with event: NSEvent) {
+    override func mouseDown(with _: NSEvent) {
         guard !isProcessing else { return }
 
         isPressed = true
@@ -123,7 +123,7 @@ class HoldButton: NSView {
         onPressDown?()
     }
 
-    override func mouseUp(with event: NSEvent) {
+    override func mouseUp(with _: NSEvent) {
         guard isPressed else { return }
 
         isPressed = false
@@ -131,7 +131,7 @@ class HoldButton: NSView {
         onPressUp?()
     }
 
-    override func mouseDragged(with event: NSEvent) {
+    override func mouseDragged(with _: NSEvent) {
         // Keep the button pressed state while dragging
         // This prevents flickering if the mouse moves slightly
     }
@@ -145,7 +145,7 @@ class HoldButton: NSView {
 
         let options: NSTrackingArea.Options = [
             .mouseEnteredAndExited,
-            .activeInKeyWindow
+            .activeInKeyWindow,
         ]
         let trackingArea = NSTrackingArea(
             rect: bounds,

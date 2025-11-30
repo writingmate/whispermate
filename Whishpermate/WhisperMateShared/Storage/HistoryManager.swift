@@ -15,19 +15,19 @@ public class HistoryManager: ObservableObject {
     public init() {
         // Use App Group container on iOS, Application Support on macOS
         #if os(iOS)
-        let appDirectory: URL
-        if let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: HistoryManager.appGroupIdentifier) {
-            // Use App Group container (real device or properly configured simulator)
-            appDirectory = containerURL.appendingPathComponent("WhisperMate", isDirectory: true)
-        } else {
-            // Fall back to temporary directory (simulator without App Group support)
-            DebugLog.warning("App Group container not available, using temporary directory", context: "HistoryManager")
-            let tempDir = FileManager.default.temporaryDirectory
-            appDirectory = tempDir.appendingPathComponent("WhisperMate", isDirectory: true)
-        }
+            let appDirectory: URL
+            if let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: HistoryManager.appGroupIdentifier) {
+                // Use App Group container (real device or properly configured simulator)
+                appDirectory = containerURL.appendingPathComponent("WhisperMate", isDirectory: true)
+            } else {
+                // Fall back to temporary directory (simulator without App Group support)
+                DebugLog.warning("App Group container not available, using temporary directory", context: "HistoryManager")
+                let tempDir = FileManager.default.temporaryDirectory
+                appDirectory = tempDir.appendingPathComponent("WhisperMate", isDirectory: true)
+            }
         #else
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let appDirectory = appSupport.appendingPathComponent("WhisperMate", isDirectory: true)
+            let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            let appDirectory = appSupport.appendingPathComponent("WhisperMate", isDirectory: true)
         #endif
 
         // Create main directory if it doesn't exist

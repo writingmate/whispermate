@@ -1,8 +1,8 @@
 import Foundation
 internal import Combine
-import AVFoundation
-import ApplicationServices
 import AppKit
+import ApplicationServices
+import AVFoundation
 import CoreGraphics
 import WhisperMateShared
 
@@ -44,15 +44,26 @@ enum OnboardingStep: Int, CaseIterable {
     }
 }
 
+/// Manages the onboarding flow and permission states
 class OnboardingManager: ObservableObject {
     static let shared = OnboardingManager()
+
+    // MARK: - Published Properties
 
     @Published var showOnboarding: Bool = false
     @Published var currentStep: OnboardingStep = .microphone
     @Published var accessibilityGranted: Bool = false
     @Published var microphoneGranted: Bool = false
 
-    private let onboardingCompletedKey = "has_completed_onboarding"
+    // MARK: - Private Properties
+
+    private enum Keys {
+        static let onboardingCompleted = "has_completed_onboarding"
+        static let hotkeyKeycode = "hotkey_keycode"
+        static let hotkeyModifiers = "hotkey_modifiers"
+    }
+
+    // MARK: - Initialization
 
     private init() {
         accessibilityGranted = AXIsProcessTrusted()
@@ -60,6 +71,8 @@ class OnboardingManager: ObservableObject {
         // Don't call checkOnboardingStatus() here - let the view call it in onAppear
         // This ensures the onChange modifier is registered before the state changes
     }
+
+    // MARK: - Public API
 
     func updateAccessibilityStatus() {
         accessibilityGranted = AXIsProcessTrusted()
@@ -73,7 +86,7 @@ class OnboardingManager: ObservableObject {
         DebugLog.info("Checking onboarding status", context: "OnboardingManager")
 
         // Check if user has completed onboarding before
-        let hasCompleted = UserDefaults.standard.bool(forKey: onboardingCompletedKey)
+        let hasCompleted = UserDefaults.standard.bool(forKey: Keys.onboardingCompleted)
 
         if !hasCompleted {
             // First time launch - ALWAYS show onboarding, regardless of permission status
@@ -110,8 +123,8 @@ class OnboardingManager: ObservableObject {
 
     func isHotkeyConfigured() -> Bool {
         // Check the same keys that HotkeyManager uses
-        return UserDefaults.standard.value(forKey: "hotkey_keycode") != nil &&
-               UserDefaults.standard.value(forKey: "hotkey_modifiers") != nil
+        return UserDefaults.standard.value(forKey: Keys.hotkeyKeycode) != nil &&
+            UserDefaults.standard.value(forKey: Keys.hotkeyModifiers) != nil
     }
 
     func isStepComplete(_ step: OnboardingStep) -> Bool {
@@ -157,7 +170,7 @@ class OnboardingManager: ObservableObject {
         }
 
         DebugLog.info("✅ Onboarding complete!", context: "OnboardingManager")
-        UserDefaults.standard.set(true, forKey: onboardingCompletedKey)
+        UserDefaults.standard.set(true, forKey: Keys.onboardingCompleted)
         showOnboarding = false
 
         // Post notification to close onboarding window and show main window
@@ -182,7 +195,7 @@ class OnboardingManager: ObservableObject {
         // This will show the system dialog asking for accessibility permission
         // and automatically add the app to System Settings > Privacy & Security > Accessibility
         let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true]
-        let _ = AXIsProcessTrustedWithOptions(options)
+        _ = AXIsProcessTrustedWithOptions(options)
 
         DebugLog.info("Permission dialog triggered", context: "OnboardingManager")
     }
@@ -195,7 +208,7 @@ class OnboardingManager: ObservableObject {
 
     func resetOnboarding() {
         DebugLog.info("Resetting onboarding status", context: "OnboardingManager")
-        UserDefaults.standard.removeObject(forKey: onboardingCompletedKey)
+        UserDefaults.standard.removeObject(forKey: Keys.onboardingCompleted)
         currentStep = .microphone
         showOnboarding = true
     }

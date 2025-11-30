@@ -1,4 +1,5 @@
 import SwiftUI
+import WhisperMateShared
 
 struct RulesTable: View {
     @ObservedObject var promptRulesManager: PromptRulesManager
@@ -7,7 +8,7 @@ struct RulesTable: View {
     var body: some View {
         VStack(spacing: 0) {
             // Existing rules
-            ForEach(Array(promptRulesManager.rules.enumerated()), id: \.element.id) { index, rule in
+            ForEach(Array(promptRulesManager.rules.enumerated()), id: \.element.id) { _, rule in
                 RuleRow(
                     rule: rule,
                     onToggle: { promptRulesManager.toggleRule(rule) },
@@ -19,7 +20,7 @@ struct RulesTable: View {
             HStack(spacing: 12) {
                 TextField("Add new rule...", text: $newRuleText)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 13))
+                    .dsFont(.label)
                     .onSubmit {
                         if !newRuleText.isEmpty {
                             promptRulesManager.addRule(newRuleText)
@@ -35,13 +36,13 @@ struct RulesTable: View {
                     }
                 }) {
                     Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 16))
+                        .dsFont(.body)
                         .foregroundStyle(Color(nsColor: .systemGreen))
                 }
                 .buttonStyle(.plain)
                 .frame(width: 16, height: 16)
                 .opacity(newRuleText.isEmpty ? 0 : 1)
-                .padding(.trailing, 26)  // Align with toggle switch position
+                .padding(.trailing, 26) // Align with toggle switch position
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)

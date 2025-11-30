@@ -1,6 +1,6 @@
 import Foundation
 #if canImport(AppKit)
-import AppKit
+    import AppKit
 #endif
 
 public struct InstalledApp: Identifiable, Hashable {
@@ -10,7 +10,7 @@ public struct InstalledApp: Identifiable, Hashable {
     public let icon: NSImage?
 
     public init(name: String, bundleID: String, icon: NSImage? = nil) {
-        self.id = bundleID
+        id = bundleID
         self.name = name
         self.bundleID = bundleID
         self.icon = icon
@@ -27,53 +27,53 @@ public class AppDiscoveryManager {
     /// Get all installed applications from /Applications and /System/Applications
     public func getInstalledApps() -> [InstalledApp] {
         #if canImport(AppKit)
-        if let cached = cachedApps {
-            return cached
-        }
-
-        var apps: [InstalledApp] = []
-        var seenBundleIDs = Set<String>()
-        let fileManager = FileManager.default
-
-        // Scan user, main, and system Applications directories
-        let directories = [
-            "/Applications",
-            "/System/Applications",
-            FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications").path
-        ]
-
-        for directory in directories {
-            let applicationsURL = URL(fileURLWithPath: directory)
-
-            guard let contents = try? fileManager.contentsOfDirectory(
-                at: applicationsURL,
-                includingPropertiesForKeys: [.isDirectoryKey],
-                options: [.skipsHiddenFiles]
-            ) else {
-                DebugLog.info("Failed to read \(directory) directory", context: "AppDiscoveryManager")
-                continue
+            if let cached = cachedApps {
+                return cached
             }
 
-            for appURL in contents where appURL.pathExtension == "app" {
-                if let app = extractAppInfo(from: appURL) {
-                    // Only add if we haven't seen this bundle ID before (avoid duplicates)
-                    if !seenBundleIDs.contains(app.bundleID) {
-                        apps.append(app)
-                        seenBundleIDs.insert(app.bundleID)
+            var apps: [InstalledApp] = []
+            var seenBundleIDs = Set<String>()
+            let fileManager = FileManager.default
+
+            // Scan user, main, and system Applications directories
+            let directories = [
+                "/Applications",
+                "/System/Applications",
+                FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications").path,
+            ]
+
+            for directory in directories {
+                let applicationsURL = URL(fileURLWithPath: directory)
+
+                guard let contents = try? fileManager.contentsOfDirectory(
+                    at: applicationsURL,
+                    includingPropertiesForKeys: [.isDirectoryKey],
+                    options: [.skipsHiddenFiles]
+                ) else {
+                    DebugLog.info("Failed to read \(directory) directory", context: "AppDiscoveryManager")
+                    continue
+                }
+
+                for appURL in contents where appURL.pathExtension == "app" {
+                    if let app = extractAppInfo(from: appURL) {
+                        // Only add if we haven't seen this bundle ID before (avoid duplicates)
+                        if !seenBundleIDs.contains(app.bundleID) {
+                            apps.append(app)
+                            seenBundleIDs.insert(app.bundleID)
+                        }
                     }
                 }
             }
-        }
 
-        // Sort by name
-        apps.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            // Sort by name
+            apps.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
 
-        cachedApps = apps
-        DebugLog.info("Discovered \(apps.count) installed applications", context: "AppDiscoveryManager")
+            cachedApps = apps
+            DebugLog.info("Discovered \(apps.count) installed applications", context: "AppDiscoveryManager")
 
-        return apps
+            return apps
         #else
-        return []
+            return []
         #endif
     }
 
@@ -83,51 +83,52 @@ public class AppDiscoveryManager {
     }
 
     #if canImport(AppKit)
-    private func extractAppInfo(from appURL: URL) -> InstalledApp? {
-        // Read Info.plist
-        let infoPlistURL = appURL.appendingPathComponent("Contents/Info.plist")
+        private func extractAppInfo(from appURL: URL) -> InstalledApp? {
+            // Read Info.plist
+            let infoPlistURL = appURL.appendingPathComponent("Contents/Info.plist")
 
-        guard let plistData = try? Data(contentsOf: infoPlistURL),
-              let plist = try? PropertyListSerialization.propertyList(
-                from: plistData,
-                options: [],
-                format: nil
-              ) as? [String: Any] else {
-            return nil
-        }
+            guard let plistData = try? Data(contentsOf: infoPlistURL),
+                  let plist = try? PropertyListSerialization.propertyList(
+                      from: plistData,
+                      options: [],
+                      format: nil
+                  ) as? [String: Any]
+            else {
+                return nil
+            }
 
-        // Get bundle ID
-        guard let bundleID = plist["CFBundleIdentifier"] as? String else {
-            return nil
-        }
+            // Get bundle ID
+            guard let bundleID = plist["CFBundleIdentifier"] as? String else {
+                return nil
+            }
 
-        // Get app name (prefer display name, fall back to bundle name)
-        let name = (plist["CFBundleDisplayName"] as? String)
+            // Get app name (prefer display name, fall back to bundle name)
+            let name = (plist["CFBundleDisplayName"] as? String)
                 ?? (plist["CFBundleName"] as? String)
                 ?? appURL.deletingPathExtension().lastPathComponent
 
-        // Try to get app icon
-        var icon: NSImage?
-        if let iconFileName = plist["CFBundleIconFile"] as? String {
-            let iconURL = appURL.appendingPathComponent("Contents/Resources/\(iconFileName)")
-            // Try with and without .icns extension
-            if FileManager.default.fileExists(atPath: iconURL.path) {
-                icon = NSImage(contentsOf: iconURL)
-            } else {
-                let iconWithExtURL = iconURL.appendingPathExtension("icns")
-                if FileManager.default.fileExists(atPath: iconWithExtURL.path) {
-                    icon = NSImage(contentsOf: iconWithExtURL)
+            // Try to get app icon
+            var icon: NSImage?
+            if let iconFileName = plist["CFBundleIconFile"] as? String {
+                let iconURL = appURL.appendingPathComponent("Contents/Resources/\(iconFileName)")
+                // Try with and without .icns extension
+                if FileManager.default.fileExists(atPath: iconURL.path) {
+                    icon = NSImage(contentsOf: iconURL)
+                } else {
+                    let iconWithExtURL = iconURL.appendingPathExtension("icns")
+                    if FileManager.default.fileExists(atPath: iconWithExtURL.path) {
+                        icon = NSImage(contentsOf: iconWithExtURL)
+                    }
                 }
             }
-        }
 
-        // If no icon found via Info.plist, try using NSWorkspace
-        if icon == nil {
-            icon = NSWorkspace.shared.icon(forFile: appURL.path)
-        }
+            // If no icon found via Info.plist, try using NSWorkspace
+            if icon == nil {
+                icon = NSWorkspace.shared.icon(forFile: appURL.path)
+            }
 
-        return InstalledApp(name: name, bundleID: bundleID, icon: icon)
-    }
+            return InstalledApp(name: name, bundleID: bundleID, icon: icon)
+        }
     #endif
 
     /// Get commonly used messaging/productivity apps bundle IDs for defaults
@@ -142,6 +143,6 @@ public class AppDiscoveryManager {
         "com.google.Chrome": "Chrome",
         "com.microsoft.VSCode": "VS Code",
         "com.apple.Notes": "Notes",
-        "com.notion.id": "Notion"
+        "com.notion.id": "Notion",
     ]
 }

@@ -23,7 +23,7 @@ struct TextRulesView: View {
                     }
                 }
                 .onDelete { indexSet in
-                    indexSet.forEach { index in
+                    for index in indexSet {
                         let rule = promptRulesManager.rules[index]
                         promptRulesManager.removeRule(rule)
                     }

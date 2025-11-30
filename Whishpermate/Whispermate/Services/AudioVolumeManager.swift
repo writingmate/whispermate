@@ -1,10 +1,10 @@
-import Foundation
-import CoreAudio
 import AudioToolbox
+import CoreAudio
+import Foundation
 
 class AudioVolumeManager {
     private var originalVolume: Float?
-    private var targetVolumeLevel: Float = 0.3  // Set volume to 30% (0.0 to 1.0 scale)
+    private var targetVolumeLevel: Float = 0.3 // Set volume to 30% (0.0 to 1.0 scale)
 
     /// Lowers the system volume to a specific level and stores the original volume for restoration
     func lowerVolume() {

@@ -2,11 +2,11 @@ import Accelerate
 import AVFoundation
 
 class FrequencyAnalyzer {
-    private let fftSize = 2048  // Larger FFT for better frequency resolution
+    private let fftSize = 2048 // Larger FFT for better frequency resolution
     private var fftSetup: vDSP_DFT_Setup?
     private var window: [Float] = []
     private var previousBands: [Float] = []
-    private let smoothingFactor: Float = 0.3  // Lower smoothing = more responsive to changes
+    private let smoothingFactor: Float = 0.3 // Lower smoothing = more responsive to changes
 
     // Number of frequency bands to output
     let bandCount = 14
@@ -26,7 +26,8 @@ class FrequencyAnalyzer {
     /// Analyze audio buffer and return frequency magnitudes for each band
     func analyze(buffer: AVAudioPCMBuffer) -> [Float] {
         guard let channelData = buffer.floatChannelData?[0],
-              let fftSetup = fftSetup else {
+              let fftSetup = fftSetup
+        else {
             return Array(repeating: 0.0, count: bandCount)
         }
 
@@ -79,11 +80,11 @@ class FrequencyAnalyzer {
         print("[FreqAnalyzer] VOICE BANDS RAW - Max: \(String(format: "%.4f", rawBandMax)), Avg: \(String(format: "%.4f", rawBandAvg))")
 
         // Apply noise gate - ignore very quiet signals
-        let noiseGate: Float = 0.5  // Aggressive threshold to filter background noise
+        let noiseGate: Float = 0.5 // Aggressive threshold to filter background noise
         bands = bands.map { max($0 - noiseGate, 0.0) }
 
         // Scale with fixed gain to preserve volume information
-        let fixedGain: Float = 12.0  // Higher gain to compensate for aggressive noise gate
+        let fixedGain: Float = 12.0 // Higher gain to compensate for aggressive noise gate
         bands = bands.map {
             let scaled = $0 * fixedGain
             return min(scaled, 1.0)
@@ -95,7 +96,7 @@ class FrequencyAnalyzer {
         print("[FreqAnalyzer] AFTER GAIN - Max: \(String(format: "%.4f", gainedMax)), Avg: \(String(format: "%.4f", gainedAvg))")
 
         // Apply asymmetric smoothing: fast attack, slow decay
-        for i in 0..<bandCount {
+        for i in 0 ..< bandCount {
             if bands[i] > previousBands[i] {
                 // Attack: respond quickly (less smoothing)
                 bands[i] = previousBands[i] * 0.1 + bands[i] * 0.9
@@ -122,10 +123,10 @@ class FrequencyAnalyzer {
         let magnitudeCount = magnitudes.count
 
         // Define voice frequency range (fundamentals + formants)
-        let voiceStartHz: Float = 50.0   // Include lowest voice frequencies
-        let voiceEndHz: Float = 2400.0   // Cut high frequencies (20% reduction)
+        let voiceStartHz: Float = 50.0 // Include lowest voice frequencies
+        let voiceEndHz: Float = 2400.0 // Cut high frequencies (20% reduction)
 
-        let nyquistFreq = sampleRate / 2.0  // Max frequency we can represent
+        let nyquistFreq = sampleRate / 2.0 // Max frequency we can represent
 
         // Convert Hz to FFT bin indices
         let voiceRangeStart = Int((voiceStartHz / nyquistFreq) * Float(magnitudeCount))
@@ -133,7 +134,7 @@ class FrequencyAnalyzer {
         let voiceRangeWidth = voiceRangeEnd - voiceRangeStart
 
         // DEBUG: Log frequency range info (only once on first call)
-        
+
         var debugOnce = true
         if debugOnce {
             debugOnce = false
@@ -150,14 +151,14 @@ class FrequencyAnalyzer {
         }
 
         // Linear distribution in voice range
-        for i in 0..<bandCount {
+        for i in 0 ..< bandCount {
             let fraction = Float(i) / Float(bandCount)
             let startIndex = voiceRangeStart + Int(fraction * Float(voiceRangeWidth))
             let endIndex = voiceRangeStart + Int(Float(i + 1) / Float(bandCount) * Float(voiceRangeWidth))
 
             // Average magnitudes in this band
-            if startIndex < voiceRangeEnd && endIndex <= voiceRangeEnd && startIndex < endIndex {
-                let bandMagnitudes = magnitudes[startIndex..<endIndex]
+            if startIndex < voiceRangeEnd, endIndex <= voiceRangeEnd, startIndex < endIndex {
+                let bandMagnitudes = magnitudes[startIndex ..< endIndex]
                 bands[i] = bandMagnitudes.reduce(0, +) / Float(bandMagnitudes.count)
             }
         }

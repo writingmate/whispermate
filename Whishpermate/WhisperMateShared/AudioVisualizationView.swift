@@ -12,11 +12,11 @@ public struct AudioVisualizationView: View {
     }
 
     private let totalBars = 14
-    private let minActiveBars = 4  // Minimum bars that activate in center
-    private let barWidth: CGFloat = 4  // Twice as thick
+    private let minActiveBars = 4 // Minimum bars that activate in center
+    private let barWidth: CGFloat = 4 // Twice as thick
     private let barSpacing: CGFloat = 2
-    private let maxBarHeight: CGFloat = 18  // Fit within 24px overlay height with padding
-    private let dotSize: CGFloat = 3  // Perfect circle when inactive
+    private let maxBarHeight: CGFloat = 18 // Fit within 24px overlay height with padding
+    private let dotSize: CGFloat = 3 // Perfect circle when inactive
 
     private var activeBarCount: Int {
         let audioFactor = CGFloat(audioLevel)
@@ -30,7 +30,7 @@ public struct AudioVisualizationView: View {
         if let bands = frequencyBands, bands.count == totalBars {
             let magnitude = CGFloat(bands[index])
             let heightRange = maxBarHeight - dotSize
-            let randomFactor = CGFloat.random(in: 0.8...1.2)  // Add organic variation
+            let randomFactor = CGFloat.random(in: 0.8 ... 1.2) // Add organic variation
             let height = dotSize + (heightRange * magnitude * randomFactor)
             return max(dotSize, min(maxBarHeight, height))
         }
@@ -60,7 +60,7 @@ public struct AudioVisualizationView: View {
         let waveformFactor = 1.0 - (distanceFromCenter * distanceFromCenter)
 
         // Add organic variation
-        let randomFactor = CGFloat.random(in: 0.8...1.2)
+        let randomFactor = CGFloat.random(in: 0.8 ... 1.2)
 
         // Calculate height
         let heightRange = maxBarHeight - dotSize
@@ -71,7 +71,7 @@ public struct AudioVisualizationView: View {
 
     public var body: some View {
         HStack(spacing: barSpacing) {
-            ForEach(0..<totalBars, id: \.self) { index in
+            ForEach(0 ..< totalBars, id: \.self) { index in
                 RoundedRectangle(cornerRadius: 2)
                     .fill(color)
                     .frame(width: barWidth, height: barHeight(for: index))

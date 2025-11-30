@@ -1,5 +1,6 @@
-import SwiftUI
 import AppKit
+import SwiftUI
+import WhisperMateShared
 
 struct HistoryView: View {
     @ObservedObject var historyManager: HistoryManager
@@ -15,38 +16,38 @@ struct HistoryView: View {
 
     var body: some View {
         GeometryReader { geometry in
-        VStack(spacing: 0) {
-            // Header with title and close button (matching Settings style)
-            HStack {
-                Text("History")
-                    .dsFont(.h5)
-                    .foregroundStyle(Color.dsForeground)
+            VStack(spacing: 0) {
+                // Header with title and close button (matching Settings style)
+                HStack {
+                    Text("History")
+                        .dsFont(.h5)
+                        .foregroundStyle(Color.dsForeground)
 
-                Spacer()
+                    Spacer()
 
-                Button(action: {
-                    dismiss()
-                }) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(Color.dsMutedForeground)
+                    Button(action: {
+                        dismiss()
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .dsFont(.h5)
+                            .foregroundStyle(Color.dsMutedForeground)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
-            }
-            .padding(.horizontal, 24)
-            .padding(.vertical, 16)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 16)
 
-            Divider()
+                Divider()
 
-            // Search Bar
+                // Search Bar
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass")
-                        .font(.system(size: 13))
+                        .dsFont(.label)
                         .foregroundStyle(Color.dsMutedForeground)
 
                     TextField("Search transcriptions...", text: $searchText)
                         .textFieldStyle(.plain)
-                        .font(.system(size: 13))
+                        .dsFont(.label)
                         .foregroundStyle(Color.dsForeground)
 
                     if !searchText.isEmpty {
@@ -54,7 +55,7 @@ struct HistoryView: View {
                             searchText = ""
                         }) {
                             Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 13))
+                                .dsFont(.label)
                                 .foregroundStyle(Color.dsMutedForeground)
                         }
                         .buttonStyle(.plain)
@@ -78,14 +79,14 @@ struct HistoryView: View {
                     VStack(spacing: 12) {
                         Spacer()
                         Image(systemName: searchText.isEmpty ? "mic.slash" : "magnifyingglass")
-                            .font(.system(size: 48))
+                            .dsFont(.h1)
                             .foregroundStyle(Color.dsMuted)
                         Text(searchText.isEmpty ? "No recordings yet" : "No results found")
-                            .font(.system(size: 15, weight: .medium))
+                            .dsFont(.bodyMedium)
                             .foregroundStyle(Color.dsMutedForeground)
                         if searchText.isEmpty {
                             Text("Start recording to build your history")
-                                .font(.system(size: 12))
+                                .dsFont(.small)
                                 .foregroundStyle(Color.dsMutedForeground)
                         }
                         Spacer()
@@ -115,9 +116,9 @@ struct HistoryView: View {
                     }) {
                         HStack(spacing: 6) {
                             Image(systemName: "trash")
-                                .font(.system(size: 13))
+                                .dsFont(.label)
                             Text("Clear All")
-                                .font(.system(size: 13))
+                                .dsFont(.label)
                         }
                         .foregroundStyle(.red)
                     }
@@ -128,7 +129,7 @@ struct HistoryView: View {
                 }
                 .padding(.horizontal, max(24, geometry.size.width * 0.06))
                 .padding(.vertical, 16)
-        }
+            }
         }
         .frame(minWidth: 800, maxWidth: 1600, minHeight: 800, maxHeight: 1400)
         .alert("Clear All History?", isPresented: $showingClearConfirmation) {
@@ -153,24 +154,24 @@ struct RecordingRow: View {
         HStack(alignment: .top, spacing: 16) {
             // Status indicator
             Image(systemName: recording.status == .success ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                .font(.system(size: 16))
+                .dsFont(.body)
                 .foregroundStyle(recording.status == .success ? Color.dsSecondary : Color.dsAccent)
 
             // Timestamp
             VStack(alignment: .leading, spacing: 2) {
                 Text(recording.formattedDate)
-                    .font(.system(size: 13, weight: .medium))
+                    .dsFont(.labelMedium)
                     .foregroundStyle(Color.dsForeground)
 
                 if let duration = recording.formattedDuration {
                     Text(duration)
-                        .font(.system(size: 12))
+                        .dsFont(.small)
                         .foregroundStyle(Color.dsMutedForeground)
                 }
 
                 if recording.retryCount > 0 {
                     Text("Retried \(recording.retryCount)x")
-                        .font(.system(size: 11))
+                        .dsFont(.tiny)
                         .foregroundStyle(Color.dsAccent)
                 }
             }
@@ -179,17 +180,17 @@ struct RecordingRow: View {
             // Transcription or Error
             if let transcription = recording.transcription {
                 Text(transcription)
-                    .font(.system(size: 13))
+                    .dsFont(.label)
                     .foregroundStyle(Color.dsForeground)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .textSelection(.enabled)
             } else if let errorMessage = recording.errorMessage {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Failed")
-                        .font(.system(size: 13, weight: .medium))
+                        .dsFont(.labelMedium)
                         .foregroundStyle(Color.dsAccent)
                     Text(errorMessage)
-                        .font(.system(size: 12))
+                        .dsFont(.small)
                         .foregroundStyle(Color.dsMutedForeground)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -204,7 +205,7 @@ struct RecordingRow: View {
                         }
                     }) {
                         Image(systemName: "doc.on.doc")
-                            .font(.system(size: 13))
+                            .dsFont(.label)
                             .foregroundStyle(Color.dsPrimary)
                     }
                     .buttonStyle(.plain)
@@ -215,7 +216,7 @@ struct RecordingRow: View {
                         // TODO: Implement retry from history
                     }) {
                         Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 13))
+                            .dsFont(.label)
                             .foregroundStyle(Color.dsPrimary)
                     }
                     .buttonStyle(.plain)
@@ -228,7 +229,7 @@ struct RecordingRow: View {
                     showingDeleteConfirmation = true
                 }) {
                     Image(systemName: "trash")
-                        .font(.system(size: 13))
+                        .dsFont(.label)
                         .foregroundStyle(.red)
                 }
                 .buttonStyle(.plain)

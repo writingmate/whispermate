@@ -14,9 +14,9 @@ class OpenAIClient {
     // Custom URLSession optimized for persistent connections and SSL session reuse
     private static let urlSession: URLSession = {
         let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 10.0  // Fail fast - 10 seconds max per request
-        config.timeoutIntervalForResource = 300.0  // Keep connection alive for 5 minutes
-        config.httpMaximumConnectionsPerHost = 6  // Allow multiple connections to same host
+        config.timeoutIntervalForRequest = 10.0 // Fail fast - 10 seconds max per request
+        config.timeoutIntervalForResource = 300.0 // Keep connection alive for 5 minutes
+        config.httpMaximumConnectionsPerHost = 6 // Allow multiple connections to same host
         // URLSession automatically handles SSL session resumption and connection reuse
         return URLSession(configuration: config)
     }()
@@ -191,7 +191,7 @@ class OpenAIClient {
             "model": effectiveModel,
             "messages": messages,
             "temperature": temperature,
-            "max_tokens": maxTokens
+            "max_tokens": maxTokens,
         ]
 
         guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
@@ -231,7 +231,8 @@ class OpenAIClient {
                   let choices = json["choices"] as? [[String: Any]],
                   let firstChoice = choices.first,
                   let message = firstChoice["message"] as? [String: Any],
-                  let content = message["content"] as? String else {
+                  let content = message["content"] as? String
+            else {
                 throw OpenAIError.invalidResponse
             }
 
@@ -258,10 +259,11 @@ class OpenAIClient {
         audioURL: URL,
         prompt: String? = nil,
         formattingRules: [String] = [],
-        languageCodes: String? = nil,
+        languageCodes _: String? = nil,
         appContext: String? = nil,
-        llmApiKey: String? = nil,
-        clipboardContent: String? = nil
+        llmApiKey _: String? = nil,
+        clipboardContent: String? = nil,
+        screenContext: String? = nil
     ) async throws -> String {
         let startTime = CFAbsoluteTimeGetCurrent()
 
@@ -278,6 +280,11 @@ class OpenAIClient {
 
             if let appContext = appContext {
                 combinedPrompt += "\n\nContext: The user is currently in \(appContext)."
+            }
+
+            // Add screen context if present (OCR of active window)
+            if let screenContext = screenContext, !screenContext.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                combinedPrompt += "\n\nScreen Context (OCR of active window):\n\(screenContext)"
             }
 
             // Add clipboard content if present
@@ -366,7 +373,7 @@ class OpenAIClient {
 
         let messages = [
             ["role": "system", "content": systemPrompt],
-            ["role": "user", "content": userMessage]
+            ["role": "user", "content": userMessage],
         ]
 
         return try await chatCompletion(messages: messages)

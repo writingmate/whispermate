@@ -38,7 +38,7 @@ struct OnboardingView: View {
                     VStack(spacing: 20) {
                         // Icon
                         Image(systemName: onboardingManager.currentStep.icon)
-                            .font(.system(size: 64))
+                            .dsFont(.iconLarge)
                             .foregroundStyle(Color.dsPrimary)
                             .padding(.top, 8)
 
@@ -71,7 +71,7 @@ struct OnboardingView: View {
                     gradient: Gradient(stops: [
                         .init(color: .black, location: 0),
                         .init(color: .black, location: 0.92),
-                        .init(color: .clear, location: 1)
+                        .init(color: .clear, location: 1),
                     ]),
                     startPoint: .top,
                     endPoint: .bottom
@@ -121,13 +121,13 @@ struct OnboardingView: View {
             if onboardingManager.isMicrophoneGranted() {
                 VStack(spacing: 12) {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 48))
+                        .dsFont(.h1)
                         .foregroundStyle(Color.dsSecondary)
                         .scaleEffect(1.0)
                         .animation(.spring(response: 0.5, dampingFraction: 0.6), value: true)
 
                     Text("Permission granted")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.geist(size: 14, weight: .medium))
                         .foregroundStyle(Color.dsSecondary)
                 }
                 .padding(.vertical, 20)
@@ -140,13 +140,13 @@ struct OnboardingView: View {
             if onboardingManager.isAccessibilityGranted() {
                 VStack(spacing: 12) {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 48))
+                        .dsFont(.h1)
                         .foregroundStyle(Color.dsSecondary)
                         .scaleEffect(onboardingManager.accessibilityGranted ? 1.0 : 0.5)
                         .animation(.spring(response: 0.5, dampingFraction: 0.6), value: onboardingManager.accessibilityGranted)
 
                     Text("Permission granted")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.geist(size: 14, weight: .medium))
                         .foregroundStyle(Color.dsSecondary)
                 }
                 .padding(.vertical, 20)
@@ -159,7 +159,7 @@ struct OnboardingView: View {
             VStack(spacing: 12) {
                 // Language grid
                 LazyVGrid(columns: [
-                    GridItem(.adaptive(minimum: 140))
+                    GridItem(.adaptive(minimum: 140)),
                 ], spacing: 8) {
                     ForEach(Language.allCases) { language in
                         Button(action: {
@@ -167,10 +167,10 @@ struct OnboardingView: View {
                         }) {
                             HStack(spacing: 8) {
                                 Text(language.flag)
-                                    .font(.system(size: 16))
+                                    .dsFont(.body)
 
                                 Text(language.displayName)
-                                    .font(.system(size: 13))
+                                    .dsFont(.label)
                                     .foregroundStyle(languageManager.isSelected(language) ? .white : Color.dsForeground)
                                     .lineLimit(1)
 
@@ -178,7 +178,7 @@ struct OnboardingView: View {
 
                                 if languageManager.isSelected(language) {
                                     Image(systemName: "checkmark")
-                                        .font(.system(size: 11, weight: .bold))
+                                        .font(.geist(size: 11, weight: .bold))
                                         .foregroundStyle(.white)
                                 }
                             }
@@ -205,7 +205,7 @@ struct OnboardingView: View {
                 // Custom hotkey selection view
                 VStack(spacing: 16) {
                     Text("Set your preferred hotkey")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(.geist(size: 14, weight: .medium))
                         .foregroundStyle(Color.dsForeground)
 
                     HotkeyRecorderView(hotkeyManager: hotkeyManager)
@@ -216,7 +216,7 @@ struct OnboardingView: View {
                         stopFnKeyMonitoring()
                     }) {
                         Text("Back to Fn key")
-                            .font(.system(size: 12))
+                            .dsFont(.small)
                             .foregroundStyle(Color.dsMutedForeground)
                     }
                     .buttonStyle(.plain)
@@ -227,7 +227,7 @@ struct OnboardingView: View {
                 VStack(spacing: 12) {
                     // Fn key option (visual representation)
                     Text("Fn")
-                        .font(.system(size: 40, weight: .semibold))
+                        .font(.geist(size: 40, weight: .semibold))
                         .foregroundStyle(hotkeyManager.currentHotkey?.keyCode == 63 ? Color.dsSecondary : Color.dsForeground)
                         .frame(width: 100, height: 100)
                         .background(
@@ -245,12 +245,12 @@ struct OnboardingView: View {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundStyle(Color.dsSecondary)
                             Text("Fn key detected")
-                                .font(.system(size: 12))
+                                .dsFont(.small)
                                 .foregroundStyle(Color.dsSecondary)
                         }
                     } else {
                         Text("Press Fn to use it")
-                            .font(.system(size: 12))
+                            .dsFont(.small)
                             .foregroundStyle(Color.dsMutedForeground)
                     }
 
@@ -260,7 +260,7 @@ struct OnboardingView: View {
                         stopFnKeyMonitoring()
                     }) {
                         Text("Use a different hotkey")
-                            .font(.system(size: 12))
+                            .dsFont(.small)
                             .foregroundStyle(Color.dsMutedForeground)
                     }
                     .buttonStyle(.plain)
@@ -275,7 +275,6 @@ struct OnboardingView: View {
                     stopFnKeyMonitoring()
                 }
             }
-
         }
     }
 
@@ -305,7 +304,7 @@ struct OnboardingView: View {
                 }
             }) {
                 Text(onboardingManager.isAccessibilityGranted() ? "Continue" : "Open System Settings")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.geist(size: 15, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
@@ -331,7 +330,7 @@ struct OnboardingView: View {
                 onboardingManager.moveToNextStep()
             }) {
                 Text("Continue")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.geist(size: 15, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)

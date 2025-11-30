@@ -1,10 +1,11 @@
 //
-//  WhishpermateApp.swift
+//  WhispermateApp.swift
 //  Whishpermate
 //
 //  Created by Artsiom Vysotski on 10/16/25.
 //
 
+import CoreText
 import SwiftUI
 import WhisperMateShared
 
@@ -17,7 +18,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private let hotkeyManager = HotkeyManager.shared
     private let onboardingManager = OnboardingManager.shared
 
-    func applicationDidFinishLaunching(_ notification: Notification) {
+    func applicationDidFinishLaunching(_: Notification) {
+        // Debug: Check font loading
+        debugFontLoading()
+
         // Migrate old prompt rules to new system if needed
         RulesMigrationManager.migrateIfNeeded()
 
@@ -37,7 +41,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         checkAndShowOnboarding()
     }
 
-    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+    func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         // Only show main window on reopen, not settings/history
         if !flag {
             if let window = mainWindow {
@@ -47,14 +51,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         return true
     }
 
-    func applicationDidBecomeActive(_ notification: Notification) {
+    func applicationDidBecomeActive(_: Notification) {
         // Ensure window is always properly configured when app becomes active
         if mainWindow == nil {
             configureMainWindow()
         }
     }
 
-    func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
+    func applicationDockMenu(_: NSApplication) -> NSMenu? {
         let dockMenu = NSMenu()
 
         // Settings menu item
@@ -118,7 +122,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             queue: .main
         ) { [weak self] _ in
             let overlayManager = OverlayWindowManager.shared
-            if window.isVisible && !overlayManager.isRecording && !overlayManager.isProcessing {
+            if window.isVisible, !overlayManager.isRecording, !overlayManager.isProcessing {
                 DebugLog.info("Main window became key - hiding overlay", context: "AppDelegate")
                 overlayManager.hide()
             }
@@ -143,7 +147,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private func customizeTrafficLightButtons(window: NSWindow) {
         // Get traffic light buttons
         guard let closeButton = window.standardWindowButton(.closeButton),
-              let miniaturizeButton = window.standardWindowButton(.miniaturizeButton) else {
+              let miniaturizeButton = window.standardWindowButton(.miniaturizeButton)
+        else {
             DebugLog.info("Could not get traffic light buttons", context: "AppDelegate")
             return
         }
@@ -199,6 +204,105 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
 
+    // MARK: - Font Debug
+
+    private func debugFontLoading() {
+        print("========================================")
+        print("🔤 FONT DEBUG START")
+        print("========================================")
+
+        // Manually register fonts with Core Text for SwiftUI
+        registerFontsManually()
+
+        // Check bundle path
+        let bundle = Bundle.main
+        print("📦 Bundle path: \(bundle.bundlePath)")
+        print("📦 Resources path: \(bundle.resourcePath ?? "nil")")
+
+        // Check if font files exist in bundle
+        let fontNames = ["Geist-Regular", "Geist-Bold", "Geist-Medium", "JetBrainsMono-Regular"]
+        for fontName in fontNames {
+            if let fontPath = bundle.path(forResource: fontName, ofType: "ttf") {
+                print("✅ Found font file: \(fontName).ttf at \(fontPath)")
+            } else {
+                print("❌ Font file NOT found: \(fontName).ttf")
+            }
+        }
+
+        // Check available font families
+        let fontManager = NSFontManager.shared
+        let availableFamilies = fontManager.availableFontFamilies
+
+        // Look for Geist and JetBrains
+        let geistFamilies = availableFamilies.filter { $0.lowercased().contains("geist") }
+        let jetBrainsFamilies = availableFamilies.filter { $0.lowercased().contains("jetbrains") }
+
+        print("\n📋 Geist font families found: \(geistFamilies)")
+        print("📋 JetBrains font families found: \(jetBrainsFamilies)")
+
+        // Try to create fonts directly
+        if let geistFont = NSFont(name: "Geist-Regular", size: 14) {
+            print("✅ NSFont 'Geist-Regular' created: \(geistFont)")
+        } else {
+            print("❌ NSFont 'Geist-Regular' FAILED to create")
+        }
+
+        if let jetBrainsFont = NSFont(name: "JetBrainsMono-Regular", size: 14) {
+            print("✅ NSFont 'JetBrainsMono-Regular' created: \(jetBrainsFont)")
+        } else {
+            print("❌ NSFont 'JetBrainsMono-Regular' FAILED to create")
+        }
+
+        // List all fonts in Geist family if found
+        if !geistFamilies.isEmpty {
+            for family in geistFamilies {
+                let members = fontManager.availableMembers(ofFontFamily: family) ?? []
+                print("📋 Members of '\(family)': \(members)")
+            }
+        }
+
+        // Check Info.plist ATSApplicationFontsPath
+        if let atsPath = bundle.infoDictionary?["ATSApplicationFontsPath"] as? String {
+            print("\n📋 ATSApplicationFontsPath: '\(atsPath)'")
+        } else {
+            print("\n❌ ATSApplicationFontsPath NOT set in Info.plist")
+        }
+
+        print("========================================")
+        print("🔤 FONT DEBUG END")
+        print("========================================\n")
+    }
+
+    private func registerFontsManually() {
+        let bundle = Bundle.main
+        let fontExtensions = ["ttf", "otf"]
+        var registeredCount = 0
+
+        for ext in fontExtensions {
+            guard let fontURLs = bundle.urls(forResourcesWithExtension: ext, subdirectory: nil) else { continue }
+
+            for fontURL in fontURLs {
+                var error: Unmanaged<CFError>?
+                let success = CTFontManagerRegisterFontsForURL(fontURL as CFURL, .process, &error)
+
+                if success {
+                    print("✅ Registered font: \(fontURL.lastPathComponent)")
+                    registeredCount += 1
+                } else if let err = error?.takeRetainedValue() {
+                    let errorDesc = CFErrorCopyDescription(err) as String? ?? "Unknown error"
+                    // Error 105 means font is already registered - that's OK
+                    if errorDesc.contains("105") {
+                        print("ℹ️ Font already registered: \(fontURL.lastPathComponent)")
+                    } else {
+                        print("❌ Failed to register font \(fontURL.lastPathComponent): \(errorDesc)")
+                    }
+                }
+            }
+        }
+
+        print("📋 Manually registered \(registeredCount) fonts with CTFontManager")
+    }
+
     // MARK: - Hotkey Setup
 
     private func setupHotkeyCallbacks() {
@@ -227,6 +331,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 }
 
 // MARK: - Window Identifier Modifier
+
 struct WindowIdentifierModifier: ViewModifier {
     let identifier: NSUserInterfaceItemIdentifier
 
@@ -238,7 +343,7 @@ struct WindowIdentifierModifier: ViewModifier {
 struct WindowAccessor: NSViewRepresentable {
     let identifier: NSUserInterfaceItemIdentifier
 
-    func makeNSView(context: Context) -> NSView {
+    func makeNSView(context _: Context) -> NSView {
         let view = NSView()
         DispatchQueue.main.async {
             view.window?.identifier = identifier
@@ -246,7 +351,7 @@ struct WindowAccessor: NSViewRepresentable {
         return view
     }
 
-    func updateNSView(_ nsView: NSView, context: Context) {
+    func updateNSView(_ nsView: NSView, context _: Context) {
         nsView.window?.identifier = identifier
     }
 }
@@ -270,19 +375,19 @@ struct WhishpermateApp: App {
         DebugLog.info("Received URL callback: \(url.absoluteString)", context: "WhispermateApp")
 
         // Handle authentication callback (whispermate://auth-callback)
-        if url.scheme == "whispermate" && (url.host == "auth-callback" || url.host == "auth") {
+        if url.scheme == "whispermate", url.host == "auth-callback" || url.host == "auth" {
             Task {
                 await authManager.handleAuthCallback(url: url)
             }
         }
         // Handle payment success callback
-        else if url.scheme == "whispermate" && url.host == "payment" && url.path == "/success" {
+        else if url.scheme == "whispermate", url.host == "payment", url.path == "/success" {
             Task {
                 await subscriptionManager.handlePaymentSuccess()
             }
         }
         // Handle payment cancel callback
-        else if url.scheme == "whispermate" && url.host == "payment" && url.path == "/cancel" {
+        else if url.scheme == "whispermate", url.host == "payment", url.path == "/cancel" {
             subscriptionManager.handlePaymentCancel()
         }
     }
@@ -309,7 +414,7 @@ struct WhishpermateApp: App {
 
             // Remove History command since it's now part of main window
             // Remove File > New Window command since we only want one main window
-            CommandGroup(replacing: .newItem) { }
+            CommandGroup(replacing: .newItem) {}
         }
 
         // Settings window

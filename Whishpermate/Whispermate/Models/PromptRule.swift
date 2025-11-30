@@ -26,14 +26,15 @@ class PromptRulesManager: ObservableObject {
 
     func loadRules() {
         if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
-           let decoded = try? JSONDecoder().decode([PromptRule].self, from: data) {
+           let decoded = try? JSONDecoder().decode([PromptRule].self, from: data)
+        {
             rules = decoded
             DebugLog.info("Loaded \(rules.count) prompt rules", context: "PromptRulesManager LOG")
         } else {
             // Add default rules
             rules = [
                 PromptRule(text: "Always use numbers for numbers (1, 2, 3) not words"),
-                PromptRule(text: "Always translate to English")
+                PromptRule(text: "Always translate to English"),
             ]
             saveRules()
             DebugLog.info("Created default prompt rules", context: "PromptRulesManager LOG")

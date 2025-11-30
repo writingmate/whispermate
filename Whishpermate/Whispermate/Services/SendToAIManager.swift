@@ -1,6 +1,6 @@
-import Foundation
 import AppKit
 import ApplicationServices
+import Foundation
 
 class SendToAIManager {
     static let shared = SendToAIManager()

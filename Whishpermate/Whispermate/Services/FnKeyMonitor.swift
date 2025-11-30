@@ -1,6 +1,6 @@
-import Foundation
-import CoreGraphics
 import AppKit
+import CoreGraphics
+import Foundation
 
 /// Monitors the Fn key state using NSEvent.flagsChanged
 /// This works globally (even when app is in background)
@@ -13,7 +13,7 @@ class FnKeyMonitor {
     var onFnReleased: (() -> Void)?
 
     /// Start monitoring the Fn key state
-    func startMonitoring(pollInterval: TimeInterval = 0.016) {
+    func startMonitoring(pollInterval _: TimeInterval = 0.016) {
         DebugLog.info("========================================", context: "FnKeyMonitor")
         DebugLog.info("STARTING Fn key monitoring", context: "FnKeyMonitor")
         DebugLog.info("Using NSEvent.flagsChanged monitoring", context: "FnKeyMonitor")
@@ -56,14 +56,14 @@ class FnKeyMonitor {
         let isFnPressed = event.modifierFlags.contains(.function)
 
         // Detect state transitions
-        if isFnPressed && !previousFnState {
+        if isFnPressed, !previousFnState {
             // Fn key was just pressed
             DebugLog.info("⚡️ STATE CHANGE: Fn key PRESSED ⚡️", context: "FnKeyMonitor")
             DebugLog.info("Calling onFnPressed callback...", context: "FnKeyMonitor")
             previousFnState = true
             onFnPressed?()
             DebugLog.info("onFnPressed callback completed", context: "FnKeyMonitor")
-        } else if !isFnPressed && previousFnState {
+        } else if !isFnPressed, previousFnState {
             // Fn key was just released
             DebugLog.info("⚡️ STATE CHANGE: Fn key RELEASED ⚡️", context: "FnKeyMonitor")
             DebugLog.info("Calling onFnReleased callback...", context: "FnKeyMonitor")

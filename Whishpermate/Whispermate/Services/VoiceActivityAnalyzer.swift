@@ -1,5 +1,5 @@
-import Foundation
 import AVFoundation
+import Foundation
 
 /// Analyzes completed audio files to detect if they contain speech
 class VoiceActivityAnalyzer {
@@ -9,7 +9,7 @@ class VoiceActivityAnalyzer {
     func containsSpeech(
         in audioURL: URL,
         threshold: Float = 0.3,
-        minSpeechRatio: Float = 0.1
+        minSpeechRatio _: Float = 0.1
     ) async throws -> Bool {
         DebugLog.info("🎤 Analyzing audio for speech...", context: "VAD")
 
@@ -44,7 +44,7 @@ enum VADError: LocalizedError {
             return "Failed to allocate audio buffer"
         case .bufferReadFailed:
             return "Failed to read audio buffer"
-        case .conversionError(let error):
+        case let .conversionError(error):
             return "Audio conversion error: \(error.localizedDescription)"
         }
     }

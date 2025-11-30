@@ -1,6 +1,6 @@
+import AppKit
 import Foundation
 import ServiceManagement
-import AppKit
 internal import Combine
 
 /// Manages the launch at login functionality for WhisperMate

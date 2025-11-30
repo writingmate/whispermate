@@ -81,7 +81,7 @@ public struct PricingPlan: Identifiable {
                     "2,000 words total",
                     "Basic transcription",
                     "AI formatting",
-                    "Export to clipboard"
+                    "Export to clipboard",
                 ],
                 isPopular: false,
                 paymentLink: nil
@@ -99,7 +99,7 @@ public struct PricingPlan: Identifiable {
                     "Priority processing",
                     "Advanced AI features",
                     "Export anywhere",
-                    "Premium support"
+                    "Premium support",
                 ],
                 isPopular: false,
                 paymentLink: SecretsLoader.getValue(for: "STRIPE_PAYMENT_LINK_MONTHLY")
@@ -117,7 +117,7 @@ public struct PricingPlan: Identifiable {
                     "Priority processing",
                     "Advanced AI features",
                     "Export anywhere",
-                    "Premium support"
+                    "Premium support",
                 ],
                 isPopular: true,
                 paymentLink: SecretsLoader.getValue(for: "STRIPE_PAYMENT_LINK_ANNUAL")
@@ -136,11 +136,11 @@ public struct PricingPlan: Identifiable {
                     "Advanced AI features",
                     "Export anywhere",
                     "Premium support",
-                    "All future updates"
+                    "All future updates",
                 ],
                 isPopular: false,
                 paymentLink: SecretsLoader.getValue(for: "STRIPE_PAYMENT_LINK_LIFETIME")
-            )
+            ),
         ]
     }
 

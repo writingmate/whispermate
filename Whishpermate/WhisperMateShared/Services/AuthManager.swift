@@ -1,29 +1,35 @@
-//
-//  AuthManager.swift
-//  WhisperMate
-//
-//  Created by WhisperMate on 2025-01-24.
-//
-
-import Foundation
 import Combine
+import Foundation
 import Supabase
 #if canImport(AppKit)
-import AppKit
+    import AppKit
 #endif
 
+/// Manages user authentication state and session lifecycle via Supabase
 public class AuthManager: ObservableObject {
     public static let shared = AuthManager()
+
+    // MARK: - Constants
+
+    private enum Constants {
+        static let authCallbackScheme = "whispermate://auth-callback"
+        static let userAuthChangedNotification = "UserAuthenticationChanged"
+    }
+
+    // MARK: - Published Properties
 
     @Published public var currentUser: User?
     @Published public var isAuthenticated: Bool = false
     @Published public var isLoading: Bool = false
     @Published public var error: String?
 
+    // MARK: - Private Properties
+
     private let supabase = SupabaseManager.shared
 
+    // MARK: - Initialization
+
     private init() {
-        // Check if already authenticated
         Task {
             await checkSession()
         }
@@ -44,43 +50,37 @@ public class AuthManager: ObservableObject {
         }
     }
 
-    // MARK: - Web-Based Authentication
+    // MARK: - Public API
 
     public func openSignUp() {
         guard let authWebURL = SecretsLoader.getValue(for: "AUTH_WEB_URL") else {
-            self.error = "Missing auth web URL configuration"
+            error = "Missing auth web URL configuration"
+            DebugLog.info("Missing auth web URL configuration", context: "AuthManager")
             return
         }
 
-        // Open hosted auth web page for signup/login
-        // User will authenticate in browser, then redirect back to app
-        let redirectURL = "whispermate://auth-callback"
-        let authURL = "\(authWebURL)?redirect_to=\(redirectURL.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? redirectURL)"
+        let authURL = "\(authWebURL)?redirect_to=\(Constants.authCallbackScheme.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? Constants.authCallbackScheme)"
 
         #if canImport(AppKit)
-        if let url = URL(string: authURL) {
-            NSWorkspace.shared.open(url)
-        }
+            if let url = URL(string: authURL) {
+                NSWorkspace.shared.open(url)
+            }
         #endif
     }
 
     public func openLogin() {
-        openSignUp() // Hosted auth page handles both login and signup
+        openSignUp()
     }
 
     public func handleAuthCallback(url: URL) async {
-        print("🔐 [AuthManager] Handling auth callback: \(url.absoluteString)")
+        DebugLog.info("Handling auth callback: \(url.absoluteString)", context: "AuthManager")
 
-        // The Supabase SDK will handle the URL callback
         do {
-            // Extract the session from the URL callback
             let session = try await supabase.client.auth.session(from: url)
-            print("✅ [AuthManager] Session established for user: \(session.user.id)")
-
-            // Session established, now fetch user data
+            DebugLog.info("Session established for user: \(session.user.id)", context: "AuthManager")
             await refreshUser()
         } catch {
-            print("❌ [AuthManager] Auth callback failed: \(error.localizedDescription)")
+            DebugLog.info("Auth callback failed: \(error.localizedDescription)", context: "AuthManager")
             await MainActor.run {
                 self.error = "Authentication failed: \(error.localizedDescription)"
             }
@@ -88,7 +88,7 @@ public class AuthManager: ObservableObject {
     }
 
     public func refreshUser() async {
-        print("👤 [AuthManager] Fetching user data...")
+        DebugLog.info("Fetching user data...", context: "AuthManager")
         await MainActor.run {
             self.isLoading = true
             self.error = nil
@@ -96,19 +96,18 @@ public class AuthManager: ObservableObject {
 
         do {
             let user = try await supabase.fetchUser()
-            print("✅ [AuthManager] User fetched: \(user.email), tier: \(user.subscriptionTier), words: \(user.totalWordsUsed)")
+            DebugLog.info("User fetched: \(user.email), tier: \(user.subscriptionTier), words: \(user.totalWordsUsed)", context: "AuthManager")
             await MainActor.run {
                 self.objectWillChange.send()
                 self.currentUser = user
                 self.isAuthenticated = true
                 self.isLoading = false
 
-                // Notify app that auth state changed
-                NotificationCenter.default.post(name: NSNotification.Name("UserAuthenticationChanged"), object: nil)
+                NotificationCenter.default.post(name: NSNotification.Name(Constants.userAuthChangedNotification), object: nil)
             }
-            print("✅ [AuthManager] Auth state updated - isAuthenticated: true")
+            DebugLog.info("Auth state updated - isAuthenticated: true", context: "AuthManager")
         } catch {
-            print("❌ [AuthManager] Failed to fetch user: \(error.localizedDescription)")
+            DebugLog.info("Failed to fetch user: \(error.localizedDescription)", context: "AuthManager")
             await MainActor.run {
                 self.error = error.localizedDescription
                 self.isAuthenticated = false
@@ -118,20 +117,21 @@ public class AuthManager: ObservableObject {
     }
 
     public func logout() async {
+        DebugLog.info("Logging out...", context: "AuthManager")
         do {
             try await supabase.client.auth.signOut()
             await MainActor.run {
                 self.currentUser = nil
                 self.isAuthenticated = false
             }
+            DebugLog.info("Logged out successfully", context: "AuthManager")
         } catch {
+            DebugLog.info("Logout failed: \(error.localizedDescription)", context: "AuthManager")
             await MainActor.run {
                 self.error = "Logout failed: \(error.localizedDescription)"
             }
         }
     }
-
-    // MARK: - Usage Tracking
 
     public func updateWordCount(wordsToAdd: Int) async throws -> User {
         let updatedUser = try await supabase.updateUserWordCount(wordsToAdd: wordsToAdd)

@@ -1,20 +1,32 @@
 import Foundation
 public import Combine
 
+/// Manages custom dictionary entries for transcription vocabulary and replacements
 public class DictionaryManager: ObservableObject {
     public static let shared = DictionaryManager()
 
+    // MARK: - Published Properties
+
     @Published public var entries: [DictionaryEntry] = []
 
-    private let userDefaultsKey = "dictionary_entries"
+    // MARK: - Private Properties
+
+    private enum Keys {
+        static let dictionaryEntries = "dictionary_entries"
+    }
+
+    // MARK: - Initialization
 
     public init() {
         loadEntries()
     }
 
+    // MARK: - Public API
+
     public func loadEntries() {
-        if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
-           let decoded = try? JSONDecoder().decode([DictionaryEntry].self, from: data) {
+        if let data = UserDefaults.standard.data(forKey: Keys.dictionaryEntries),
+           let decoded = try? JSONDecoder().decode([DictionaryEntry].self, from: data)
+        {
             entries = decoded
             DebugLog.info("Loaded \(entries.count) dictionary entries", context: "DictionaryManager")
         } else {
@@ -32,7 +44,7 @@ public class DictionaryManager: ObservableObject {
                 DictionaryEntry(trigger: "iOS", replacement: nil, isEnabled: false),
                 DictionaryEntry(trigger: "macOS", replacement: nil, isEnabled: false),
                 DictionaryEntry(trigger: "JSON", replacement: nil, isEnabled: false),
-                DictionaryEntry(trigger: "SQL", replacement: nil, isEnabled: false)
+                DictionaryEntry(trigger: "SQL", replacement: nil, isEnabled: false),
             ]
             saveEntries()
             DebugLog.info("Created default dictionary entries with examples", context: "DictionaryManager")
@@ -41,7 +53,7 @@ public class DictionaryManager: ObservableObject {
 
     public func saveEntries() {
         if let encoded = try? JSONEncoder().encode(entries) {
-            UserDefaults.standard.set(encoded, forKey: userDefaultsKey)
+            UserDefaults.standard.set(encoded, forKey: Keys.dictionaryEntries)
             DebugLog.info("Saved \(entries.count) dictionary entries", context: "DictionaryManager")
         }
     }
@@ -77,6 +89,8 @@ public class DictionaryManager: ObservableObject {
             DebugLog.info("Updated entry: \(logMsg)", context: "DictionaryManager")
         }
     }
+
+    // MARK: - Computed Properties
 
     /// Get transcription hints for Whisper API (comma-separated list of trigger words)
     public var transcriptionHints: String {

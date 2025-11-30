@@ -5,7 +5,7 @@ struct AppContext {
     let appName: String
     let bundleId: String?
     let windowTitle: String?
-    let url: String?  // Extracted URL from window title for browsers
+    let url: String? // Extracted URL from window title for browsers
 
     var description: String {
         if let title = windowTitle, !title.isEmpty {
@@ -22,7 +22,8 @@ class AppContextHelper {
 
         // Get the frontmost application
         guard let activeApp = workspace.frontmostApplication,
-              let appName = activeApp.localizedName else {
+              let appName = activeApp.localizedName
+        else {
             DebugLog.info("Could not get frontmost application", context: "AppContextHelper")
             return nil
         }
@@ -50,7 +51,7 @@ class AppContextHelper {
             "org.mozilla.firefox",
             "com.microsoft.edgemac",
             "com.brave.Browser",
-            "com.operasoftware.Opera"
+            "com.operasoftware.Opera",
         ]
 
         // Only try to extract URL for browsers
@@ -70,7 +71,8 @@ class AppContextHelper {
             let urlPattern = #"https?://([a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,})"#
             if let regex = try? NSRegularExpression(pattern: urlPattern, options: []),
                let match = regex.firstMatch(in: title, options: [], range: NSRange(title.startIndex..., in: title)),
-               let range = Range(match.range(at: 1), in: title) {
+               let range = Range(match.range(at: 1), in: title)
+            {
                 let domain = String(title[range])
                 DebugLog.info("Extracted URL from title: \(domain)", context: "AppContextHelper")
                 return domain
@@ -82,7 +84,7 @@ class AppContextHelper {
                 ("LinkedIn", "linkedin.com"),
                 ("Facebook", "facebook.com"),
                 ("Twitter", "twitter.com"),
-                ("X ", "x.com"),  // Space to avoid matching in words
+                ("X ", "x.com"), // Space to avoid matching in words
                 ("Instagram", "instagram.com"),
                 ("YouTube", "youtube.com"),
                 ("GitHub", "github.com"),
@@ -95,7 +97,7 @@ class AppContextHelper {
                 ("ChatGPT", "chat.openai.com"),
                 ("Google Docs", "docs.google.com"),
                 ("Google Sheets", "sheets.google.com"),
-                ("Google Drive", "drive.google.com")
+                ("Google Drive", "drive.google.com"),
             ]
 
             for (keyword, domain) in commonSites {

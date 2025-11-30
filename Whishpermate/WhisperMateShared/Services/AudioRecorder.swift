@@ -3,12 +3,12 @@ import Foundation
 public import Combine
 
 #if os(iOS)
-import UIKit
+    import UIKit
 #endif
 
 public class AudioRecorder: NSObject, ObservableObject {
     @Published public var isRecording = false
-    @Published public var audioLevel: Float = 0.0  // Audio level for visualization (0.0 to 1.0)
+    @Published public var audioLevel: Float = 0.0 // Audio level for visualization (0.0 to 1.0)
 
     private var audioRecorder: AVAudioRecorder?
     private var recordingURL: URL?
@@ -17,24 +17,24 @@ public class AudioRecorder: NSObject, ObservableObject {
     // App Group identifier for sharing data between app and keyboard extension
     public static let appGroupIdentifier = "group.com.whispermate.shared"
 
-    public override init() {
+    override public init() {
         super.init()
         #if os(iOS)
-        configureAudioSession()
+            configureAudioSession()
         #endif
     }
 
     #if os(iOS)
-    private func configureAudioSession() {
-        do {
-            let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.record, mode: .default, options: [])
-            try session.setActive(true)
-            DebugLog.info("Audio session configured for iOS", context: "AudioRecorder")
-        } catch {
-            DebugLog.info("Failed to configure audio session: \(error)", context: "AudioRecorder")
+        private func configureAudioSession() {
+            do {
+                let session = AVAudioSession.sharedInstance()
+                try session.setCategory(.record, mode: .default, options: [])
+                try session.setActive(true)
+                DebugLog.info("Audio session configured for iOS", context: "AudioRecorder")
+            } catch {
+                DebugLog.info("Failed to configure audio session: \(error)", context: "AudioRecorder")
+            }
         }
-    }
     #endif
 
     public func startRecording() {
@@ -50,28 +50,28 @@ public class AudioRecorder: NSObject, ObservableObject {
 
         // Use App Group container on iOS, temp directory on macOS
         #if os(iOS)
-        guard let containerURL = fileManager.containerURL(forSecurityApplicationGroupIdentifier: AudioRecorder.appGroupIdentifier) else {
-            DebugLog.info("Failed to get app group container", context: "AudioRecorder LOG")
-            return
-        }
-        let fileName = "recording_\(Date().timeIntervalSince1970).m4a"
-        recordingURL = containerURL.appendingPathComponent(fileName)
+            guard let containerURL = fileManager.containerURL(forSecurityApplicationGroupIdentifier: AudioRecorder.appGroupIdentifier) else {
+                DebugLog.info("Failed to get app group container", context: "AudioRecorder LOG")
+                return
+            }
+            let fileName = "recording_\(Date().timeIntervalSince1970).m4a"
+            recordingURL = containerURL.appendingPathComponent(fileName)
         #else
-        let tempDirectory = fileManager.temporaryDirectory
-        let fileName = "recording_\(Date().timeIntervalSince1970).m4a"
-        recordingURL = tempDirectory.appendingPathComponent(fileName)
+            let tempDirectory = fileManager.temporaryDirectory
+            let fileName = "recording_\(Date().timeIntervalSince1970).m4a"
+            recordingURL = tempDirectory.appendingPathComponent(fileName)
         #endif
 
         let settings: [String: Any] = [
             AVFormatIDKey: Int(kAudioFormatMPEG4AAC),
             AVSampleRateKey: 44100.0,
             AVNumberOfChannelsKey: 1,
-            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+            AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue,
         ]
 
         do {
             audioRecorder = try AVAudioRecorder(url: recordingURL!, settings: settings)
-            audioRecorder?.isMeteringEnabled = true  // Enable metering for visualization
+            audioRecorder?.isMeteringEnabled = true // Enable metering for visualization
             audioRecorder?.record()
 
             // Start timer to update audio levels
@@ -124,12 +124,12 @@ public class AudioRecorder: NSObject, ObservableObject {
         audioRecorder?.stop()
 
         #if os(iOS)
-        // Deactivate audio session on iOS
-        do {
-            try AVAudioSession.sharedInstance().setActive(false)
-        } catch {
-            DebugLog.info("Failed to deactivate audio session: \(error)", context: "AudioRecorder LOG")
-        }
+            // Deactivate audio session on iOS
+            do {
+                try AVAudioSession.sharedInstance().setActive(false)
+            } catch {
+                DebugLog.info("Failed to deactivate audio session: \(error)", context: "AudioRecorder LOG")
+            }
         #endif
 
         // Update UI state on main thread

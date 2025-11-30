@@ -1,4 +1,5 @@
 import SwiftUI
+import WhisperMateShared
 
 struct TestCopyView: View {
     @State private var testText = "Test transcription text"
@@ -8,7 +9,7 @@ struct TestCopyView: View {
     var body: some View {
         VStack(spacing: 20) {
             Text("CMD+C Test Window")
-                .font(.title)
+                .dsFont(.title)
 
             Text("Test Text: \(testText)")
                 .padding()
@@ -18,9 +19,9 @@ struct TestCopyView: View {
                 .foregroundStyle(.green)
 
             Text("Last Log:")
-                .font(.caption)
+                .dsFont(.caption)
             Text(lastLog)
-                .font(.system(.caption, design: .monospaced))
+                .dsFont(.mono)
                 .foregroundStyle(.secondary)
 
             Button("Reset") {

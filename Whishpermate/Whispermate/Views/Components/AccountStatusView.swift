@@ -21,9 +21,9 @@ struct AccountStatusView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Account")
-                                .font(.headline)
+                                .dsFont(.headline)
                             Text(user.email)
-                                .font(.body)
+                                .dsFont(.body)
                                 .foregroundColor(.secondary)
                         }
 
@@ -31,8 +31,7 @@ struct AccountStatusView: View {
 
                         // Subscription badge
                         Text(user.subscriptionTier.displayName)
-                            .font(.caption)
-                            .fontWeight(.semibold)
+                            .dsFont(.caption)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 4)
                             .background(user.subscriptionTier == .pro ? Color.blue : Color.gray)
@@ -47,11 +46,10 @@ struct AccountStatusView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
                                 Text("Usage")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
+                                    .dsFont(.subheadline)
                                 Spacer()
                                 Text("\(user.totalWordsUsed) / \(user.subscriptionTier.wordLimit) words")
-                                    .font(.subheadline)
+                                    .dsFont(.subheadline)
                                     .foregroundColor(.secondary)
                             }
 
@@ -60,15 +58,15 @@ struct AccountStatusView: View {
 
                             if user.hasReachedLimit {
                                 Text("You've reached your word limit")
-                                    .font(.caption)
+                                    .dsFont(.caption)
                                     .foregroundColor(.red)
                             } else if user.usagePercentage >= 0.9 {
                                 Text("You're approaching your limit")
-                                    .font(.caption)
+                                    .dsFont(.caption)
                                     .foregroundColor(.orange)
                             } else {
                                 Text("\(user.wordsRemaining) words remaining")
-                                    .font(.caption)
+                                    .dsFont(.caption)
                                     .foregroundColor(.secondary)
                             }
                         }
@@ -78,7 +76,7 @@ struct AccountStatusView: View {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
                             Text("Unlimited transcriptions")
-                                .font(.subheadline)
+                                .dsFont(.subheadline)
                                 .foregroundColor(.secondary)
                         }
                     }
@@ -122,14 +120,14 @@ struct AccountStatusView: View {
                 // Not signed in
                 VStack(spacing: 12) {
                     Image(systemName: "person.circle")
-                        .font(.system(size: 48))
+                        .dsFont(.h1)
                         .foregroundColor(.secondary)
 
                     Text("Not Signed In")
-                        .font(.headline)
+                        .dsFont(.headline)
 
                     Text("Create an account to start transcribing")
-                        .font(.subheadline)
+                        .dsFont(.subheadline)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
 

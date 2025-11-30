@@ -17,9 +17,9 @@ public struct PricingComparisonView: View {
     private let proPlans: [PricingPlan]
 
     public init() {
-        self.freePlan = PricingPlan.freePlan
-        self.proPlans = PricingPlan.proPlans
-        self._selectedProPlan = State(initialValue: proPlans.first(where: { $0.isPopular }) ?? proPlans[0])
+        freePlan = PricingPlan.freePlan
+        proPlans = PricingPlan.proPlans
+        _selectedProPlan = State(initialValue: proPlans.first(where: { $0.isPopular }) ?? proPlans[0])
     }
 
     public var body: some View {
@@ -27,11 +27,11 @@ public struct PricingComparisonView: View {
             // Header
             VStack(spacing: 8) {
                 Text("Choose Your Plan")
-                    .font(.system(size: 28, weight: .bold))
+                    .dsFont(.h3)
                     .foregroundStyle(Color.dsForeground)
 
                 Text("Start with free credits, upgrade anytime for unlimited transcriptions")
-                    .font(.system(size: 14))
+                    .dsFont(.caption)
                     .foregroundStyle(Color.dsMutedForeground)
                     .multilineTextAlignment(.center)
             }
@@ -86,13 +86,14 @@ public struct PricingComparisonView: View {
 
     private func upgradeToPro() {
         guard let paymentLink = selectedProPlan.paymentLink,
-              let url = URL(string: paymentLink) else {
+              let url = URL(string: paymentLink)
+        else {
             print("No payment link configured for \(selectedProPlan.id)")
             return
         }
 
         #if canImport(AppKit)
-        NSWorkspace.shared.open(url)
+            NSWorkspace.shared.open(url)
         #endif
     }
 }
@@ -110,12 +111,12 @@ private struct PlanCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(plan.name)
-                        .font(.system(size: 20, weight: .semibold))
+                        .dsFont(.h5)
                         .foregroundStyle(Color.dsForeground)
 
                     if plan.isPopular {
                         Text("POPULAR")
-                            .font(.system(size: 10, weight: .bold))
+                            .dsFont(.microBold)
                             .foregroundColor(.white)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
@@ -128,19 +129,19 @@ private struct PlanCard: View {
 
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text(plan.price)
-                        .font(.system(size: 36, weight: .bold))
+                        .dsFont(.h2)
                         .foregroundStyle(Color.dsForeground)
 
                     if let billingPeriod = plan.billingPeriod {
                         Text(billingPeriod.subtitle)
-                            .font(.system(size: 14))
+                            .dsFont(.caption)
                             .foregroundStyle(Color.dsMutedForeground)
                     }
                 }
 
                 if let savingsText = plan.billingPeriod?.savingsText {
                     Text(savingsText)
-                        .font(.system(size: 12, weight: .medium))
+                        .dsFont(.smallMedium)
                         .foregroundStyle(Color.dsSecondary)
                 }
             }
@@ -152,7 +153,7 @@ private struct PlanCard: View {
                 Image(systemName: "doc.text")
                     .foregroundStyle(Color.dsPrimary)
                 Text(plan.wordLimit)
-                    .font(.system(size: 14, weight: .medium))
+                    .dsFont(.captionMedium)
                     .foregroundStyle(Color.dsForeground)
             }
 
@@ -162,10 +163,10 @@ private struct PlanCard: View {
                     HStack(alignment: .top, spacing: 8) {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundStyle(Color.dsPrimary)
-                            .font(.system(size: 14))
+                            .dsFont(.caption)
 
                         Text(feature)
-                            .font(.system(size: 13))
+                            .dsFont(.label)
                             .foregroundStyle(Color.dsForeground)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -177,7 +178,7 @@ private struct PlanCard: View {
             // Action Button
             Button(action: action) {
                 Text(plan.id == "free" ? "Start Free" : "Upgrade to Pro")
-                    .font(.system(size: 14, weight: .semibold))
+                    .dsFont(.captionSemibold)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
@@ -211,15 +212,15 @@ private struct BillingOptionButton: View {
             VStack(spacing: 4) {
                 if let savingsText = plan.billingPeriod?.savingsText {
                     Text(savingsText)
-                        .font(.system(size: 10, weight: .bold))
+                        .dsFont(.microBold)
                         .foregroundColor(isSelected ? .white : Color.dsPrimary)
                 } else {
                     Text(" ")
-                        .font(.system(size: 10))
+                        .dsFont(.micro)
                 }
 
                 Text(plan.billingPeriod?.displayName ?? "")
-                    .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                    .dsFont(.label)
                     .foregroundStyle(isSelected ? .white : Color.dsForeground)
             }
             .padding(.horizontal, 16)

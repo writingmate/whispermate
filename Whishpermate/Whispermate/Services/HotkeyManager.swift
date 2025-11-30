@@ -1,10 +1,30 @@
 import AppKit
 internal import Combine
 
+/// Manages global hotkey registration and event handling
 class HotkeyManager: ObservableObject {
     static let shared = HotkeyManager()
 
+    // MARK: - Published Properties
+
     @Published var currentHotkey: Hotkey?
+
+    // MARK: - Public Callbacks
+
+    var onHotkeyPressed: (() -> Void)?
+    var onHotkeyReleased: (() -> Void)?
+    var onDoubleTap: (() -> Void)?
+
+    // MARK: - Private Properties
+
+    private enum Keys {
+        static let hotkeyKeycode = "hotkey_keycode"
+        static let hotkeyModifiers = "hotkey_modifiers"
+    }
+
+    private enum Constants {
+        static let doubleTapInterval: TimeInterval = 0.3 // 300ms
+    }
 
     private var globalMonitor: Any?
     private var localMonitor: Any?
@@ -15,23 +35,23 @@ class HotkeyManager: ObservableObject {
     private var deferRegistration = false
     private var eventTap: CFMachPort?
     private var eventTapRunLoopSource: CFRunLoopSource?
+    private var flagsMonitor: Any?
 
     // Double-tap detection
     private var lastTapTime: Date?
-    private let doubleTapInterval: TimeInterval = 0.3 // 300ms
     private var isHoldingKey = false
 
-    var onHotkeyPressed: (() -> Void)?
-    var onHotkeyReleased: (() -> Void)?
-    var onDoubleTap: (() -> Void)?
+    // MARK: - Initialization
 
     private init() {
         loadHotkey()
     }
 
+    // MARK: - Public API
+
     func setDeferRegistration(_ shouldDefer: Bool) {
         deferRegistration = shouldDefer
-        if !shouldDefer && currentHotkey != nil {
+        if !shouldDefer, currentHotkey != nil {
             // Registration was deferred but now enabled - register the hotkey
             registerHotkey()
         }
@@ -49,14 +69,17 @@ class HotkeyManager: ObservableObject {
 
     func clearHotkey() {
         currentHotkey = nil
-        UserDefaults.standard.removeObject(forKey: "hotkey_keycode")
-        UserDefaults.standard.removeObject(forKey: "hotkey_modifiers")
+        UserDefaults.standard.removeObject(forKey: Keys.hotkeyKeycode)
+        UserDefaults.standard.removeObject(forKey: Keys.hotkeyModifiers)
         unregisterHotkey()
     }
 
+    // MARK: - Private Methods
+
     private func loadHotkey() {
-        guard let keyCode = UserDefaults.standard.value(forKey: "hotkey_keycode") as? UInt16,
-              let modifiers = UserDefaults.standard.value(forKey: "hotkey_modifiers") as? UInt else {
+        guard let keyCode = UserDefaults.standard.value(forKey: Keys.hotkeyKeycode) as? UInt16,
+              let modifiers = UserDefaults.standard.value(forKey: Keys.hotkeyModifiers) as? UInt
+        else {
             return
         }
 
@@ -66,11 +89,9 @@ class HotkeyManager: ObservableObject {
 
     private func saveHotkey() {
         guard let hotkey = currentHotkey else { return }
-        UserDefaults.standard.set(hotkey.keyCode, forKey: "hotkey_keycode")
-        UserDefaults.standard.set(hotkey.modifiers.rawValue, forKey: "hotkey_modifiers")
+        UserDefaults.standard.set(hotkey.keyCode, forKey: Keys.hotkeyKeycode)
+        UserDefaults.standard.set(hotkey.modifiers.rawValue, forKey: Keys.hotkeyModifiers)
     }
-
-    private var flagsMonitor: Any?
 
     private func registerHotkey() {
         guard let hotkey = currentHotkey else {
@@ -87,7 +108,7 @@ class HotkeyManager: ObservableObject {
         unregisterHotkey()
 
         // If hotkey is just Fn key, use polling-based monitoring
-        if hotkey.modifiers == .function && hotkey.keyCode == 63 {
+        if hotkey.modifiers == .function, hotkey.keyCode == 63 {
             DebugLog.info("========================================", context: "HotkeyManager LOG")
             DebugLog.info("Using Fn-only path (POLLING mode)", context: "HotkeyManager LOG")
             DebugLog.info("This works globally, even in background!", context: "HotkeyManager LOG")
@@ -132,7 +153,7 @@ class HotkeyManager: ObservableObject {
             place: .headInsertEventTap,
             options: .defaultTap,
             eventsOfInterest: CGEventMask(eventMask),
-            callback: { (proxy, type, event, refcon) -> Unmanaged<CGEvent>? in
+            callback: { proxy, type, event, refcon -> Unmanaged<CGEvent>? in
                 let manager = Unmanaged<HotkeyManager>.fromOpaque(refcon!).takeUnretainedValue()
                 return manager.handleCGEvent(proxy: proxy, type: type, event: event)
             },
@@ -150,7 +171,7 @@ class HotkeyManager: ObservableObject {
         DebugLog.info("Event tap created and enabled", context: "HotkeyManager LOG")
     }
 
-    private func handleCGEvent(proxy: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
+    private func handleCGEvent(proxy _: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
         guard currentHotkey != nil else {
             return Unmanaged.passUnretained(event)
         }
@@ -250,10 +271,9 @@ class HotkeyManager: ObservableObject {
         }
 
         if event.keyCode == hotkey.keyCode && modifiersMatch {
-
             // Check for double-tap
             let now = Date()
-            if let lastTap = lastTapTime, now.timeIntervalSince(lastTap) < doubleTapInterval {
+            if let lastTap = lastTapTime, now.timeIntervalSince(lastTap) < Constants.doubleTapInterval {
                 DebugLog.info("handleKeyDownEvent: DOUBLE-TAP detected - calling onDoubleTap", context: "HotkeyManager LOG")
                 lastTapTime = nil // Reset for next sequence
                 isHoldingKey = false // Don't track as hold

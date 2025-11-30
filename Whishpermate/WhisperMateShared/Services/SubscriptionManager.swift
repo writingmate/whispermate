@@ -5,10 +5,10 @@
 //  Created by WhisperMate on 2025-01-24.
 //
 
-import Foundation
 import Combine
+import Foundation
 #if canImport(AppKit)
-import AppKit
+    import AppKit
 #endif
 
 public class SubscriptionManager: ObservableObject {
@@ -38,9 +38,9 @@ public class SubscriptionManager: ObservableObject {
         }
 
         #if canImport(AppKit)
-        if let url = URL(string: urlString) {
-            NSWorkspace.shared.open(url)
-        }
+            if let url = URL(string: urlString) {
+                NSWorkspace.shared.open(url)
+            }
         #endif
     }
 

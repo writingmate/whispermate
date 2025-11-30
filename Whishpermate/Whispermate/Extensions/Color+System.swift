@@ -10,7 +10,7 @@ extension Color {
             return Color(nsColor: .labelColor)
         }
     }
-    
+
     static var secondarySystemFill: Color {
         if #available(macOS 14.0, *) {
             return Color(nsColor: .secondarySystemFill)
@@ -19,7 +19,7 @@ extension Color {
             return Color(nsColor: .secondaryLabelColor)
         }
     }
-    
+
     static var tertiarySystemFill: Color {
         if #available(macOS 14.0, *) {
             return Color(nsColor: .tertiarySystemFill)
@@ -28,7 +28,7 @@ extension Color {
             return Color(nsColor: .tertiaryLabelColor)
         }
     }
-    
+
     static var quaternarySystemFill: Color {
         if #available(macOS 14.0, *) {
             return Color(nsColor: .quaternarySystemFill)

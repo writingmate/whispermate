@@ -1,6 +1,6 @@
-import Foundation
 import AppKit
 import ApplicationServices
+import Foundation
 
 class TextFormattingManager {
     static let shared = TextFormattingManager()
@@ -21,7 +21,7 @@ class TextFormattingManager {
             apiKey: KeychainHelper.get(key: llmProviderManager.selectedProvider.apiKeyName) ?? ""
         )
 
-        self.openAIClient = OpenAIClient(config: config)
+        openAIClient = OpenAIClient(config: config)
     }
 
     /// Update the OpenAI client configuration (e.g., when settings change)

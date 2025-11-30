@@ -1,5 +1,5 @@
-import SwiftUI
 import Combine
+import SwiftUI
 import WhisperMateShared
 
 @main

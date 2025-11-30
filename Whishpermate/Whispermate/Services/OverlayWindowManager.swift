@@ -7,75 +7,97 @@ enum OverlayPosition: String, CaseIterable, Codable {
     case bottom = "Bottom"
 }
 
+/// Manages the floating overlay window that shows recording state and audio visualization
 class OverlayWindowManager: ObservableObject {
     static let shared = OverlayWindowManager()
 
-    private var overlayWindow: NSWindow?
-    private var screenChangeObserver: Any?
-    private var audioLevelCancellable: AnyCancellable?
-    private var frequencyBandsCancellable: AnyCancellable?
+    // MARK: - Keys
+
+    private enum Keys {
+        static let overlayPosition = "overlayPosition"
+        static let hideIdleState = "hideIdleState"
+    }
+
+    // MARK: - Constants
+
+    private enum Constants {
+        static let stateChangeAnimationDelay: TimeInterval = 0.2
+        static let positionPreviewDuration: TimeInterval = 2.0
+        static let windowCreationDelay: TimeInterval = 0.05
+        static let activeStateWidth: CGFloat = 95
+        static let activeStateHeight: CGFloat = 24
+        static let activePadding: CGFloat = 15
+        static let idleStateWidth: CGFloat = 21
+        static let idleStateHeight: CGFloat = 1
+        static let idlePaddingHover: CGFloat = 8
+        static let expandButtonSize: CGFloat = 17
+        static let itemSpacing: CGFloat = 6
+        static let edgeMargin: CGFloat = 2
+        static let verticalPaddingActive: CGFloat = 4.5
+        static let verticalPaddingIdle: CGFloat = 3
+        static let frequencyBandCount: Int = 14
+    }
+
+    // MARK: - Published Properties
 
     @Published var isRecording = false {
         didSet {
-            print("[OverlayWindowManager LOG] ⚡️ isRecording changed: \(oldValue) -> \(isRecording)")
+            DebugLog.info("isRecording changed: \(oldValue) -> \(isRecording)", context: "OverlayWindowManager")
             if isRecording {
-                // Expand immediately when starting
                 updateWindowSize()
             } else {
-                // Delay contraction to let pill animation finish
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                DispatchQueue.main.asyncAfter(deadline: .now() + Constants.stateChangeAnimationDelay) { [weak self] in
                     self?.updateWindowSize()
                 }
             }
         }
     }
+
     @Published var isProcessing = false {
         didSet {
-            print("[OverlayWindowManager LOG] ⚡️ isProcessing changed: \(oldValue) -> \(isProcessing)")
+            DebugLog.info("isProcessing changed: \(oldValue) -> \(isProcessing)", context: "OverlayWindowManager")
             if isProcessing {
-                // Expand immediately when starting
                 updateWindowSize()
             } else {
-                // Delay contraction to let pill animation finish
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+                DispatchQueue.main.asyncAfter(deadline: .now() + Constants.stateChangeAnimationDelay) { [weak self] in
                     self?.updateWindowSize()
                 }
             }
         }
     }
+
     @Published var audioLevel: Float = 0.0 {
         didSet {
-            if Int(oldValue * 10) != Int(audioLevel * 10) {  // Only log significant changes
-                print("[OverlayWindowManager LOG] ⚡️ audioLevel changed: \(oldValue) -> \(audioLevel)")
+            if Int(oldValue * 10) != Int(audioLevel * 10) {
+                DebugLog.info("audioLevel changed: \(oldValue) -> \(audioLevel)", context: "OverlayWindowManager")
             }
         }
     }
-    @Published var frequencyBands: [Float] = Array(repeating: 0.0, count: 14)
-    @Published var isOverlayMode = true {  // Start in overlay mode by default
+
+    @Published var frequencyBands: [Float] = Array(repeating: 0.0, count: Constants.frequencyBandCount)
+    @Published var isOverlayMode = true {
         didSet {
-            print("[OverlayWindowManager LOG] ⚡️ isOverlayMode changed: \(oldValue) -> \(isOverlayMode)")
+            DebugLog.info("isOverlayMode changed: \(oldValue) -> \(isOverlayMode)", context: "OverlayWindowManager")
         }
     }
 
     @Published var position: OverlayPosition = {
-        if let savedRawValue = UserDefaults.standard.string(forKey: "overlayPosition"),
-           let savedPosition = OverlayPosition(rawValue: savedRawValue) {
+        if let savedRawValue = UserDefaults.standard.string(forKey: Keys.overlayPosition),
+           let savedPosition = OverlayPosition(rawValue: savedRawValue)
+        {
             return savedPosition
         }
         return .bottom
     }() {
         didSet {
-            UserDefaults.standard.set(position.rawValue, forKey: "overlayPosition")
+            UserDefaults.standard.set(position.rawValue, forKey: Keys.overlayPosition)
 
-            // Defer state changes to avoid publishing during view updates
             DispatchQueue.main.async { [weak self] in
                 self?.repositionWindow()
 
-                // Briefly show overlay so user can see the new position
                 self?.showAlways()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
-                    // Hide after 2 seconds if not recording/processing
-                    if !(self?.isRecording ?? false) && !(self?.isProcessing ?? false) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + Constants.positionPreviewDuration) { [weak self] in
+                    if !(self?.isRecording ?? false), !(self?.isProcessing ?? false) {
                         self?.hide()
                     }
                 }
@@ -83,29 +105,103 @@ class OverlayWindowManager: ObservableObject {
         }
     }
 
-    @Published var hideIdleState: Bool = {
-        return UserDefaults.standard.bool(forKey: "hideIdleState")
-    }() {
+    @Published var hideIdleState: Bool = UserDefaults.standard.bool(forKey: Keys.hideIdleState) {
         didSet {
-            UserDefaults.standard.set(hideIdleState, forKey: "hideIdleState")
+            UserDefaults.standard.set(hideIdleState, forKey: Keys.hideIdleState)
 
-            // Defer state changes to avoid publishing during view updates
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
-                // Update overlay visibility based on new setting
-                if self.hideIdleState && !self.isRecording && !self.isProcessing {
+                if self.hideIdleState, !self.isRecording, !self.isProcessing {
                     self.hide()
-                } else if !self.hideIdleState && !self.isRecording && !self.isProcessing {
+                } else if !self.hideIdleState, !self.isRecording, !self.isProcessing {
                     self.show()
                 }
             }
         }
     }
 
-    init() {
+    // MARK: - Private Properties
+
+    private var overlayWindow: NSWindow?
+    private var screenChangeObserver: Any?
+    private var audioLevelCancellable: AnyCancellable?
+    private var frequencyBandsCancellable: AnyCancellable?
+
+    // MARK: - Initialization
+
+    private init() {
         setupScreenChangeObserver()
         setupAudioObservers()
     }
+
+    // MARK: - Public API
+
+    func show() {
+        DebugLog.info("show() called", context: "OverlayWindowManager")
+        if overlayWindow == nil {
+            createWindow()
+        }
+        overlayWindow?.orderFrontRegardless()
+        DebugLog.info("Window ordered front", context: "OverlayWindowManager")
+    }
+
+    func hide() {
+        DebugLog.info("hide() called", context: "OverlayWindowManager")
+        overlayWindow?.orderOut(nil)
+    }
+
+    func updateState(isRecording: Bool, isProcessing: Bool) {
+        DebugLog.info("updateState called - isRecording: \(isRecording), isProcessing: \(isProcessing)", context: "OverlayWindowManager")
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+
+            if isRecording || isProcessing {
+                if self.overlayWindow == nil {
+                    DebugLog.info("updateState - overlay window is nil, creating...", context: "OverlayWindowManager")
+                    self.show()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + Constants.windowCreationDelay) { [weak self] in
+                        DebugLog.info("updateState - setting isRecording: \(isRecording), isProcessing: \(isProcessing)", context: "OverlayWindowManager")
+                        self?.isRecording = isRecording
+                        self?.isProcessing = isProcessing
+                    }
+                    return
+                }
+                self.show()
+            } else if self.hideIdleState {
+                self.hide()
+            } else {
+                self.show()
+            }
+
+            DebugLog.info("updateState - setting isRecording: \(isRecording), isProcessing: \(isProcessing)", context: "OverlayWindowManager")
+            self.isRecording = isRecording
+            self.isProcessing = isProcessing
+        }
+    }
+
+    func showAlways() {
+        DebugLog.info("showAlways() - initializing overlay", context: "OverlayWindowManager")
+        show()
+    }
+
+    func expandToFullMode() {
+        DebugLog.info("expandToFullMode() - bringing app to foreground", context: "OverlayWindowManager")
+        NSApp.activate(ignoringOtherApps: true)
+        if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
+            window.makeKeyAndOrderFront(nil)
+        }
+    }
+
+    func contractToOverlay() {
+        DebugLog.info("contractToOverlay() - sending app to background", context: "OverlayWindowManager")
+        if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
+            window.orderOut(nil)
+        }
+        NSApp.hide(nil)
+    }
+
+    // MARK: - Private Methods
 
     private func setupAudioObservers() {
         // Observe AudioRecorder's audio level and frequency bands
@@ -124,94 +220,11 @@ class OverlayWindowManager: ObservableObject {
             }
     }
 
-    func show() {
-        print("[OverlayWindowManager LOG] show() called")
-
-        if overlayWindow == nil {
-            createWindow()
-        }
-
-        overlayWindow?.orderFrontRegardless()
-        print("[OverlayWindowManager LOG] Window ordered front")
-    }
-
-    func hide() {
-        print("[OverlayWindowManager LOG] hide() called")
-        overlayWindow?.orderOut(nil)
-    }
-
-    func updateState(isRecording: Bool, isProcessing: Bool) {
-        print("[OverlayWindowManager LOG] updateState called - isRecording: \(isRecording), isProcessing: \(isProcessing)")
-
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-
-            // Show overlay FIRST (creates window if needed), THEN update state
-            if isRecording || isProcessing {
-                // Always show when actively recording/processing
-                if self.overlayWindow == nil {
-                    print("[OverlayWindowManager LOG] updateState - overlay window is nil, creating...")
-                    self.show() // This creates the window
-                    // Small delay to ensure window is fully created before state update
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
-                        print("[OverlayWindowManager LOG] updateState main thread - setting isRecording: \(isRecording), isProcessing: \(isProcessing)")
-                        self?.isRecording = isRecording
-                        self?.isProcessing = isProcessing
-                    }
-                    return
-                }
-                self.show()
-            } else if self.hideIdleState {
-                // Hide when idle if hideIdleState is enabled
-                self.hide()
-            } else {
-                // Show idle state
-                self.show()
-            }
-
-            print("[OverlayWindowManager LOG] updateState main thread - setting isRecording: \(isRecording), isProcessing: \(isProcessing)")
-            self.isRecording = isRecording
-            self.isProcessing = isProcessing
-        }
-    }
-
-    func showAlways() {
-        print("[OverlayWindowManager LOG] showAlways() - initializing overlay")
-        show()
-    }
-
-    func expandToFullMode() {
-        print("[OverlayWindowManager LOG] expandToFullMode() - bringing app to foreground")
-
-        // Bring app to foreground - this will trigger didBecomeActive notification
-        // which will handle the mode switch
-        NSApp.activate(ignoringOtherApps: true)
-
-        // Show main window
-        if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-            window.makeKeyAndOrderFront(nil)
-        }
-    }
-
-    func contractToOverlay() {
-        print("[OverlayWindowManager LOG] contractToOverlay() - sending app to background")
-
-        // Hide main window which effectively sends app to background
-        if let window = NSApplication.shared.windows.first(where: { $0.level == .normal }) {
-            window.orderOut(nil)
-        }
-
-        // Hide the app (send to background) - this will trigger didResignActive notification
-        // which will handle the mode switch
-        NSApp.hide(nil)
-    }
-
     private func createWindow() {
-        print("[OverlayWindowManager LOG] Creating overlay window")
+        DebugLog.info("Creating overlay window", context: "OverlayWindowManager")
 
-        // Get screen dimensions
         guard let screen = NSScreen.main else {
-            print("[OverlayWindowManager LOG] ERROR: Could not get main screen")
+            DebugLog.info("ERROR: Could not get main screen", context: "OverlayWindowManager")
             return
         }
 
@@ -246,46 +259,41 @@ class OverlayWindowManager: ObservableObject {
         hosting.autoresizingMask = [.width, .height]
 
         window.contentView = hosting
-        self.overlayWindow = window
+        overlayWindow = window
 
-        print("[OverlayWindowManager LOG] ✅ Created hosting view with manager observation")
-
-        print("[OverlayWindowManager LOG] Window created at position: (\(xPos), \(yPos))")
-        print("[OverlayWindowManager LOG] Window level: \(window.level.rawValue)")
+        DebugLog.info("Created hosting view with manager observation", context: "OverlayWindowManager")
+        DebugLog.info("Window created at position: (\(xPos), \(yPos)), level: \(window.level.rawValue)", context: "OverlayWindowManager")
     }
 
     private func setupScreenChangeObserver() {
-        // Observe screen configuration changes (resolution, display arrangement, etc.)
         screenChangeObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            print("[OverlayWindowManager LOG] 🖥️ Screen configuration changed, repositioning overlay")
+            DebugLog.info("Screen configuration changed, repositioning overlay", context: "OverlayWindowManager")
             self?.repositionWindow()
         }
     }
 
     private func repositionWindow() {
         guard let window = overlayWindow, let screen = NSScreen.main else {
-            print("[OverlayWindowManager LOG] Cannot reposition - window or screen not available")
+            DebugLog.info("Cannot reposition - window or screen not available", context: "OverlayWindowManager")
             return
         }
 
         let screenFrame = screen.visibleFrame
         let (windowWidth, windowHeight) = getWindowSize()
-
-        // Calculate position based on selected position
         let (xPos, yPos) = calculatePosition(for: position, screenFrame: screenFrame, windowWidth: windowWidth, windowHeight: windowHeight)
 
         let newFrame = NSRect(x: xPos, y: yPos, width: windowWidth, height: windowHeight)
         window.setFrame(newFrame, display: true)
 
-        print("[OverlayWindowManager LOG] ✅ Repositioned to: (\(xPos), \(yPos))")
+        DebugLog.info("Repositioned to: (\(xPos), \(yPos))", context: "OverlayWindowManager")
     }
 
     private func calculatePosition(for position: OverlayPosition, screenFrame: NSRect, windowWidth: CGFloat, windowHeight: CGFloat) -> (x: CGFloat, y: CGFloat) {
-        let padding: CGFloat = 0  // Distance from edge
+        let padding: CGFloat = 0 // Distance from edge
 
         switch position {
         case .bottom:
@@ -300,32 +308,14 @@ class OverlayWindowManager: ObservableObject {
     }
 
     private func getWindowSize() -> (width: CGFloat, height: CGFloat) {
-        // Window size constants that match RecordingOverlayView
-        let activeStateWidth: CGFloat = 95  // Narrow for 14 bars
-        let activeStateHeight: CGFloat = 24
-        let activePadding: CGFloat = 15
-
-        let idleStateWidth: CGFloat = 21
-        let idleStateHeight: CGFloat = 1
-        let idlePaddingHover: CGFloat = 8
-        let expandButtonSize: CGFloat = 17
-        let itemSpacing: CGFloat = 6
-
-        let edgeMargin: CGFloat = 2  // Bottom/top margin
-        let verticalPaddingActive: CGFloat = 4.5
-        let verticalPaddingIdle: CGFloat = 3
-
         if isRecording || isProcessing {
-            // Active state: content + padding
-            let width = activeStateWidth + (activePadding * 2)
-            let height = activeStateHeight + (verticalPaddingActive * 2) + (edgeMargin * 2)
+            let width = Constants.activeStateWidth + (Constants.activePadding * 2)
+            let height = Constants.activeStateHeight + (Constants.verticalPaddingActive * 2) + (Constants.edgeMargin * 2)
             return (width, height)
         } else {
-            // Idle state: need room for hover animation (button appears)
-            // Hover: idleWidth + hoverPadding*2 + spacing + buttonSize
-            let maxWidth = idleStateWidth + (idlePaddingHover * 2) + itemSpacing + expandButtonSize
-            let width = maxWidth + 10  // Extra room for smooth animation
-            let height = max(idleStateHeight, expandButtonSize) + (verticalPaddingIdle * 2) + (edgeMargin * 2)
+            let maxWidth = Constants.idleStateWidth + (Constants.idlePaddingHover * 2) + Constants.itemSpacing + Constants.expandButtonSize
+            let width = maxWidth + 10
+            let height = max(Constants.idleStateHeight, Constants.expandButtonSize) + (Constants.verticalPaddingIdle * 2) + (Constants.edgeMargin * 2)
             return (width, height)
         }
     }
@@ -337,16 +327,12 @@ class OverlayWindowManager: ObservableObject {
 
         let screenFrame = screen.visibleFrame
         let (windowWidth, windowHeight) = getWindowSize()
-
-        // Calculate position based on selected position
         let (xPos, yPos) = calculatePosition(for: position, screenFrame: screenFrame, windowWidth: windowWidth, windowHeight: windowHeight)
 
         let newFrame = NSRect(x: xPos, y: yPos, width: windowWidth, height: windowHeight)
-
-        // Resize window instantly (no animation) to prevent clipping the SwiftUI content animation
         window.setFrame(newFrame, display: true, animate: false)
 
-        print("[OverlayWindowManager LOG] 📐 Window resized instantly to: \(windowWidth)×\(windowHeight)")
+        DebugLog.info("Window resized to: \(windowWidth)×\(windowHeight)", context: "OverlayWindowManager")
     }
 
     deinit {
