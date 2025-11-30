@@ -185,39 +185,44 @@ struct HistorySidebarView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                List(filteredRecordings, selection: $selectedRecording) { recording in
-                    HistorySidebarRow(recording: recording)
-                        .tag(recording)
-                        .contextMenu {
-                            Button {
-                                copyTranscription(recording)
-                            } label: {
-                                Label("Copy", systemImage: "doc.on.doc")
-                            }
-                            .disabled(recording.transcription == nil)
-
-                            Button {
-                                retryTranscription(recording)
-                            } label: {
-                                Label("Re-transcribe", systemImage: "arrow.clockwise")
-                            }
-
-                            Button {
-                                revealInFinder(recording)
-                            } label: {
-                                Label("Reveal in Finder", systemImage: "folder")
-                            }
-
-                            Divider()
-
-                            Button(role: .destructive) {
-                                deleteRecording(recording)
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                        }
+                List(selection: $selectedRecording) {
+                    ForEach(filteredRecordings) { recording in
+                        HistorySidebarRow(recording: recording)
+                            .tag(recording)
+                    }
                 }
                 .listStyle(.sidebar)
+                .onChange(of: selectedRecording) { _ in }
+                .contextMenu(forSelectionType: Recording.self) { recordings in
+                    if let recording = recordings.first {
+                        Button {
+                            copyTranscription(recording)
+                        } label: {
+                            Label("Copy", systemImage: "doc.on.doc")
+                        }
+                        .disabled(recording.transcription == nil)
+
+                        Button {
+                            retryTranscription(recording)
+                        } label: {
+                            Label("Re-transcribe", systemImage: "arrow.clockwise")
+                        }
+
+                        Button {
+                            revealInFinder(recording)
+                        } label: {
+                            Label("Reveal in Finder", systemImage: "folder")
+                        }
+
+                        Divider()
+
+                        Button(role: .destructive) {
+                            deleteRecording(recording)
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+                }
             }
         }
         .searchable(text: $searchText, placement: .sidebar, prompt: "Search recordings")
@@ -231,19 +236,16 @@ struct HistorySidebarView: View {
 
     private func retryTranscription(_: Recording) {
         // TODO: Implement retry logic
-        // This would need to re-transcribe the audio file from recording.audioFileURL
     }
 
     private func revealInFinder(_ recording: Recording) {
         let fileURL = recording.audioFileURL
-        // Check if file exists
         if FileManager.default.fileExists(atPath: fileURL.path) {
             NSWorkspace.shared.selectFile(fileURL.path, inFileViewerRootedAtPath: "")
         }
     }
 
     private func deleteRecording(_ recording: Recording) {
-        // If this recording is selected, select the next one
         if selectedRecording?.id == recording.id {
             if let index = historyManager.recordings.firstIndex(where: { $0.id == recording.id }) {
                 if index < historyManager.recordings.count - 1 {
