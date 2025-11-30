@@ -155,6 +155,32 @@ public partial class OnboardingWindow : Window
 
         try
         {
+            // First check if any audio input devices exist
+            var devices = await Windows.Devices.Enumeration.DeviceInformation.FindAllAsync(
+                Windows.Devices.Enumeration.DeviceClass.AudioCapture);
+
+            if (devices.Count == 0)
+            {
+                // No microphone hardware - let user skip
+                var result = MessageBox.Show(
+                    "No microphone detected on this device. You can continue without a microphone, but recording won't work until one is connected.\n\nContinue anyway?",
+                    "No Microphone Found",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    _currentStep++;
+                    UpdateUI();
+                }
+                else
+                {
+                    MicrophoneEnableButton.IsEnabled = true;
+                    MicrophoneEnableButton.Content = "Enable Microphone";
+                }
+                return;
+            }
+
             // Use WinRT MediaCapture to trigger the permission dialog
             var mediaCapture = new MediaCapture();
             var settings = new MediaCaptureInitializationSettings
@@ -200,8 +226,26 @@ public partial class OnboardingWindow : Window
             MicrophoneEnableButton.IsEnabled = true;
             MicrophoneEnableButton.Content = "Enable Microphone";
 
-            MessageBox.Show($"Failed to access microphone: {ex.Message}",
-                "Microphone Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            // Check if it's a "no devices" error
+            if (ex.Message.Contains("No capture devices") || ex.Message.Contains("0xC00DABE0"))
+            {
+                var result = MessageBox.Show(
+                    "No microphone detected. Continue without a microphone?",
+                    "No Microphone",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    _currentStep++;
+                    UpdateUI();
+                }
+            }
+            else
+            {
+                MessageBox.Show($"Failed to access microphone: {ex.Message}",
+                    "Microphone Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
     }
 
@@ -319,6 +363,19 @@ public partial class OnboardingWindow : Window
     {
         try
         {
+            // First check if any audio devices exist
+            var devices = await Windows.Devices.Enumeration.DeviceInformation.FindAllAsync(
+                Windows.Devices.Enumeration.DeviceClass.AudioCapture);
+
+            if (devices.Count == 0)
+            {
+                // No devices - show enable button which will allow skip
+                MicrophoneEnableButton.Visibility = Visibility.Visible;
+                MicrophoneContinueButton.Visibility = Visibility.Collapsed;
+                MicrophoneGrantedIndicator.Visibility = Visibility.Collapsed;
+                return;
+            }
+
             // Use WinRT MediaCapture to check permission status
             var mediaCapture = new MediaCapture();
             var settings = new MediaCaptureInitializationSettings
