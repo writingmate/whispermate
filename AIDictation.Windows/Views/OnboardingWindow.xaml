@@ -28,8 +28,7 @@
         </StackPanel>
 
         <!-- Content Pages -->
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <Grid Margin="40,0,40,20" MinHeight="400">
+        <Grid Grid.Row="1" Margin="40,0,40,20">
                 <!-- Step 1: Microphone -->
                 <StackPanel x:Name="Step1" VerticalAlignment="Center" HorizontalAlignment="Center">
                     <TextBlock Text="🎙️" FontSize="48" HorizontalAlignment="Center"/>
@@ -258,7 +257,6 @@
                     <Border Background="{StaticResource SurfaceBrush}"
                             BorderBrush="{StaticResource BorderBrush}"
                             BorderThickness="1"
-                            CornerRadius="8"
                             Padding="24,16"
                             Margin="0,24,0,0"
                             Cursor="Hand"
@@ -317,8 +315,7 @@
                         </TextBlock>
                     </StackPanel>
                 </StackPanel>
-            </Grid>
-        </ScrollViewer>
+        </Grid>
 
         <!-- Navigation Buttons -->
         <Grid Grid.Row="3" Margin="40,0,40,24">
