@@ -14,7 +14,6 @@
         Topmost="False">
 
     <Border Background="{StaticResource BackgroundBrush}"
-            CornerRadius="12"
             BorderBrush="{StaticResource BorderBrush}"
             BorderThickness="1">
         <Border.Effect>
