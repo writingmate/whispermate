@@ -4,6 +4,8 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Navigation;
+using System.Windows.Threading;
+using System.Windows.Controls.Primitives;
 using AIDictation.Services;
 
 namespace AIDictation.Views;
@@ -18,6 +20,8 @@ public partial class OnboardingWindow : Window
     private readonly Brush _activeDotBrush;
     private readonly Brush _inactiveDotBrush;
 
+    private DispatcherTimer? _permissionTimer;
+
     public OnboardingWindow()
     {
         InitializeComponent();
@@ -27,8 +31,23 @@ public partial class OnboardingWindow : Window
 
         PreviewKeyDown += OnPreviewKeyDown;
         PreviewKeyUp += OnPreviewKeyUp;
+        Loaded += OnLoaded;
+        Closed += OnClosed;
 
         UpdateUI();
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        if (_currentStep == 1)
+        {
+            StartPermissionCheck();
+        }
+    }
+
+    private void OnClosed(object? sender, EventArgs e)
+    {
+        StopPermissionCheck();
     }
 
     private void UpdateUI()
@@ -38,14 +57,29 @@ public partial class OnboardingWindow : Window
         Step2.Visibility = Visibility.Collapsed;
         Step3.Visibility = Visibility.Collapsed;
         Step4.Visibility = Visibility.Collapsed;
+        Step5.Visibility = Visibility.Collapsed;
 
         // Show current step
         switch (_currentStep)
         {
-            case 1: Step1.Visibility = Visibility.Visible; break;
-            case 2: Step2.Visibility = Visibility.Visible; break;
-            case 3: Step3.Visibility = Visibility.Visible; break;
-            case 4: Step4.Visibility = Visibility.Visible; break;
+            case 1:
+                Step1.Visibility = Visibility.Visible;
+                StartPermissionCheck();
+                break;
+            case 2:
+                Step2.Visibility = Visibility.Visible;
+                StopPermissionCheck();
+                break;
+            case 3:
+                Step3.Visibility = Visibility.Visible;
+                UpdateLanguageButtons();
+                break;
+            case 4:
+                Step4.Visibility = Visibility.Visible;
+                break;
+            case 5:
+                Step5.Visibility = Visibility.Visible;
+                break;
         }
 
         // Update dots
@@ -53,10 +87,11 @@ public partial class OnboardingWindow : Window
         Dot2.Fill = _currentStep >= 2 ? _activeDotBrush : _inactiveDotBrush;
         Dot3.Fill = _currentStep >= 3 ? _activeDotBrush : _inactiveDotBrush;
         Dot4.Fill = _currentStep >= 4 ? _activeDotBrush : _inactiveDotBrush;
+        Dot5.Fill = _currentStep >= 5 ? _activeDotBrush : _inactiveDotBrush;
 
         // Update navigation
         BackButton.Visibility = _currentStep > 1 ? Visibility.Visible : Visibility.Collapsed;
-        NextButton.Content = _currentStep == 4 ? "Get Started" : "Next →";
+        NextButton.Content = _currentStep == 5 ? "Get Started" : "Next →";
     }
 
     private void BackButton_Click(object sender, RoutedEventArgs e)
@@ -73,7 +108,7 @@ public partial class OnboardingWindow : Window
         // Validate current step
         switch (_currentStep)
         {
-            case 2:
+            case 4:
                 if (_capturedKey == Key.None)
                 {
                     MessageBox.Show("Please set a hotkey to continue.", "Hotkey Required",
@@ -84,18 +119,7 @@ public partial class OnboardingWindow : Window
                 HotkeyService.Instance.RegisterHotkey(_capturedKey, _capturedModifiers);
                 break;
 
-            case 3:
-                var apiKey = ApiKeyPasswordBox.Password.Trim();
-                if (string.IsNullOrEmpty(apiKey))
-                {
-                    MessageBox.Show("Please enter your OpenAI API key to continue.", "API Key Required",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-                SettingsService.Instance.ApiKey = apiKey;
-                break;
-
-            case 4:
+            case 5:
                 // Complete onboarding
                 SettingsService.Instance.HasCompletedOnboarding = true;
                 DialogResult = true;
@@ -103,7 +127,17 @@ public partial class OnboardingWindow : Window
                 return;
         }
 
-        if (_currentStep < 4)
+        if (_currentStep < 5)
+        {
+            _currentStep++;
+            UpdateUI();
+        }
+    }
+
+    private void SkipButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Skip current step (only available for Screen Recording step)
+        if (_currentStep == 2)
         {
             _currentStep++;
             UpdateUI();
@@ -117,6 +151,22 @@ public partial class OnboardingWindow : Window
             Process.Start(new ProcessStartInfo
             {
                 FileName = "ms-settings:privacy-microphone",
+                UseShellExecute = true
+            });
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to open settings: {ex.Message}");
+        }
+    }
+
+    private void OpenScreenRecordingSettings_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "ms-settings:privacy-graphicsCaptureWithoutBorder",
                 UseShellExecute = true
             });
         }
@@ -195,5 +245,64 @@ public partial class OnboardingWindow : Window
             Debug.WriteLine($"Failed to open URL: {ex.Message}");
         }
         e.Handled = true;
+    }
+
+    private void StartPermissionCheck()
+    {
+        StopPermissionCheck();
+
+        _permissionTimer = new DispatcherTimer
+        {
+            Interval = TimeSpan.FromMilliseconds(500)
+        };
+        _permissionTimer.Tick += (s, e) => CheckMicrophonePermission();
+        _permissionTimer.Start();
+
+        CheckMicrophonePermission();
+    }
+
+    private void StopPermissionCheck()
+    {
+        if (_permissionTimer != null)
+        {
+            _permissionTimer.Stop();
+            _permissionTimer = null;
+        }
+    }
+
+    private void CheckMicrophonePermission()
+    {
+        try
+        {
+            // Check if microphone devices are available
+            var hasDevices = NAudio.Wave.WaveInEvent.DeviceCount > 0;
+
+            // Update UI to show checkmark or pending state
+            if (MicrophoneCheckmark != null)
+            {
+                MicrophoneCheckmark.Visibility = hasDevices ? Visibility.Visible : Visibility.Collapsed;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to check microphone permission: {ex.Message}");
+        }
+    }
+
+    private void UpdateLanguageButtons()
+    {
+        // Update all language button states based on current settings
+        // This method will be called when entering the language selection step
+        // The actual button state updates should be handled in the XAML with binding
+        // or you can manually update button states here if needed
+    }
+
+    private void LanguageToggle_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is ToggleButton button && button.Tag is string languageCode)
+        {
+            SettingsService.Instance.ToggleLanguage(languageCode);
+            button.IsChecked = SettingsService.Instance.IsLanguageSelected(languageCode);
+        }
     }
 }
