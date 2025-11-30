@@ -7,6 +7,7 @@ using System.Windows.Navigation;
 using System.Windows.Threading;
 using System.Windows.Controls.Primitives;
 using AIDictation.Services;
+using Windows.Media.Capture;
 
 namespace AIDictation.Views;
 
@@ -150,37 +151,32 @@ public partial class OnboardingWindow : Window
     {
         // Disable button during check
         MicrophoneEnableButton.IsEnabled = false;
-        MicrophoneEnableButton.Content = "Checking...";
+        MicrophoneEnableButton.Content = "Requesting...";
 
         try
         {
-            // For desktop (unpackaged) WPF apps, we just need to verify
-            // the microphone works - no system prompt is shown.
-            // Desktop apps use the "Let desktop apps access your microphone" setting.
+            // Use WinRT MediaCapture to trigger the permission dialog
+            var mediaCapture = new MediaCapture();
+            var settings = new MediaCaptureInitializationSettings
+            {
+                StreamingCaptureMode = StreamingCaptureMode.Audio
+            };
+            await mediaCapture.InitializeAsync(settings);
+            mediaCapture.Dispose();
 
-            // Try to access microphone to verify it works
-            using var waveIn = new NAudio.Wave.WaveInEvent();
-            waveIn.DeviceNumber = 0;
-            waveIn.WaveFormat = new NAudio.Wave.WaveFormat(16000, 16, 1);
-
-            // Brief recording test to verify access
-            waveIn.StartRecording();
-            await System.Threading.Tasks.Task.Delay(200);
-            waveIn.StopRecording();
-
-            // Success - microphone access works, advance to next step
+            // Success - permission granted, advance to next step
             _currentStep++;
             UpdateUI();
         }
-        catch (Exception ex)
+        catch (UnauthorizedAccessException)
         {
-            Debug.WriteLine($"Microphone access failed: {ex.Message}");
+            Debug.WriteLine("Microphone access denied by user or system");
 
             // Re-enable button
             MicrophoneEnableButton.IsEnabled = true;
             MicrophoneEnableButton.Content = "Enable Microphone";
 
-            // Open settings so user can enable "Let desktop apps access your microphone"
+            // Open settings so user can enable microphone access
             try
             {
                 Process.Start(new ProcessStartInfo
@@ -195,6 +191,17 @@ public partial class OnboardingWindow : Window
                 MessageBox.Show("Please enable microphone access in Windows Settings > Privacy & security > Microphone",
                     "Microphone Access Required", MessageBoxButton.OK, MessageBoxImage.Information);
             }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Microphone access failed: {ex.Message}");
+
+            // Re-enable button
+            MicrophoneEnableButton.IsEnabled = true;
+            MicrophoneEnableButton.Content = "Enable Microphone";
+
+            MessageBox.Show($"Failed to access microphone: {ex.Message}",
+                "Microphone Error", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
     }
 
@@ -312,44 +319,35 @@ public partial class OnboardingWindow : Window
     {
         try
         {
-            var hasDevices = NAudio.Wave.WaveInEvent.DeviceCount > 0;
-
-            if (!hasDevices)
+            // Use WinRT MediaCapture to check permission status
+            var mediaCapture = new MediaCapture();
+            var settings = new MediaCaptureInitializationSettings
             {
-                // No devices at all
-                MicrophoneEnableButton.Visibility = Visibility.Visible;
-                MicrophoneContinueButton.Visibility = Visibility.Collapsed;
-                MicrophoneGrantedIndicator.Visibility = Visibility.Collapsed;
-                return;
-            }
+                StreamingCaptureMode = StreamingCaptureMode.Audio
+            };
+            await mediaCapture.InitializeAsync(settings);
+            mediaCapture.Dispose();
 
-            // Try a brief recording test to verify actual access
-            try
-            {
-                using var waveIn = new NAudio.Wave.WaveInEvent();
-                waveIn.DeviceNumber = 0;
-                waveIn.WaveFormat = new NAudio.Wave.WaveFormat(16000, 16, 1);
-                waveIn.StartRecording();
-                await System.Threading.Tasks.Task.Delay(100);
-                waveIn.StopRecording();
-
-                // Recording succeeded - permission granted
-                MicrophoneEnableButton.Visibility = Visibility.Collapsed;
-                MicrophoneContinueButton.Visibility = Visibility.Visible;
-                MicrophoneGrantedIndicator.Visibility = Visibility.Visible;
-                StopPermissionCheck();
-            }
-            catch
-            {
-                // Recording failed - permission likely denied
-                MicrophoneEnableButton.Visibility = Visibility.Visible;
-                MicrophoneContinueButton.Visibility = Visibility.Collapsed;
-                MicrophoneGrantedIndicator.Visibility = Visibility.Collapsed;
-            }
+            // Permission granted
+            MicrophoneEnableButton.Visibility = Visibility.Collapsed;
+            MicrophoneContinueButton.Visibility = Visibility.Visible;
+            MicrophoneGrantedIndicator.Visibility = Visibility.Visible;
+            StopPermissionCheck();
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // Permission denied
+            MicrophoneEnableButton.Visibility = Visibility.Visible;
+            MicrophoneContinueButton.Visibility = Visibility.Collapsed;
+            MicrophoneGrantedIndicator.Visibility = Visibility.Collapsed;
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Failed to check microphone permission: {ex.Message}");
+            // Assume permission needed
+            MicrophoneEnableButton.Visibility = Visibility.Visible;
+            MicrophoneContinueButton.Visibility = Visibility.Collapsed;
+            MicrophoneGrantedIndicator.Visibility = Visibility.Collapsed;
         }
     }
 
