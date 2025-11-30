@@ -9,13 +9,15 @@ import WhisperMateShared
 enum OnboardingStep: Int, CaseIterable {
     case microphone = 0
     case accessibility = 1
-    case language = 2
-    case hotkey = 3
+    case screenRecording = 2
+    case language = 3
+    case hotkey = 4
 
     var title: String {
         switch self {
         case .microphone: return "Enable Microphone"
         case .accessibility: return "Enable Accessibility"
+        case .screenRecording: return "Enable Screen Recording"
         case .language: return "Select Your Languages"
         case .hotkey: return "Set Your Hotkey"
         }
@@ -25,6 +27,7 @@ enum OnboardingStep: Int, CaseIterable {
         switch self {
         case .microphone: return "mic.circle.fill"
         case .accessibility: return "hand.tap.fill"
+        case .screenRecording: return "rectangle.dashed.badge.record"
         case .language: return "globe"
         case .hotkey: return "keyboard.fill"
         }
@@ -36,10 +39,19 @@ enum OnboardingStep: Int, CaseIterable {
             return "AIDictation needs access to your microphone to record your voice for transcription."
         case .accessibility:
             return "AIDictation needs accessibility permissions to automatically paste transcriptions into your apps."
+        case .screenRecording:
+            return "Optional: Enable screen recording to capture context from your screen for smarter transcriptions."
         case .language:
             return "Select the languages you speak. You can choose multiple languages or use auto-detect."
         case .hotkey:
             return "Choose your preferred hotkey to control recording. Press and hold to record, or double-tap to start/stop long recording."
+        }
+    }
+
+    var isOptional: Bool {
+        switch self {
+        case .screenRecording: return true
+        default: return false
         }
     }
 }
@@ -54,6 +66,7 @@ class OnboardingManager: ObservableObject {
     @Published var currentStep: OnboardingStep = .microphone
     @Published var accessibilityGranted: Bool = false
     @Published var microphoneGranted: Bool = false
+    @Published var screenRecordingGranted: Bool = false
 
     // MARK: - Private Properties
 
@@ -68,8 +81,7 @@ class OnboardingManager: ObservableObject {
     private init() {
         accessibilityGranted = AXIsProcessTrusted()
         microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
-        // Don't call checkOnboardingStatus() here - let the view call it in onAppear
-        // This ensures the onChange modifier is registered before the state changes
+        screenRecordingGranted = CGPreflightScreenCaptureAccess()
     }
 
     // MARK: - Public API
@@ -80,6 +92,10 @@ class OnboardingManager: ObservableObject {
 
     func updateMicrophoneStatus() {
         microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
+    }
+
+    func updateScreenRecordingStatus() {
+        screenRecordingGranted = CGPreflightScreenCaptureAccess()
     }
 
     func checkOnboardingStatus() {
@@ -121,6 +137,10 @@ class OnboardingManager: ObservableObject {
         return AXIsProcessTrusted()
     }
 
+    func isScreenRecordingGranted() -> Bool {
+        return CGPreflightScreenCaptureAccess()
+    }
+
     func isHotkeyConfigured() -> Bool {
         // Check the same keys that HotkeyManager uses
         return UserDefaults.standard.value(forKey: Keys.hotkeyKeycode) != nil &&
@@ -131,6 +151,7 @@ class OnboardingManager: ObservableObject {
         switch step {
         case .microphone: return isMicrophoneGranted()
         case .accessibility: return isAccessibilityGranted()
+        case .screenRecording: return true // Optional step - always allow continuing
         case .language: return true // Always allow continuing from language step
         case .hotkey: return isHotkeyConfigured()
         }
@@ -189,15 +210,17 @@ class OnboardingManager: ObservableObject {
     }
 
     func requestAccessibilityPermission() {
-        // Use the proper macOS API to trigger the accessibility permission dialog
         DebugLog.info("Triggering accessibility permission request", context: "OnboardingManager")
-
-        // This will show the system dialog asking for accessibility permission
-        // and automatically add the app to System Settings > Privacy & Security > Accessibility
         let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true]
         _ = AXIsProcessTrustedWithOptions(options)
-
         DebugLog.info("Permission dialog triggered", context: "OnboardingManager")
+    }
+
+    func requestScreenRecordingPermission() {
+        DebugLog.info("Triggering screen recording permission request", context: "OnboardingManager")
+        // This will trigger the system permission dialog for screen recording
+        CGRequestScreenCaptureAccess()
+        DebugLog.info("Screen recording permission dialog triggered", context: "OnboardingManager")
     }
 
     func reopenOnboarding() {

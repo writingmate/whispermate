@@ -10,6 +10,7 @@ struct OnboardingView: View {
 
     @State private var isCheckingAccessibility = false
     @State private var isCheckingMicrophone = false
+    @State private var isCheckingScreenRecording = false
     @State private var newRuleText = ""
     @State private var exampleText = "I have two apples and three oranges"
     @State private var processedText = ""
@@ -94,18 +95,24 @@ struct OnboardingView: View {
                 startMicrophoneCheck()
             } else if onboardingManager.currentStep == .accessibility {
                 startAccessibilityCheck()
+            } else if onboardingManager.currentStep == .screenRecording {
+                startScreenRecordingCheck()
             }
         }
         .onChange(of: onboardingManager.currentStep) { newStep in
-            if newStep == .microphone {
+            stopMicrophoneCheck()
+            stopAccessibilityCheck()
+            stopScreenRecordingCheck()
+
+            switch newStep {
+            case .microphone:
                 startMicrophoneCheck()
-                stopAccessibilityCheck()
-            } else if newStep == .accessibility {
-                stopMicrophoneCheck()
+            case .accessibility:
                 startAccessibilityCheck()
-            } else {
-                stopMicrophoneCheck()
-                stopAccessibilityCheck()
+            case .screenRecording:
+                startScreenRecordingCheck()
+            default:
+                break
             }
         }
         .onDisappear {
@@ -153,6 +160,29 @@ struct OnboardingView: View {
             } else {
                 Spacer()
                     .frame(height: 1)
+            }
+
+        case .screenRecording:
+            if onboardingManager.isScreenRecordingGranted() {
+                VStack(spacing: 12) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .dsFont(.h1)
+                        .foregroundStyle(Color.dsSecondary)
+                        .scaleEffect(onboardingManager.screenRecordingGranted ? 1.0 : 0.5)
+                        .animation(.spring(response: 0.5, dampingFraction: 0.6), value: onboardingManager.screenRecordingGranted)
+
+                    Text("Permission granted")
+                        .font(.geist(size: 14, weight: .medium))
+                        .foregroundStyle(Color.dsSecondary)
+                }
+                .padding(.vertical, 20)
+            } else {
+                VStack(spacing: 8) {
+                    Text("This permission is optional")
+                        .dsFont(.small)
+                        .foregroundStyle(Color.dsMutedForeground)
+                }
+                .padding(.vertical, 20)
             }
 
         case .language:
@@ -315,6 +345,41 @@ struct OnboardingView: View {
             }
             .buttonStyle(.plain)
 
+        case .screenRecording:
+            VStack(spacing: 12) {
+                if !onboardingManager.isScreenRecordingGranted() {
+                    Button(action: {
+                        onboardingManager.requestScreenRecordingPermission()
+                    }) {
+                        Text("Enable Screen Recording")
+                            .font(.geist(size: 15, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .background(
+                                Capsule()
+                                    .fill(Color.dsSecondary)
+                            )
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Button(action: {
+                    onboardingManager.moveToNextStep()
+                }) {
+                    Text(onboardingManager.isScreenRecordingGranted() ? "Continue" : "Skip for now")
+                        .font(.geist(size: 15, weight: .semibold))
+                        .foregroundStyle(onboardingManager.isScreenRecordingGranted() ? .white : Color.dsMutedForeground)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                        .background(
+                            Capsule()
+                                .fill(onboardingManager.isScreenRecordingGranted() ? Color.dsPrimary : Color.clear)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+
         case .language:
             Button(action: {
                 onboardingManager.moveToNextStep()
@@ -381,6 +446,30 @@ struct OnboardingView: View {
 
     private func stopAccessibilityCheck() {
         isCheckingAccessibility = false
+    }
+
+    private func startScreenRecordingCheck() {
+        isCheckingScreenRecording = true
+        checkScreenRecordingPeriodically()
+    }
+
+    private func stopScreenRecordingCheck() {
+        isCheckingScreenRecording = false
+    }
+
+    private func checkScreenRecordingPeriodically() {
+        guard isCheckingScreenRecording else { return }
+
+        onboardingManager.updateScreenRecordingStatus()
+
+        if onboardingManager.isScreenRecordingGranted() {
+            isCheckingScreenRecording = false
+            return
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            self.checkScreenRecordingPeriodically()
+        }
     }
 
     private func startFnKeyMonitoring() {
