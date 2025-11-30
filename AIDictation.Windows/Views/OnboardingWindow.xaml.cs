@@ -146,19 +146,40 @@ public partial class OnboardingWindow : Window
         }
     }
 
-    private void OpenMicrophoneSettings_Click(object sender, RoutedEventArgs e)
+    private async void RequestMicrophonePermission_Click(object sender, RoutedEventArgs e)
     {
         try
         {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = "ms-settings:privacy-microphone",
-                UseShellExecute = true
-            });
+            // Request microphone access by attempting to use it
+            // This triggers the Windows permission prompt
+            using var waveIn = new NAudio.Wave.WaveInEvent();
+            waveIn.DeviceNumber = 0;
+            waveIn.WaveFormat = new NAudio.Wave.WaveFormat(16000, 16, 1);
+
+            // Start and immediately stop to trigger permission request
+            waveIn.StartRecording();
+            await System.Threading.Tasks.Task.Delay(100);
+            waveIn.StopRecording();
+
+            // Update UI after permission request
+            UpdateMicrophoneButtons();
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Failed to open settings: {ex.Message}");
+            Debug.WriteLine($"Failed to request microphone: {ex.Message}");
+            // If direct access fails, fall back to opening settings
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "ms-settings:privacy-microphone",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception settingsEx)
+            {
+                Debug.WriteLine($"Failed to open settings: {settingsEx.Message}");
+            }
         }
     }
 
