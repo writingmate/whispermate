@@ -44,12 +44,11 @@ class StatusBarManager {
             return
         }
 
-        // Use app icon for menu bar
-        if let appIcon = NSImage(named: "AppIcon"),
-           let icon = appIcon.copy() as? NSImage
-        {
-            icon.size = NSSize(width: 18, height: 18)
-            button.image = icon
+        // Use menu bar template icon
+        if let menuBarIcon = NSImage(named: "MenuBarIcon") {
+            menuBarIcon.isTemplate = true
+            menuBarIcon.size = NSSize(width: 18, height: 18)
+            button.image = menuBarIcon
         } else {
             // Fallback to SF Symbol
             let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .regular)
