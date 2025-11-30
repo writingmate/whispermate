@@ -7,7 +7,7 @@ import SwiftUI
 
 // MARK: - Button Styles
 
-/// Primary button with accent color background
+/// Primary button with orange background
 public struct DSPrimaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) var isEnabled
 
@@ -16,8 +16,8 @@ public struct DSPrimaryButtonStyle: ButtonStyle {
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .dsFont(.bodySemibold)
-            .foregroundStyle(.white)
-            .background(Capsule().fill(Color.accentColor))
+            .foregroundStyle(Color.dsPrimaryForeground)
+            .background(Capsule().fill(Color.dsPrimary))
             .opacity(isEnabled ? (configuration.isPressed ? 0.8 : 1.0) : 0.5)
             .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
             .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
@@ -204,55 +204,64 @@ public extension View {
     }
 }
 
-// MARK: - Compatibility Aliases
+// MARK: - Color Palette
 
-// These map old ds* colors to standard macOS colors for gradual migration
+// Orange/Blue theme with clean, modern look
 
 public extension Color {
     // Background & Foreground
-    static var dsBackground: Color { Color(nsColor: NSColor(red: 1, green: 1, blue: 1, alpha: 1)) } // #ffffff
-    static var dsForeground: Color { Color(nsColor: NSColor(red: 0x11 / 255.0, green: 0x18 / 255.0, blue: 0x27 / 255.0, alpha: 1)) } // #111827
+    static var dsBackground: Color { Color(nsColor: NSColor(red: 1, green: 1, blue: 1, alpha: 1)) } // #FFFFFF
+    static var dsForeground: Color { Color(nsColor: NSColor(red: 0, green: 0, blue: 0, alpha: 1)) } // #000000
 
-    // Primary
-    static var dsPrimary: Color { .accentColor } // #d87943 via AccentColor asset
-    static var dsPrimaryForeground: Color { .white } // #ffffff
+    // Primary (Orange)
+    static var dsPrimary: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0x66 / 255.0, blue: 0x00 / 255.0, alpha: 1)) } // #FF6600
+    static var dsPrimaryForeground: Color { .white } // #FFFFFF
 
-    // Secondary
-    static var dsSecondary: Color { Color(nsColor: NSColor(red: 0x52 / 255.0, green: 0x75 / 255.0, blue: 0x75 / 255.0, alpha: 1)) } // #527575
-    static var dsSecondaryForeground: Color { .white } // #ffffff
+    // Secondary (Blue)
+    static var dsSecondary: Color { Color(nsColor: NSColor(red: 0x00 / 255.0, green: 0x7B / 255.0, blue: 0xFF / 255.0, alpha: 1)) } // #007BFF
+    static var dsSecondaryForeground: Color { .white } // #FFFFFF
 
-    // Accent
-    static var dsAccent: Color { Color(nsColor: NSColor(red: 0xEE / 255.0, green: 0xEE / 255.0, blue: 0xEE / 255.0, alpha: 1)) } // #eeeeee
-    static var dsAccentForeground: Color { Color(nsColor: NSColor(red: 0x11 / 255.0, green: 0x18 / 255.0, blue: 0x27 / 255.0, alpha: 1)) } // #111827
+    // Accent (Light Orange)
+    static var dsAccent: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0xD2 / 255.0, blue: 0xA8 / 255.0, alpha: 1)) } // #FFD2A8
+    static var dsAccentForeground: Color { Color(nsColor: NSColor(red: 0, green: 0, blue: 0, alpha: 1)) } // #000000
 
     // Card
-    static var dsCard: Color { Color(nsColor: NSColor(red: 1, green: 1, blue: 1, alpha: 1)) } // #ffffff
-    static var dsCardForeground: Color { Color(nsColor: NSColor(red: 0x11 / 255.0, green: 0x18 / 255.0, blue: 0x27 / 255.0, alpha: 1)) } // #111827
+    static var dsCard: Color { Color(nsColor: NSColor(red: 0xFD / 255.0, green: 0xFD / 255.0, blue: 0xFD / 255.0, alpha: 1)) } // #FDFDFD
+    static var dsCardForeground: Color { Color(nsColor: NSColor(red: 0, green: 0, blue: 0, alpha: 1)) } // #000000
+
+    // Popover
+    static var dsPopover: Color { Color(nsColor: NSColor(red: 0xFD / 255.0, green: 0xFD / 255.0, blue: 0xFD / 255.0, alpha: 1)) } // #FDFDFD
+    static var dsPopoverForeground: Color { Color(nsColor: NSColor(red: 0, green: 0, blue: 0, alpha: 1)) } // #000000
 
     // Muted
-    static var dsMuted: Color { Color(nsColor: NSColor(red: 0xF3 / 255.0, green: 0xF4 / 255.0, blue: 0xF6 / 255.0, alpha: 1)) } // #f3f4f6
-    static var dsMutedForeground: Color { Color(nsColor: NSColor(red: 0x6B / 255.0, green: 0x72 / 255.0, blue: 0x80 / 255.0, alpha: 1)) } // #6b7280
+    static var dsMuted: Color { Color(nsColor: NSColor(red: 0xF5 / 255.0, green: 0xF5 / 255.0, blue: 0xF5 / 255.0, alpha: 1)) } // #F5F5F5
+    static var dsMutedForeground: Color { Color(nsColor: NSColor(red: 0x4A / 255.0, green: 0x4A / 255.0, blue: 0x4A / 255.0, alpha: 1)) } // #4A4A4A
 
     // Border, Input, Ring
-    static var dsBorder: Color { Color(nsColor: NSColor(red: 0xE5 / 255.0, green: 0xE7 / 255.0, blue: 0xEB / 255.0, alpha: 1)) } // #e5e7eb
-    static var dsInput: Color { Color(nsColor: NSColor(red: 0xE5 / 255.0, green: 0xE7 / 255.0, blue: 0xEB / 255.0, alpha: 1)) } // #e5e7eb
-    static var dsRing: Color { .accentColor } // #d87943
+    static var dsBorder: Color { Color(nsColor: NSColor(red: 0xCC / 255.0, green: 0xCC / 255.0, blue: 0xCC / 255.0, alpha: 1)) } // #CCCCCC
+    static var dsInput: Color { Color(nsColor: NSColor(red: 0xE0 / 255.0, green: 0xE0 / 255.0, blue: 0xE0 / 255.0, alpha: 1)) } // #E0E0E0
+    static var dsRing: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0x66 / 255.0, blue: 0x00 / 255.0, alpha: 1)) } // #FF6600
 
     // Destructive
-    static var dsDestructive: Color { Color(nsColor: NSColor(red: 0xEF / 255.0, green: 0x44 / 255.0, blue: 0x44 / 255.0, alpha: 1)) } // #ef4444
-    static var dsDestructiveForeground: Color { Color(nsColor: NSColor(red: 0xFA / 255.0, green: 0xFA / 255.0, blue: 0xFA / 255.0, alpha: 1)) } // #fafafa
+    static var dsDestructive: Color { Color(nsColor: NSColor(red: 0xDC / 255.0, green: 0x26 / 255.0, blue: 0x26 / 255.0, alpha: 1)) } // #DC2626
+    static var dsDestructiveForeground: Color { .white } // #FFFFFF
 
-    // Sidebar
-    static var dsSidebarBackground: Color { Color(nsColor: NSColor(red: 0xF3 / 255.0, green: 0xF4 / 255.0, blue: 0xF6 / 255.0, alpha: 1)) } // #f3f4f6
-    static var dsSidebarForeground: Color { Color(nsColor: NSColor(red: 0x11 / 255.0, green: 0x18 / 255.0, blue: 0x27 / 255.0, alpha: 1)) } // #111827
-    static var dsSidebarPrimary: Color { .accentColor } // #d87943
-    static var dsSidebarAccent: Color { Color(nsColor: NSColor(red: 1, green: 1, blue: 1, alpha: 1)) } // #ffffff
-    static var dsSidebarBorder: Color { Color(nsColor: NSColor(red: 0xE5 / 255.0, green: 0xE7 / 255.0, blue: 0xEB / 255.0, alpha: 1)) } // #e5e7eb
+    // Sidebar (Orange theme)
+    static var dsSidebarBackground: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0x66 / 255.0, blue: 0x00 / 255.0, alpha: 1)) } // #FF6600
+    static var dsSidebarForeground: Color { .white } // #FFFFFF
+    static var dsSidebarPrimary: Color { Color(nsColor: NSColor(red: 0xE6 / 255.0, green: 0x5C / 255.0, blue: 0x00 / 255.0, alpha: 1)) } // #E65C00
+    static var dsSidebarPrimaryForeground: Color { .white } // #FFFFFF
+    static var dsSidebarAccent: Color { Color(nsColor: NSColor(red: 0x00 / 255.0, green: 0x7B / 255.0, blue: 0xFF / 255.0, alpha: 1)) } // #007BFF
+    static var dsSidebarAccentForeground: Color { .white } // #FFFFFF
+    static var dsSidebarBorder: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0x7A / 255.0, blue: 0x1A / 255.0, alpha: 1)) } // #FF7A1A
+    static var dsSidebarRing: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0x66 / 255.0, blue: 0x00 / 255.0, alpha: 1)) } // #FF6600
 
     // Charts
-    static var dsChart1: Color { Color(nsColor: NSColor(red: 0x5F / 255.0, green: 0x87 / 255.0, blue: 0x87 / 255.0, alpha: 1)) } // #5f8787
-    static var dsChart2: Color { Color(nsColor: NSColor(red: 0xE7 / 255.0, green: 0x8A / 255.0, blue: 0x53 / 255.0, alpha: 1)) } // #e78a53
-    static var dsChart3: Color { Color(nsColor: NSColor(red: 0xFB / 255.0, green: 0xCB / 255.0, blue: 0x97 / 255.0, alpha: 1)) } // #fbcb97
+    static var dsChart1: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0x66 / 255.0, blue: 0x00 / 255.0, alpha: 1)) } // #FF6600
+    static var dsChart2: Color { Color(nsColor: NSColor(red: 0x00 / 255.0, green: 0x7B / 255.0, blue: 0xFF / 255.0, alpha: 1)) } // #007BFF
+    static var dsChart3: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0xD2 / 255.0, blue: 0xA8 / 255.0, alpha: 1)) } // #FFD2A8
+    static var dsChart4: Color { Color(nsColor: NSColor(red: 0xB0 / 255.0, green: 0xD8 / 255.0, blue: 0xFF / 255.0, alpha: 1)) } // #B0D8FF
+    static var dsChart5: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0x9F / 255.0, blue: 0x66 / 255.0, alpha: 1)) } // #FF9F66
 
     // Legacy adaptive functions
     static func dsBackgroundAdaptive(for _: ColorScheme) -> Color { dsBackground }
@@ -308,10 +317,10 @@ public extension View {
 
 public extension LinearGradient {
     static func dsPrimaryGradient(for _: ColorScheme) -> LinearGradient {
-        LinearGradient(colors: [.accentColor, .accentColor], startPoint: .leading, endPoint: .trailing)
+        LinearGradient(colors: [Color.dsPrimary, Color.dsChart5], startPoint: .leading, endPoint: .trailing)
     }
 
     static func dsSecondaryGradient(for _: ColorScheme) -> LinearGradient {
-        LinearGradient(colors: [Color.dsSecondary, Color.dsSecondary], startPoint: .leading, endPoint: .trailing)
+        LinearGradient(colors: [Color.dsSecondary, Color.dsChart4], startPoint: .leading, endPoint: .trailing)
     }
 }
