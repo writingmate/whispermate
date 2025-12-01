@@ -90,16 +90,9 @@ struct DictionaryTabView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(
-                Rectangle()
-                    .fill(Color.dsCard)
-            )
+            .background(Color.quaternarySystemFill)
         }
-        .cornerRadius(DSCornerRadius.small)
-        .overlay(
-            RoundedRectangle(cornerRadius: DSCornerRadius.small)
-                .stroke(Color.dsBorder, lineWidth: 1)
-        )
+        .clipShape(RoundedRectangle(cornerRadius: DSCornerRadius.medium))
     }
 }
 
@@ -118,20 +111,18 @@ struct DictionaryEntryRow: View {
         HStack(spacing: 12) {
             if isEditing {
                 TextField("Trigger", text: $editTrigger)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(.plain)
                     .dsFont(.label)
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                 Image(systemName: "arrow.right")
                     .dsFont(.tiny)
                     .foregroundStyle(.tertiary)
 
                 TextField("Replacement (optional)", text: $editReplacement)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(.plain)
                     .dsFont(.label)
-                    .frame(maxWidth: .infinity)
-
-                Spacer()
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                 Button(action: {
                     let replacement = editReplacement.isEmpty ? nil : editReplacement
@@ -155,18 +146,26 @@ struct DictionaryEntryRow: View {
                 }
                 .buttonStyle(.plain)
                 .frame(width: 16, height: 16)
+
+                Toggle("", isOn: Binding(
+                    get: { entry.isEnabled },
+                    set: { _ in onToggle() }
+                ))
+                .toggleStyle(.switch)
+                .controlSize(.mini)
+                .labelsHidden()
             } else {
                 Text(entry.trigger)
                     .dsFont(.label)
                     .foregroundStyle(entry.isEnabled ? .primary : .secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                if entry.replacement != nil {
-                    Image(systemName: "arrow.right")
-                        .dsFont(.tiny)
-                        .foregroundStyle(.tertiary)
+                Image(systemName: "arrow.right")
+                    .dsFont(.tiny)
+                    .foregroundStyle(.tertiary)
 
-                    Text(entry.replacement!)
+                if let replacement = entry.replacement {
+                    Text(replacement)
                         .dsFont(.label)
                         .foregroundStyle(entry.isEnabled ? .primary : .secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -177,8 +176,6 @@ struct DictionaryEntryRow: View {
                         .italic()
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
-
-                Spacer()
 
                 Button(action: {
                     editTrigger = entry.trigger
@@ -213,16 +210,11 @@ struct DictionaryEntryRow: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(
-            Rectangle()
-                .fill(Color(nsColor: .controlBackgroundColor))
-        )
-        .overlay(
-            Rectangle()
-                .frame(height: 1)
-                .foregroundColor(Color(nsColor: .separatorColor)),
-            alignment: .bottom
-        )
+        .background(Color.quaternarySystemFill)
+        .overlay(alignment: .bottom) {
+            Divider()
+                .padding(.horizontal, 16)
+        }
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.15)) {
                 isHovering = hovering
@@ -265,16 +257,9 @@ struct ContextRulesTabView: View {
             .buttonStyle(.plain)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(
-                Rectangle()
-                    .fill(Color(nsColor: .controlBackgroundColor))
-            )
+            .background(Color.quaternarySystemFill)
         }
-        .cornerRadius(6)
-        .overlay(
-            RoundedRectangle(cornerRadius: 6)
-                .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
-        )
+        .clipShape(RoundedRectangle(cornerRadius: DSCornerRadius.medium))
         .sheet(isPresented: $showingAddSheet) {
             AddContextRuleSheet(manager: manager, isPresented: $showingAddSheet)
         }
@@ -661,16 +646,11 @@ struct ContextRuleRow: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(
-            Rectangle()
-                .fill(Color(nsColor: .controlBackgroundColor))
-        )
-        .overlay(
-            Rectangle()
-                .frame(height: 1)
-                .foregroundColor(Color(nsColor: .separatorColor)),
-            alignment: .bottom
-        )
+        .background(Color.quaternarySystemFill)
+        .overlay(alignment: .bottom) {
+            Divider()
+                .padding(.horizontal, 16)
+        }
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.15)) {
                 isHovering = hovering
@@ -925,16 +905,9 @@ struct ShortcutsTabView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(
-                Rectangle()
-                    .fill(Color(nsColor: .controlBackgroundColor))
-            )
+            .background(Color.quaternarySystemFill)
         }
-        .cornerRadius(6)
-        .overlay(
-            RoundedRectangle(cornerRadius: 6)
-                .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
-        )
+        .clipShape(RoundedRectangle(cornerRadius: DSCornerRadius.medium))
     }
 }
 
@@ -953,20 +926,18 @@ struct ShortcutRow: View {
         HStack(spacing: 12) {
             if isEditing {
                 TextField("Voice trigger", text: $editTrigger)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(.plain)
                     .dsFont(.label)
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                 Image(systemName: "arrow.right")
                     .dsFont(.tiny)
                     .foregroundStyle(.tertiary)
 
                 TextField("Expansion", text: $editExpansion)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(.plain)
                     .dsFont(.label)
-                    .frame(maxWidth: .infinity)
-
-                Spacer()
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                 Button(action: {
                     onEdit(editTrigger, editExpansion)
@@ -989,6 +960,14 @@ struct ShortcutRow: View {
                 }
                 .buttonStyle(.plain)
                 .frame(width: 16, height: 16)
+
+                Toggle("", isOn: Binding(
+                    get: { shortcut.isEnabled },
+                    set: { _ in onToggle() }
+                ))
+                .toggleStyle(.switch)
+                .controlSize(.mini)
+                .labelsHidden()
             } else {
                 Text(shortcut.voiceTrigger)
                     .dsFont(.label)
@@ -1004,8 +983,6 @@ struct ShortcutRow: View {
                     .foregroundStyle(shortcut.isEnabled ? .primary : .secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .lineLimit(1)
-
-                Spacer()
 
                 Button(action: {
                     editTrigger = shortcut.voiceTrigger
@@ -1040,16 +1017,11 @@ struct ShortcutRow: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(
-            Rectangle()
-                .fill(Color(nsColor: .controlBackgroundColor))
-        )
-        .overlay(
-            Rectangle()
-                .frame(height: 1)
-                .foregroundColor(Color(nsColor: .separatorColor)),
-            alignment: .bottom
-        )
+        .background(Color.quaternarySystemFill)
+        .overlay(alignment: .bottom) {
+            Divider()
+                .padding(.horizontal, 16)
+        }
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.15)) {
                 isHovering = hovering

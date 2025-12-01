@@ -7,8 +7,6 @@ struct WhisperMateApp: App {
     @StateObject private var onboardingManager = OnboardingManager()
 
     init() {
-        // Run migration from old PromptRules to new system
-        RulesMigrationManager.migrateIfNeeded()
     }
 
     var body: some Scene {

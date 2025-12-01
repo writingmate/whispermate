@@ -14,10 +14,10 @@ struct SettingsCard<Content: View>: View {
 
     var body: some View {
         content
-            .padding(12)
+            .padding(10)
             .background(
-                RoundedRectangle(cornerRadius: DSCornerRadius.small)
-                    .fill(Color(nsColor: .quaternarySystemFill))
+                RoundedRectangle(cornerRadius: DSCornerRadius.medium)
+                    .fill(Color.quaternarySystemFill)
             )
     }
 }
@@ -44,6 +44,19 @@ enum SettingsSection: String, CaseIterable, Identifiable {
         case .dictionary: return "book.closed"
         case .contextRules: return "text.badge.checkmark"
         case .shortcuts: return "text.word.spacing"
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .general: return "Hotkey, overlay, and startup settings"
+        case .account: return "Subscription and account management"
+        case .permissions: return "Microphone, accessibility, and screen recording"
+        case .audio: return "Input device and audio settings"
+        case .language: return "Transcription language preferences"
+        case .dictionary: return "Custom word replacements and corrections"
+        case .contextRules: return "App-specific formatting rules"
+        case .shortcuts: return "Voice-triggered text expansions"
         }
     }
 }
@@ -83,7 +96,7 @@ struct SettingsView: View {
             .listStyle(.sidebar)
         } detail: {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 12) {
                     switch selectedSection {
                     case .general:
                         generalSection
@@ -133,10 +146,10 @@ struct SettingsView: View {
                         HStack(spacing: 12) {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Account")
-                                    .dsFont(.label)
+                                    .dsFont(.body)
                                     .foregroundStyle(Color.dsForeground)
                                 Text(user.email)
-                                    .dsFont(.tiny)
+                                    .dsFont(.label)
                                     .foregroundStyle(Color.dsMutedForeground)
                             }
                             Spacer()
@@ -154,10 +167,10 @@ struct SettingsView: View {
                         HStack(spacing: 12) {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Subscription")
-                                    .dsFont(.label)
+                                    .dsFont(.body)
                                     .foregroundStyle(Color.dsForeground)
                                 Text(user.subscriptionTier == .pro ? "Pro" : "Free")
-                                    .dsFont(.tiny)
+                                    .dsFont(.label)
                                     .foregroundStyle(user.subscriptionTier == .pro ? Color.dsSecondary : Color.dsMutedForeground)
                             }
                             Spacer()
@@ -170,10 +183,10 @@ struct SettingsView: View {
                             HStack(spacing: 12) {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Word Usage")
-                                        .dsFont(.label)
+                                        .dsFont(.body)
                                         .foregroundStyle(Color.dsForeground)
                                     Text("\(user.monthlyWordCount) of 2,000 words this month")
-                                        .dsFont(.tiny)
+                                        .dsFont(.label)
                                         .foregroundStyle(Color.dsMutedForeground)
                                 }
                                 Spacer()
@@ -184,10 +197,10 @@ struct SettingsView: View {
                         HStack(spacing: 12) {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Account")
-                                    .dsFont(.label)
+                                    .dsFont(.body)
                                     .foregroundStyle(Color.dsForeground)
                                 Text("Sign in to track usage and unlock Pro features")
-                                    .dsFont(.tiny)
+                                    .dsFont(.label)
                                     .foregroundStyle(Color.dsMutedForeground)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -207,15 +220,15 @@ struct SettingsView: View {
                     HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Upgrade to Pro")
-                                .dsFont(.label)
+                                .dsFont(.body)
                                 .foregroundStyle(Color.dsForeground)
                             if isCheckingPayment {
                                 Text("Checking for payment confirmation...")
-                                    .dsFont(.tiny)
+                                    .dsFont(.label)
                                     .foregroundStyle(Color.dsMutedForeground)
                             } else {
                                 Text("Unlimited transcriptions, priority support")
-                                    .dsFont(.tiny)
+                                    .dsFont(.label)
                                     .foregroundStyle(Color.dsMutedForeground)
                             }
                         }
@@ -238,10 +251,10 @@ struct SettingsView: View {
                 HStack(spacing: 12) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Reset Application")
-                            .dsFont(.label)
+                            .dsFont(.body)
                             .foregroundStyle(Color.dsForeground)
                         Text("Clear all data and restart onboarding")
-                            .dsFont(.tiny)
+                            .dsFont(.label)
                             .foregroundStyle(Color.dsMutedForeground)
                     }
                     Spacer()
@@ -367,15 +380,44 @@ struct SettingsView: View {
 
     private var generalSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // Recording Hotkey (standalone - most important)
+            // Recording Hotkey Settings Group
             SettingsCard {
-                HStack(spacing: 12) {
-                    Text("Recording Hotkey")
-                        .dsFont(.label)
-                        .foregroundStyle(Color.dsForeground)
-                    Spacer()
-                    HotkeyRecorderView(hotkeyManager: hotkeyManager)
-                        .frame(width: 200, height: 28)
+                VStack(spacing: 0) {
+                    // Recording Hotkey
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Recording Hotkey")
+                                .dsFont(.body)
+                                .foregroundStyle(Color.dsForeground)
+                            Text("Shortcut to start and stop recording")
+                                .dsFont(.label)
+                                .foregroundStyle(Color.dsMutedForeground)
+                        }
+                        Spacer()
+                        HotkeyRecorderView(hotkeyManager: hotkeyManager)
+                    }
+                    .padding(.vertical, 2)
+
+                    Divider()
+                        .padding(.vertical, 6)
+
+                    // Push-to-Talk Toggle
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Push to Talk")
+                                .dsFont(.body)
+                                .foregroundStyle(Color.dsForeground)
+                            Text(hotkeyManager.isPushToTalk ? "Hold to record, release to stop" : "Press to start, press again to stop")
+                                .dsFont(.label)
+                                .foregroundStyle(Color.dsMutedForeground)
+                        }
+                        Spacer()
+                        Toggle("", isOn: $hotkeyManager.isPushToTalk)
+                            .toggleStyle(.switch)
+                            .controlSize(.mini)
+                            .labelsHidden()
+                    }
+                    .padding(.vertical, 2)
                 }
             }
 
@@ -384,9 +426,14 @@ struct SettingsView: View {
                 VStack(spacing: 0) {
                     // Show Overlay When Idle
                     HStack(spacing: 12) {
-                        Text("Show Overlay When Idle")
-                            .dsFont(.label)
-                            .foregroundStyle(Color.dsForeground)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Show Overlay When Idle")
+                                .dsFont(.body)
+                                .foregroundStyle(Color.dsForeground)
+                            Text("Display the overlay even when not recording")
+                                .dsFont(.label)
+                                .foregroundStyle(Color.dsMutedForeground)
+                        }
                         Spacer()
                         Toggle("", isOn: Binding(
                             get: { !overlayManager.hideIdleState },
@@ -396,16 +443,21 @@ struct SettingsView: View {
                         .controlSize(.mini)
                         .labelsHidden()
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 2)
 
                     Divider()
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 6)
 
                     // Overlay Position
                     HStack(spacing: 12) {
-                        Text("Overlay Position")
-                            .dsFont(.label)
-                            .foregroundStyle(Color.dsForeground)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Overlay Position")
+                                .dsFont(.body)
+                                .foregroundStyle(Color.dsForeground)
+                            Text("Where the recording indicator appears")
+                                .dsFont(.label)
+                                .foregroundStyle(Color.dsMutedForeground)
+                        }
                         Spacer()
                         Picker("", selection: $overlayManager.position) {
                             ForEach(OverlayPosition.allCases, id: \.self) { position in
@@ -415,7 +467,7 @@ struct SettingsView: View {
                         .pickerStyle(.menu)
                         .fixedSize()
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 2)
                 }
             }
 
@@ -424,9 +476,14 @@ struct SettingsView: View {
                 VStack(spacing: 0) {
                     // Launch at Login
                     HStack(spacing: 12) {
-                        Text("Launch at Login")
-                            .dsFont(.label)
-                            .foregroundStyle(Color.dsForeground)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Launch at Login")
+                                .dsFont(.body)
+                                .foregroundStyle(Color.dsForeground)
+                            Text("Automatically start when you log in")
+                                .dsFont(.label)
+                                .foregroundStyle(Color.dsMutedForeground)
+                        }
                         Spacer()
                         Toggle("", isOn: Binding(
                             get: { launchAtLoginManager.isEnabled },
@@ -436,16 +493,21 @@ struct SettingsView: View {
                         .controlSize(.mini)
                         .labelsHidden()
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 2)
 
                     Divider()
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 6)
 
                     // Screen Context
                     HStack(spacing: 12) {
-                        Text("Include Screen Context")
-                            .dsFont(.label)
-                            .foregroundStyle(Color.dsForeground)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Include Screen Context")
+                                .dsFont(.body)
+                                .foregroundStyle(Color.dsForeground)
+                            Text("Use screen content to improve transcription")
+                                .dsFont(.label)
+                                .foregroundStyle(Color.dsMutedForeground)
+                        }
                         Spacer()
                         Toggle("", isOn: Binding(
                             get: { screenCaptureManager.includeScreenContext },
@@ -460,7 +522,7 @@ struct SettingsView: View {
                         .controlSize(.mini)
                         .labelsHidden()
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 2)
                 }
             }
         }
@@ -474,13 +536,18 @@ struct SettingsView: View {
             SettingsCard {
                 VStack(spacing: 0) {
                     // Microphone Permission
-                    HStack {
+                    HStack(spacing: 12) {
                         Image(systemName: "mic.fill")
                             .foregroundStyle(Color.dsMutedForeground)
                             .frame(width: 20)
-                        Text("Microphone")
-                            .dsFont(.label)
-                            .foregroundStyle(Color.dsForeground)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Microphone")
+                                .dsFont(.body)
+                                .foregroundStyle(Color.dsForeground)
+                            Text("Required to capture your voice for transcription")
+                                .dsFont(.label)
+                                .foregroundStyle(Color.dsMutedForeground)
+                        }
                         Spacer()
                         if AVCaptureDevice.authorizationStatus(for: .audio) == .authorized {
                             Image(systemName: "checkmark.circle.fill")
@@ -494,19 +561,24 @@ struct SettingsView: View {
                             .controlSize(.small)
                         }
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 2)
 
                     Divider()
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 6)
 
                     // Accessibility Permission
-                    HStack {
+                    HStack(spacing: 12) {
                         Image(systemName: "hand.raised.fill")
                             .foregroundStyle(Color.dsMutedForeground)
                             .frame(width: 20)
-                        Text("Accessibility")
-                            .dsFont(.label)
-                            .foregroundStyle(Color.dsForeground)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Accessibility")
+                                .dsFont(.body)
+                                .foregroundStyle(Color.dsForeground)
+                            Text("Needed for global hotkeys and text insertion")
+                                .dsFont(.label)
+                                .foregroundStyle(Color.dsMutedForeground)
+                        }
                         Spacer()
                         if AXIsProcessTrusted() {
                             Image(systemName: "checkmark.circle.fill")
@@ -519,19 +591,24 @@ struct SettingsView: View {
                             .controlSize(.small)
                         }
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 2)
 
                     Divider()
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 6)
 
                     // Screen Recording Permission
-                    HStack {
+                    HStack(spacing: 12) {
                         Image(systemName: "rectangle.dashed.badge.record")
                             .foregroundStyle(Color.dsMutedForeground)
                             .frame(width: 20)
-                        Text("Screen Recording")
-                            .dsFont(.label)
-                            .foregroundStyle(Color.dsForeground)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Screen Recording")
+                                .dsFont(.body)
+                                .foregroundStyle(Color.dsForeground)
+                            Text("Optional, enables context-aware transcription")
+                                .dsFont(.label)
+                                .foregroundStyle(Color.dsMutedForeground)
+                        }
                         Spacer()
                         if screenCaptureManager.hasScreenRecordingPermission {
                             Image(systemName: "checkmark.circle.fill")
@@ -543,7 +620,7 @@ struct SettingsView: View {
                             .controlSize(.small)
                         }
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 2)
                 }
             }
         }
@@ -558,9 +635,14 @@ struct SettingsView: View {
                 VStack(spacing: 0) {
                     // Input Device
                     HStack(spacing: 12) {
-                        Text("Input Device")
-                            .dsFont(.label)
-                            .foregroundStyle(Color.dsForeground)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Input Device")
+                                .dsFont(.body)
+                                .foregroundStyle(Color.dsForeground)
+                            Text("Select which microphone to use for recording")
+                                .dsFont(.label)
+                                .foregroundStyle(Color.dsMutedForeground)
+                        }
                         Spacer()
                         Picker("", selection: $selectedAudioDevice) {
                             ForEach(audioDevices) { device in
@@ -570,16 +652,21 @@ struct SettingsView: View {
                         .pickerStyle(.menu)
                         .fixedSize()
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 2)
 
                     Divider()
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 6)
 
                     // Mute Other Audio
                     HStack(spacing: 12) {
-                        Text("Mute Other Audio When Recording")
-                            .dsFont(.label)
-                            .foregroundStyle(Color.dsForeground)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Mute Other Audio")
+                                .dsFont(.body)
+                                .foregroundStyle(Color.dsForeground)
+                            Text("Pause system audio while recording")
+                                .dsFont(.label)
+                                .foregroundStyle(Color.dsMutedForeground)
+                        }
                         Spacer()
                         Toggle("", isOn: Binding(
                             get: { UserDefaults.standard.object(forKey: "muteAudioWhenRecording") as? Bool ?? true },
@@ -589,7 +676,7 @@ struct SettingsView: View {
                         .controlSize(.mini)
                         .labelsHidden()
                     }
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 2)
                 }
             }
         }
@@ -604,10 +691,10 @@ struct SettingsView: View {
                     HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Transcription Language")
-                                .dsFont(.label)
+                                .dsFont(.body)
                                 .foregroundStyle(Color.dsForeground)
                             Text("Select languages for transcription. Auto-detect works for all languages.")
-                                .dsFont(.tiny)
+                                .dsFont(.label)
                                 .foregroundStyle(Color.dsMutedForeground)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -626,7 +713,7 @@ struct SettingsView: View {
                                         .dsFont(.body)
 
                                     Text(language.displayName)
-                                        .dsFont(.label)
+                                        .dsFont(.body)
                                         .foregroundStyle(languageManager.isSelected(language) ? .white : Color.dsForeground)
                                         .lineLimit(1)
 
@@ -639,7 +726,7 @@ struct SettingsView: View {
                                     }
                                 }
                                 .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
+                                .padding(.vertical, 6)
                                 .frame(maxWidth: .infinity)
                                 .background(
                                     RoundedRectangle(cornerRadius: DSCornerRadius.small)
@@ -740,7 +827,7 @@ struct RuleRow: View {
         HStack(spacing: 12) {
             // Rule text
             Text(rule.text)
-                .dsFont(.label)
+                .dsFont(.body)
                 .foregroundStyle(rule.isEnabled ? Color.dsForeground : Color.dsMutedForeground)
 
             Spacer()

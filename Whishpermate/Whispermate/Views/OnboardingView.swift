@@ -15,8 +15,8 @@ struct OnboardingView: View {
     @State private var exampleText = "I have two apples and three oranges"
     @State private var processedText = ""
     @State private var isProcessingExample = false
-    @State private var fnKeyMonitor: FnKeyMonitor?
     @State private var showCustomHotkeyPicker = false
+    @State private var fnKeyMonitor: FnKeyMonitor?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -232,18 +232,41 @@ struct OnboardingView: View {
 
         case .hotkey:
             if showCustomHotkeyPicker {
-                // Custom hotkey selection view
-                VStack(spacing: 16) {
-                    Text("Set your preferred hotkey")
-                        .font(.geist(size: 14, weight: .medium))
-                        .foregroundStyle(Color.dsForeground)
+                // Custom hotkey selection view with dropdown
+                VStack(spacing: 24) {
+                    // Hotkey Selection
+                    VStack(spacing: 12) {
+                        Text("Select your preferred shortcut")
+                            .font(.geist(size: 14, weight: .medium))
+                            .foregroundStyle(Color.dsForeground)
 
-                    HotkeyRecorderView(hotkeyManager: hotkeyManager)
-                        .frame(maxWidth: 300)
+                        HotkeyRecorderView(hotkeyManager: hotkeyManager)
+                    }
+
+                    // Push-to-Talk Toggle
+                    VStack(spacing: 8) {
+                        Toggle(isOn: $hotkeyManager.isPushToTalk) {
+                            Text("Push to Talk")
+                                .dsFont(.label)
+                                .foregroundStyle(Color.dsForeground)
+                        }
+                        .toggleStyle(.switch)
+                        .controlSize(.small)
+
+                        Text(hotkeyManager.isPushToTalk ? "Hold to record, release to stop" : "Press to start, press again to stop")
+                            .dsFont(.tiny)
+                            .foregroundStyle(Color.dsMutedForeground)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: DSCornerRadius.small)
+                            .fill(Color.quaternarySystemFill)
+                    )
 
                     Button(action: {
                         showCustomHotkeyPicker = false
-                        stopFnKeyMonitoring()
+                        startFnKeyMonitoring()
                     }) {
                         Text("Back to Fn key")
                             .dsFont(.small)
@@ -289,7 +312,7 @@ struct OnboardingView: View {
                         showCustomHotkeyPicker = true
                         stopFnKeyMonitoring()
                     }) {
-                        Text("Use a different hotkey")
+                        Text("Use a different shortcut")
                             .dsFont(.small)
                             .foregroundStyle(Color.dsMutedForeground)
                     }
@@ -297,11 +320,9 @@ struct OnboardingView: View {
                     .padding(.top, 4)
                 }
                 .onAppear {
-                    // Start monitoring for Fn key press
                     startFnKeyMonitoring()
                 }
                 .onDisappear {
-                    // Stop monitoring when leaving this step
                     stopFnKeyMonitoring()
                 }
             }

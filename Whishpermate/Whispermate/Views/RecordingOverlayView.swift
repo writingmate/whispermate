@@ -6,6 +6,8 @@ struct RecordingOverlayView: View {
     @State private var isHovering = false
     @State private var shouldShowExpandedPill = false
     @State private var shouldShowContent = false
+    @State private var expansionWorkItem: DispatchWorkItem?
+    @State private var contentWorkItem: DispatchWorkItem?
 
     // MARK: - Size Constants (single source of truth)
 
@@ -67,17 +69,34 @@ struct RecordingOverlayView: View {
                 if !shouldShowExpandedPill {
                     shouldShowExpandedPill = false
                     shouldShowContent = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+
+                    // Cancel any pending collapse work items
+                    expansionWorkItem?.cancel()
+                    contentWorkItem?.cancel()
+
+                    // Create new work item for expansion
+                    let expansionWork = DispatchWorkItem { [self] in
                         withAnimation(.easeInOut(duration: 0.25)) {
                             shouldShowExpandedPill = true
                         }
-                        // Show content after expansion animation completes
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+
+                        // Create work item for content reveal
+                        let contentWork = DispatchWorkItem {
                             shouldShowContent = true
                         }
+                        contentWorkItem = contentWork
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: contentWork)
                     }
+                    expansionWorkItem = expansionWork
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: expansionWork)
                 }
             } else if !manager.isProcessing {
+                // Cancel any pending expansion work items
+                expansionWorkItem?.cancel()
+                contentWorkItem?.cancel()
+                expansionWorkItem = nil
+                contentWorkItem = nil
+
                 // Hide content immediately, then collapse
                 shouldShowContent = false
                 withAnimation(.easeOut(duration: 0.15)) {
@@ -91,21 +110,38 @@ struct RecordingOverlayView: View {
                 if !manager.isRecording && !shouldShowExpandedPill {
                     shouldShowExpandedPill = false
                     shouldShowContent = false
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+
+                    // Cancel any pending work items
+                    expansionWorkItem?.cancel()
+                    contentWorkItem?.cancel()
+
+                    // Create new work item for expansion
+                    let expansionWork = DispatchWorkItem { [self] in
                         withAnimation(.easeInOut(duration: 0.25)) {
                             shouldShowExpandedPill = true
                         }
-                        // Show content after expansion animation completes
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+
+                        // Create work item for content reveal
+                        let contentWork = DispatchWorkItem {
                             shouldShowContent = true
                         }
+                        contentWorkItem = contentWork
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: contentWork)
                     }
+                    expansionWorkItem = expansionWork
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05, execute: expansionWork)
                 } else if manager.isRecording {
                     // Already expanded from recording, just keep expanded and keep showing content
                     shouldShowExpandedPill = true
                     shouldShowContent = true
                 }
             } else if !manager.isRecording {
+                // Cancel any pending work items
+                expansionWorkItem?.cancel()
+                contentWorkItem?.cancel()
+                expansionWorkItem = nil
+                contentWorkItem = nil
+
                 shouldShowContent = false
                 withAnimation(.easeOut(duration: 0.15)) {
                     shouldShowExpandedPill = false

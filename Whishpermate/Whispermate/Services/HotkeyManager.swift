@@ -8,6 +8,11 @@ class HotkeyManager: ObservableObject {
     // MARK: - Published Properties
 
     @Published var currentHotkey: Hotkey?
+    @Published var isPushToTalk: Bool {
+        didSet {
+            UserDefaults.standard.set(isPushToTalk, forKey: Keys.pushToTalk)
+        }
+    }
 
     // MARK: - Public Callbacks
 
@@ -20,6 +25,7 @@ class HotkeyManager: ObservableObject {
     private enum Keys {
         static let hotkeyKeycode = "hotkey_keycode"
         static let hotkeyModifiers = "hotkey_modifiers"
+        static let pushToTalk = "pushToTalk"
     }
 
     private enum Constants {
@@ -41,9 +47,14 @@ class HotkeyManager: ObservableObject {
     private var lastTapTime: Date?
     private var isHoldingKey = false
 
+    // Toggle mode state (for non-push-to-talk)
+    private var isToggleRecording = false
+
     // MARK: - Initialization
 
     private init() {
+        // Load push-to-talk setting (default true)
+        self.isPushToTalk = UserDefaults.standard.object(forKey: Keys.pushToTalk) as? Bool ?? true
         loadHotkey()
     }
 
@@ -119,15 +130,34 @@ class HotkeyManager: ObservableObject {
             DebugLog.info("FnKeyMonitor created", context: "HotkeyManager LOG")
             DebugLog.info("Setting up onFnPressed callback...", context: "HotkeyManager LOG")
             fnKeyMonitor?.onFnPressed = { [weak self] in
-                DebugLog.info("🔥 Fn key pressed (polling) - calling onHotkeyPressed 🔥", context: "HotkeyManager LOG")
-                self?.onHotkeyPressed?()
+                guard let self = self else { return }
+                if self.isPushToTalk {
+                    DebugLog.info("🔥 Fn key pressed (Push-to-Talk) - calling onHotkeyPressed 🔥", context: "HotkeyManager LOG")
+                    self.onHotkeyPressed?()
+                } else {
+                    // Toggle mode
+                    DebugLog.info("🔥 Fn key pressed (Toggle mode) - isToggleRecording=\(self.isToggleRecording) 🔥", context: "HotkeyManager LOG")
+                    if self.isToggleRecording {
+                        self.isToggleRecording = false
+                        self.onHotkeyReleased?()
+                    } else {
+                        self.isToggleRecording = true
+                        self.onHotkeyPressed?()
+                    }
+                }
                 DebugLog.info("onHotkeyPressed callback returned", context: "HotkeyManager LOG")
             }
             DebugLog.info("Setting up onFnReleased callback...", context: "HotkeyManager LOG")
             fnKeyMonitor?.onFnReleased = { [weak self] in
-                DebugLog.info("🔥 Fn key released (polling) - calling onHotkeyReleased 🔥", context: "HotkeyManager LOG")
-                self?.onHotkeyReleased?()
-                DebugLog.info("onHotkeyReleased callback returned", context: "HotkeyManager LOG")
+                guard let self = self else { return }
+                if self.isPushToTalk {
+                    DebugLog.info("🔥 Fn key released (Push-to-Talk) - calling onHotkeyReleased 🔥", context: "HotkeyManager LOG")
+                    self.onHotkeyReleased?()
+                } else {
+                    // Toggle mode - ignore release
+                    DebugLog.info("🔥 Fn key released (Toggle mode) - ignoring 🔥", context: "HotkeyManager LOG")
+                }
+                DebugLog.info("onFnReleased callback returned", context: "HotkeyManager LOG")
             }
             DebugLog.info("Callbacks configured, starting monitoring...", context: "HotkeyManager LOG")
             fnKeyMonitor?.startMonitoring()
@@ -277,15 +307,33 @@ class HotkeyManager: ObservableObject {
                 DebugLog.info("handleKeyDownEvent: DOUBLE-TAP detected - calling onDoubleTap", context: "HotkeyManager LOG")
                 lastTapTime = nil // Reset for next sequence
                 isHoldingKey = false // Don't track as hold
+                isToggleRecording = false // Reset toggle state on double-tap
                 onDoubleTap?()
                 return true
             }
 
-            // Single tap - start hold-to-record
-            DebugLog.info("handleKeyDownEvent: MATCH - calling onHotkeyPressed (START recording)", context: "HotkeyManager LOG")
-            lastTapTime = now // Track this tap for potential double-tap
-            isHoldingKey = true
-            onHotkeyPressed?()
+            if isPushToTalk {
+                // Push-to-talk mode: start recording on key down
+                DebugLog.info("handleKeyDownEvent: MATCH (Push-to-Talk) - calling onHotkeyPressed (START recording)", context: "HotkeyManager LOG")
+                lastTapTime = now
+                isHoldingKey = true
+                onHotkeyPressed?()
+            } else {
+                // Toggle mode: toggle recording on key down
+                DebugLog.info("handleKeyDownEvent: MATCH (Toggle mode) - isToggleRecording=\(isToggleRecording)", context: "HotkeyManager LOG")
+                lastTapTime = now
+                if isToggleRecording {
+                    // Currently recording, stop it
+                    DebugLog.info("handleKeyDownEvent: Toggle OFF - calling onHotkeyReleased (STOP recording)", context: "HotkeyManager LOG")
+                    isToggleRecording = false
+                    onHotkeyReleased?()
+                } else {
+                    // Not recording, start it
+                    DebugLog.info("handleKeyDownEvent: Toggle ON - calling onHotkeyPressed (START recording)", context: "HotkeyManager LOG")
+                    isToggleRecording = true
+                    onHotkeyPressed?()
+                }
+            }
             return true
         }
 
@@ -300,13 +348,16 @@ class HotkeyManager: ObservableObject {
 
         // Check if the key code matches (modifiers may not be present on keyUp)
         if event.keyCode == hotkey.keyCode {
-            // Only call onHotkeyReleased if we're in hold-to-record mode
-            if isHoldingKey {
-                DebugLog.info("handleKeyUpEvent: MATCH - calling onHotkeyReleased (STOP recording)", context: "HotkeyManager LOG")
+            // In push-to-talk mode, stop recording on key release
+            if isPushToTalk && isHoldingKey {
+                DebugLog.info("handleKeyUpEvent: MATCH (Push-to-Talk) - calling onHotkeyReleased (STOP recording)", context: "HotkeyManager LOG")
                 isHoldingKey = false
                 onHotkeyReleased?()
+            } else if !isPushToTalk {
+                // In toggle mode, key release is ignored (recording continues until next press)
+                DebugLog.info("handleKeyUpEvent: Toggle mode - ignoring key release", context: "HotkeyManager LOG")
             } else {
-                DebugLog.info("handleKeyUpEvent: Key released but not in hold mode (continuous recording)", context: "HotkeyManager LOG")
+                DebugLog.info("handleKeyUpEvent: Key released but not in hold mode", context: "HotkeyManager LOG")
             }
             // Always consume the event to prevent system handling
             return true

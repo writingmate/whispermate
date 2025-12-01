@@ -22,9 +22,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // Debug: Check font loading
         debugFontLoading()
 
-        // Migrate old prompt rules to new system if needed
-        RulesMigrationManager.migrateIfNeeded()
-
         statusBarManager.setupMenuBar()
 
         // Disable automatic window restoration for all windows except main
