@@ -15,7 +15,7 @@ public struct DSPrimaryButtonStyle: ButtonStyle {
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .dsFont(.bodySemibold)
+            .dsFont(.title3)
             .foregroundStyle(Color.dsPrimaryForeground)
             .background(Capsule().fill(Color.dsPrimary))
             .opacity(isEnabled ? (configuration.isPressed ? 0.8 : 1.0) : 0.5)

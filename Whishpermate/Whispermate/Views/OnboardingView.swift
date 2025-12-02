@@ -355,50 +355,41 @@ struct OnboardingView: View {
                 }
             }) {
                 Text(onboardingManager.isAccessibilityGranted() ? "Continue" : "Open System Settings")
-                    .font(.geist(size: 15, weight: .semibold))
-                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
-                    .background(
-                        Capsule()
-                            .fill(onboardingManager.isAccessibilityGranted() ? Color.dsPrimary : Color.dsSecondary)
-                    )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(DSPrimaryButtonStyle())
 
         case .screenRecording:
             VStack(spacing: 12) {
-                if !onboardingManager.isScreenRecordingGranted() {
+                if onboardingManager.isScreenRecordingGranted() {
+                    Button(action: {
+                        onboardingManager.moveToNextStep()
+                    }) {
+                        Text("Continue")
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                    }
+                    .buttonStyle(DSPrimaryButtonStyle())
+                } else {
                     Button(action: {
                         onboardingManager.requestScreenRecordingPermission()
                     }) {
                         Text("Enable Screen Recording")
-                            .font(.geist(size: 15, weight: .semibold))
-                            .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 44)
-                            .background(
-                                Capsule()
-                                    .fill(Color.dsSecondary)
-                            )
+                    }
+                    .buttonStyle(DSPrimaryButtonStyle())
+
+                    Button(action: {
+                        onboardingManager.moveToNextStep()
+                    }) {
+                        Text("Skip for now")
+                            .dsFont(.title3)
+                            .foregroundStyle(Color.dsMutedForeground)
                     }
                     .buttonStyle(.plain)
                 }
-
-                Button(action: {
-                    onboardingManager.moveToNextStep()
-                }) {
-                    Text(onboardingManager.isScreenRecordingGranted() ? "Continue" : "Skip for now")
-                        .font(.geist(size: 15, weight: .semibold))
-                        .foregroundStyle(onboardingManager.isScreenRecordingGranted() ? .white : Color.dsMutedForeground)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                        .background(
-                            Capsule()
-                                .fill(onboardingManager.isScreenRecordingGranted() ? Color.dsPrimary : Color.clear)
-                        )
-                }
-                .buttonStyle(.plain)
             }
 
         case .language:
@@ -416,17 +407,12 @@ struct OnboardingView: View {
                 onboardingManager.moveToNextStep()
             }) {
                 Text("Continue")
-                    .font(.geist(size: 15, weight: .semibold))
-                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
-                    .background(
-                        Capsule()
-                            .fill(hotkeyManager.currentHotkey != nil ? Color.dsPrimary : Color.dsMutedForeground)
-                    )
             }
-            .buttonStyle(.plain)
+            .buttonStyle(DSPrimaryButtonStyle())
             .disabled(hotkeyManager.currentHotkey == nil)
+            .opacity(hotkeyManager.currentHotkey != nil ? 1.0 : 0.5)
         }
     }
 
