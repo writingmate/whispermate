@@ -193,10 +193,8 @@ struct RecordingOverlayView: View {
                 AudioVisualizationView(audioLevel: manager.audioLevel, color: .white, frequencyBands: manager.frequencyBands)
                     .frame(maxHeight: activeStateHeight) // Constrain to container height
             } else if manager.isProcessing && shouldShowContent {
-                ProgressView()
-                    .tint(.white)
-                    .controlSize(.small)
-                    .brightness(2)
+                ProcessingWaveView(color: .white)
+                    .frame(maxHeight: activeStateHeight)
             }
         }
         .animation(.easeInOut(duration: 0.25), value: shouldShowExpandedPill)

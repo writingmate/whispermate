@@ -30,8 +30,11 @@ class AudioRecorder: NSObject, ObservableObject {
             object: nil
         )
 
-        // Pre-initialize the audio engine for instant recording start
-        setupAudioEngine()
+        // Only pre-initialize the audio engine if microphone permission is already granted
+        // This prevents triggering the permission dialog on app launch
+        if AVCaptureDevice.authorizationStatus(for: .audio) == .authorized {
+            setupAudioEngine()
+        }
     }
 
     @objc private func handleAudioDeviceChanged(_: Notification) {

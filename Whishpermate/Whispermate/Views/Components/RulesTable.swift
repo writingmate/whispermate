@@ -20,7 +20,7 @@ struct RulesTable: View {
             HStack(spacing: 12) {
                 TextField("Add new rule...", text: $newRuleText)
                     .textFieldStyle(.plain)
-                    .dsFont(.label)
+                    .font(.body)
                     .onSubmit {
                         if !newRuleText.isEmpty {
                             promptRulesManager.addRule(newRuleText)
@@ -36,7 +36,7 @@ struct RulesTable: View {
                     }
                 }) {
                     Image(systemName: "plus.circle.fill")
-                        .dsFont(.body)
+                        .font(.body)
                         .foregroundStyle(Color(nsColor: .systemGreen))
                 }
                 .buttonStyle(.plain)

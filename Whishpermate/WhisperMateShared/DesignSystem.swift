@@ -206,64 +206,64 @@ public extension View {
 
 // MARK: - Color Palette
 
-// Orange/Blue theme with clean, modern look
+// Default SwiftUI colors with orange accent
 
 public extension Color {
-    // Background & Foreground
-    static var dsBackground: Color { Color(nsColor: NSColor(red: 1, green: 1, blue: 1, alpha: 1)) } // #FFFFFF
-    static var dsForeground: Color { Color(nsColor: NSColor(red: 0, green: 0, blue: 0, alpha: 1)) } // #000000
+    // Background & Foreground - use system colors
+    static var dsBackground: Color { Color(nsColor: .windowBackgroundColor) }
+    static var dsForeground: Color { Color(nsColor: .labelColor) }
 
-    // Primary (Orange)
-    static var dsPrimary: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0x66 / 255.0, blue: 0x00 / 255.0, alpha: 1)) } // #FF6600
-    static var dsPrimaryForeground: Color { .white } // #FFFFFF
+    // Primary (Orange accent)
+    static var dsPrimary: Color { .orange }
+    static var dsPrimaryForeground: Color { .white }
 
-    // Secondary (Blue)
-    static var dsSecondary: Color { Color(nsColor: NSColor(red: 0x00 / 255.0, green: 0x7B / 255.0, blue: 0xFF / 255.0, alpha: 1)) } // #007BFF
-    static var dsSecondaryForeground: Color { .white } // #FFFFFF
+    // Secondary - use system secondary
+    static var dsSecondary: Color { Color(nsColor: .secondaryLabelColor) }
+    static var dsSecondaryForeground: Color { .white }
 
-    // Accent (Light Orange)
-    static var dsAccent: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0xD2 / 255.0, blue: 0xA8 / 255.0, alpha: 1)) } // #FFD2A8
-    static var dsAccentForeground: Color { Color(nsColor: NSColor(red: 0, green: 0, blue: 0, alpha: 1)) } // #000000
+    // Accent (Orange)
+    static var dsAccent: Color { .orange }
+    static var dsAccentForeground: Color { Color(nsColor: .labelColor) }
 
-    // Card
-    static var dsCard: Color { Color(nsColor: NSColor(red: 0xFD / 255.0, green: 0xFD / 255.0, blue: 0xFD / 255.0, alpha: 1)) } // #FDFDFD
-    static var dsCardForeground: Color { Color(nsColor: NSColor(red: 0, green: 0, blue: 0, alpha: 1)) } // #000000
+    // Card - use system control background
+    static var dsCard: Color { Color(nsColor: .controlBackgroundColor) }
+    static var dsCardForeground: Color { Color(nsColor: .labelColor) }
 
-    // Popover
-    static var dsPopover: Color { Color(nsColor: NSColor(red: 0xFD / 255.0, green: 0xFD / 255.0, blue: 0xFD / 255.0, alpha: 1)) } // #FDFDFD
-    static var dsPopoverForeground: Color { Color(nsColor: NSColor(red: 0, green: 0, blue: 0, alpha: 1)) } // #000000
+    // Popover - use system popover background
+    static var dsPopover: Color { Color(nsColor: .controlBackgroundColor) }
+    static var dsPopoverForeground: Color { Color(nsColor: .labelColor) }
 
-    // Muted
-    static var dsMuted: Color { Color(nsColor: NSColor(red: 0xF5 / 255.0, green: 0xF5 / 255.0, blue: 0xF5 / 255.0, alpha: 1)) } // #F5F5F5
-    static var dsMutedForeground: Color { Color(nsColor: NSColor(red: 0x4A / 255.0, green: 0x4A / 255.0, blue: 0x4A / 255.0, alpha: 1)) } // #4A4A4A
+    // Muted - use system colors
+    static var dsMuted: Color { Color(nsColor: .unemphasizedSelectedContentBackgroundColor) }
+    static var dsMutedForeground: Color { Color(nsColor: .secondaryLabelColor) }
 
-    // Border, Input, Ring
-    static var dsBorder: Color { Color(nsColor: NSColor(red: 0xCC / 255.0, green: 0xCC / 255.0, blue: 0xCC / 255.0, alpha: 1)) } // #CCCCCC
-    static var dsInput: Color { Color(nsColor: NSColor(red: 0xE0 / 255.0, green: 0xE0 / 255.0, blue: 0xE0 / 255.0, alpha: 1)) } // #E0E0E0
-    static var dsRing: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0x66 / 255.0, blue: 0x00 / 255.0, alpha: 1)) } // #FF6600
+    // Border, Input, Ring - use system colors
+    static var dsBorder: Color { Color(nsColor: .separatorColor) }
+    static var dsInput: Color { Color(nsColor: .textBackgroundColor) }
+    static var dsRing: Color { .orange }
 
     // Destructive
-    static var dsDestructive: Color { Color(nsColor: NSColor(red: 0xDC / 255.0, green: 0x26 / 255.0, blue: 0x26 / 255.0, alpha: 1)) } // #DC2626
-    static var dsDestructiveForeground: Color { .white } // #FFFFFF
+    static var dsDestructive: Color { .red }
+    static var dsDestructiveForeground: Color { .white }
 
-    // Sidebar (Orange theme)
-    static var dsSidebarBackground: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0x66 / 255.0, blue: 0x00 / 255.0, alpha: 1)) } // #FF6600
-    static var dsSidebarForeground: Color { .white } // #FFFFFF
-    static var dsSidebarPrimary: Color { Color(nsColor: NSColor(red: 0xE6 / 255.0, green: 0x5C / 255.0, blue: 0x00 / 255.0, alpha: 1)) } // #E65C00
-    static var dsSidebarPrimaryForeground: Color { .white } // #FFFFFF
-    static var dsSidebarAccent: Color { Color(nsColor: NSColor(red: 0x00 / 255.0, green: 0x7B / 255.0, blue: 0xFF / 255.0, alpha: 1)) } // #007BFF
-    static var dsSidebarAccentForeground: Color { .white } // #FFFFFF
-    static var dsSidebarBorder: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0x7A / 255.0, blue: 0x1A / 255.0, alpha: 1)) } // #FF7A1A
-    static var dsSidebarRing: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0x66 / 255.0, blue: 0x00 / 255.0, alpha: 1)) } // #FF6600
+    // Sidebar - use system sidebar colors
+    static var dsSidebarBackground: Color { Color(nsColor: .controlBackgroundColor) }
+    static var dsSidebarForeground: Color { Color(nsColor: .labelColor) }
+    static var dsSidebarPrimary: Color { .orange }
+    static var dsSidebarPrimaryForeground: Color { .white }
+    static var dsSidebarAccent: Color { .orange }
+    static var dsSidebarAccentForeground: Color { .white }
+    static var dsSidebarBorder: Color { Color(nsColor: .separatorColor) }
+    static var dsSidebarRing: Color { .orange }
 
-    // Charts
-    static var dsChart1: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0x66 / 255.0, blue: 0x00 / 255.0, alpha: 1)) } // #FF6600
-    static var dsChart2: Color { Color(nsColor: NSColor(red: 0x00 / 255.0, green: 0x7B / 255.0, blue: 0xFF / 255.0, alpha: 1)) } // #007BFF
-    static var dsChart3: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0xD2 / 255.0, blue: 0xA8 / 255.0, alpha: 1)) } // #FFD2A8
-    static var dsChart4: Color { Color(nsColor: NSColor(red: 0xB0 / 255.0, green: 0xD8 / 255.0, blue: 0xFF / 255.0, alpha: 1)) } // #B0D8FF
-    static var dsChart5: Color { Color(nsColor: NSColor(red: 0xFF / 255.0, green: 0x9F / 255.0, blue: 0x66 / 255.0, alpha: 1)) } // #FF9F66
+    // Charts - use standard SwiftUI colors
+    static var dsChart1: Color { .orange }
+    static var dsChart2: Color { .blue }
+    static var dsChart3: Color { .green }
+    static var dsChart4: Color { .purple }
+    static var dsChart5: Color { .pink }
 
-    // Legacy adaptive functions
+    // Legacy adaptive functions - now just return the adaptive system colors
     static func dsBackgroundAdaptive(for _: ColorScheme) -> Color { dsBackground }
     static func dsForegroundAdaptive(for _: ColorScheme) -> Color { dsForeground }
     static func dsPrimaryAdaptive(for _: ColorScheme) -> Color { dsPrimary }
@@ -317,10 +317,10 @@ public extension View {
 
 public extension LinearGradient {
     static func dsPrimaryGradient(for _: ColorScheme) -> LinearGradient {
-        LinearGradient(colors: [Color.dsPrimary, Color.dsChart5], startPoint: .leading, endPoint: .trailing)
+        LinearGradient(colors: [.orange, .orange.opacity(0.8)], startPoint: .leading, endPoint: .trailing)
     }
 
     static func dsSecondaryGradient(for _: ColorScheme) -> LinearGradient {
-        LinearGradient(colors: [Color.dsSecondary, Color.dsChart4], startPoint: .leading, endPoint: .trailing)
+        LinearGradient(colors: [.blue, .blue.opacity(0.8)], startPoint: .leading, endPoint: .trailing)
     }
 }

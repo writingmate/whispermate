@@ -44,7 +44,7 @@ class AppState: ObservableObject {
 
     // MARK: - Dependencies (singletons)
 
-    private let audioRecorder = AudioRecorder.shared
+    private lazy var audioRecorder = AudioRecorder.shared
     private let historyManager = HistoryManager.shared
     private let overlayManager = OverlayWindowManager.shared
     private let vadSettingsManager = VADSettingsManager.shared

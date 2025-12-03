@@ -58,16 +58,16 @@ struct DictionaryTabView: View {
             HStack(spacing: 12) {
                 TextField("Trigger word", text: $newTrigger)
                     .textFieldStyle(.plain)
-                    .dsFont(.label)
+                    .font(.body)
                     .frame(maxWidth: .infinity)
 
                 Image(systemName: "arrow.right")
-                    .dsFont(.tiny)
+                    .font(.caption)
                     .foregroundStyle(.secondary)
 
                 TextField("Replacement (optional)", text: $newReplacement)
                     .textFieldStyle(.plain)
-                    .dsFont(.label)
+                    .font(.body)
                     .foregroundStyle(newReplacement.isEmpty ? .secondary : .primary)
                     .frame(maxWidth: .infinity)
 
@@ -80,13 +80,23 @@ struct DictionaryTabView: View {
                     }
                 }) {
                     Image(systemName: "plus.circle.fill")
-                        .dsFont(.body)
-                        .foregroundStyle(Color.dsSecondary)
+                        .font(.body)
+                        .foregroundStyle(.green)
                 }
                 .buttonStyle(.plain)
                 .frame(width: 16, height: 16)
                 .opacity(newTrigger.isEmpty ? 0 : 1)
-                .padding(.trailing, 26)
+
+                // Placeholder for edit button alignment
+                Color.clear
+                    .frame(width: 16, height: 16)
+
+                // Placeholder for toggle alignment
+                Toggle("", isOn: .constant(true))
+                    .toggleStyle(.switch)
+                    .controlSize(.mini)
+                    .labelsHidden()
+                    .hidden()
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -112,16 +122,16 @@ struct DictionaryEntryRow: View {
             if isEditing {
                 TextField("Trigger", text: $editTrigger)
                     .textFieldStyle(.plain)
-                    .dsFont(.label)
+                    .font(.body)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Image(systemName: "arrow.right")
-                    .dsFont(.tiny)
+                    .font(.caption)
                     .foregroundStyle(.tertiary)
 
                 TextField("Replacement (optional)", text: $editReplacement)
                     .textFieldStyle(.plain)
-                    .dsFont(.label)
+                    .font(.body)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Button(action: {
@@ -130,7 +140,7 @@ struct DictionaryEntryRow: View {
                     isEditing = false
                 }) {
                     Image(systemName: "checkmark.circle.fill")
-                        .dsFont(.body)
+                        .font(.body)
                         .foregroundStyle(.green)
                 }
                 .buttonStyle(.plain)
@@ -141,7 +151,7 @@ struct DictionaryEntryRow: View {
                     isEditing = false
                 }) {
                     Image(systemName: "xmark.circle.fill")
-                        .dsFont(.body)
+                        .font(.body)
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
@@ -156,22 +166,22 @@ struct DictionaryEntryRow: View {
                 .labelsHidden()
             } else {
                 Text(entry.trigger)
-                    .dsFont(.label)
+                    .font(.body)
                     .foregroundStyle(entry.isEnabled ? .primary : .secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Image(systemName: "arrow.right")
-                    .dsFont(.tiny)
+                    .font(.caption)
                     .foregroundStyle(.tertiary)
 
                 if let replacement = entry.replacement {
                     Text(replacement)
-                        .dsFont(.label)
+                        .font(.body)
                         .foregroundStyle(entry.isEnabled ? .primary : .secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 } else {
                     Text("(no replacement)")
-                        .dsFont(.tiny)
+                        .font(.caption)
                         .foregroundStyle(.tertiary)
                         .italic()
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -183,7 +193,7 @@ struct DictionaryEntryRow: View {
                     isEditing = true
                 }) {
                     Image(systemName: "pencil.circle.fill")
-                        .dsFont(.body)
+                        .font(.body)
                         .foregroundStyle(.blue)
                 }
                 .buttonStyle(.plain)
@@ -192,7 +202,7 @@ struct DictionaryEntryRow: View {
 
                 Button(action: onDelete) {
                     Image(systemName: "minus.circle.fill")
-                        .dsFont(.body)
+                        .font(.body)
                         .foregroundStyle(.red)
                 }
                 .buttonStyle(.plain)
@@ -247,10 +257,10 @@ struct ContextRulesTabView: View {
             Button(action: { showingAddSheet = true }) {
                 HStack {
                     Image(systemName: "plus.circle.fill")
-                        .dsFont(.body)
+                        .font(.body)
                         .foregroundStyle(Color(nsColor: .systemGreen))
                     Text("Add Context Rule")
-                        .dsFont(.label)
+                        .font(.body)
                     Spacer()
                 }
             }
@@ -296,11 +306,11 @@ struct AppTokenField: View {
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(.secondary)
-                        .dsFont(.tiny)
+                        .font(.caption)
 
                     TextField("Search apps to add...", text: $searchText)
                         .textFieldStyle(.plain)
-                        .dsFont(.small)
+                        .font(.callout)
                         .focused($isSearchFocused)
                         .onSubmit {
                             if let firstMatch = filteredApps.first {
@@ -337,12 +347,12 @@ struct AppTokenField: View {
                                             .frame(width: 16, height: 16)
                                     }
                                     Text(app.name)
-                                        .dsFont(.small)
+                                        .font(.callout)
                                     Spacer()
                                     if selectedAppBundleIds.contains(app.bundleID) {
                                         Image(systemName: "checkmark")
                                             .foregroundStyle(.secondary)
-                                            .dsFont(.micro)
+                                            .font(.caption2)
                                     }
                                 }
                                 .contentShape(Rectangle())
@@ -376,7 +386,7 @@ struct AppTokenField: View {
             }
 
             Text("Leave empty to apply to all apps • \(selectedAppBundleIds.count) selected")
-                .dsFont(.micro)
+                .font(.caption2)
                 .foregroundStyle(.secondary)
         }
     }
@@ -411,12 +421,12 @@ struct AppToken: View {
                     .frame(width: 14, height: 14)
             }
             Text(app.name)
-                .dsFont(.tiny)
+                .font(.caption)
                 .lineLimit(1)
 
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
-                    .dsFont(.small)
+                    .font(.callout)
                     .foregroundStyle(.secondary)
             }
             .buttonStyle(.plain)
@@ -457,11 +467,11 @@ struct TitlePatternTokenField: View {
             HStack(spacing: 8) {
                 Image(systemName: "text.alignleft")
                     .foregroundStyle(.secondary)
-                    .dsFont(.tiny)
+                    .font(.caption)
 
                 TextField("Type pattern and press Enter (e.g., Gmail, *LinkedIn*)", text: $inputText)
                     .textFieldStyle(.plain)
-                    .dsFont(.small)
+                    .font(.callout)
                     .focused($isInputFocused)
                     .onSubmit {
                         addPattern()
@@ -500,16 +510,16 @@ struct TitlePatternToken: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: "text.alignleft")
-                .dsFont(.micro)
+                .font(.caption2)
                 .foregroundStyle(.secondary)
 
             Text(pattern)
-                .dsFont(.tiny)
+                .font(.caption)
                 .lineLimit(1)
 
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
-                    .dsFont(.small)
+                    .font(.callout)
                     .foregroundStyle(.secondary)
             }
             .buttonStyle(.plain)
@@ -584,17 +594,17 @@ struct ContextRuleRow: View {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(rule.name)
-                        .dsFont(.labelMedium)
+                        .font(.headline)
                         .foregroundStyle(rule.isEnabled ? .primary : .secondary)
 
                     Text(rule.instructions)
-                        .dsFont(.tiny)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
 
                     if rule.appBundleIds.isEmpty {
                         Text("Applies to all apps")
-                            .dsFont(.micro)
+                            .font(.caption2)
                             .foregroundStyle(.secondary)
                             .italic()
                     } else if !appIcons.isEmpty {
@@ -608,7 +618,7 @@ struct ContextRuleRow: View {
                             }
                             if appIcons.count > 8 {
                                 Text("+\(appIcons.count - 8)")
-                                    .dsFont(.micro)
+                                    .font(.caption2)
                                     .foregroundStyle(.tertiary)
                             }
                         }
@@ -619,7 +629,7 @@ struct ContextRuleRow: View {
 
                 Button(action: { showingEditSheet = true }) {
                     Image(systemName: "pencil.circle.fill")
-                        .dsFont(.body)
+                        .font(.body)
                         .foregroundStyle(.blue)
                 }
                 .buttonStyle(.plain)
@@ -628,7 +638,7 @@ struct ContextRuleRow: View {
 
                 Button(action: onDelete) {
                     Image(systemName: "minus.circle.fill")
-                        .dsFont(.body)
+                        .font(.body)
                         .foregroundStyle(.red)
                 }
                 .buttonStyle(.plain)
@@ -703,42 +713,42 @@ struct EditContextRuleSheet: View {
     var body: some View {
         VStack(spacing: 16) {
             Text("Edit Context Rule")
-                .dsFont(.headline)
+                .font(.headline)
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Name")
-                    .dsFont(.smallMedium)
+                    .font(.subheadline)
                 TextField("e.g., Professional Work Chat", text: $name)
                     .textFieldStyle(.roundedBorder)
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Apps")
-                    .dsFont(.smallMedium)
+                    .font(.subheadline)
 
                 AppTokenField(selectedAppBundleIds: $selectedAppBundleIds, installedApps: installedApps)
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Window Title Patterns")
-                    .dsFont(.smallMedium)
+                    .font(.subheadline)
 
                 TitlePatternTokenField(titlePatterns: $titlePatterns)
 
                 Text("Leave empty to match all window titles")
-                    .dsFont(.micro)
+                    .font(.caption2)
                     .foregroundStyle(.secondary)
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Instructions")
-                    .dsFont(.smallMedium)
+                    .font(.subheadline)
                 TextEditor(text: $instructions)
-                    .dsFont(.small)
+                    .font(.callout)
                     .frame(height: 80)
                     .border(Color(nsColor: .separatorColor))
                 Text("Describe the formatting rules for this context")
-                    .dsFont(.micro)
+                    .font(.caption2)
                     .foregroundStyle(.secondary)
             }
 
@@ -783,42 +793,42 @@ struct AddContextRuleSheet: View {
     var body: some View {
         VStack(spacing: 16) {
             Text("Add Context Rule")
-                .dsFont(.headline)
+                .font(.headline)
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Name")
-                    .dsFont(.smallMedium)
+                    .font(.subheadline)
                 TextField("e.g., Professional Work Chat", text: $name)
                     .textFieldStyle(.roundedBorder)
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Apps")
-                    .dsFont(.smallMedium)
+                    .font(.subheadline)
 
                 AppTokenField(selectedAppBundleIds: $selectedAppBundleIds, installedApps: installedApps)
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Window Title Patterns")
-                    .dsFont(.smallMedium)
+                    .font(.subheadline)
 
                 TitlePatternTokenField(titlePatterns: $titlePatterns)
 
                 Text("Leave empty to match all window titles")
-                    .dsFont(.micro)
+                    .font(.caption2)
                     .foregroundStyle(.secondary)
             }
 
             VStack(alignment: .leading, spacing: 8) {
                 Text("Instructions")
-                    .dsFont(.smallMedium)
+                    .font(.subheadline)
                 TextEditor(text: $instructions)
-                    .dsFont(.small)
+                    .font(.callout)
                     .frame(height: 80)
                     .border(Color(nsColor: .separatorColor))
                 Text("Describe the formatting rules for this context")
-                    .dsFont(.micro)
+                    .font(.caption2)
                     .foregroundStyle(.secondary)
             }
 
@@ -875,16 +885,16 @@ struct ShortcutsTabView: View {
             HStack(spacing: 12) {
                 TextField("Voice trigger (e.g., 'my email')", text: $newTrigger)
                     .textFieldStyle(.plain)
-                    .dsFont(.label)
+                    .font(.body)
                     .frame(maxWidth: .infinity)
 
                 Image(systemName: "arrow.right")
-                    .dsFont(.tiny)
+                    .font(.caption)
                     .foregroundStyle(.secondary)
 
                 TextField("Expansion text", text: $newExpansion)
                     .textFieldStyle(.plain)
-                    .dsFont(.label)
+                    .font(.body)
                     .frame(maxWidth: .infinity)
 
                 Button(action: {
@@ -895,13 +905,23 @@ struct ShortcutsTabView: View {
                     }
                 }) {
                     Image(systemName: "plus.circle.fill")
-                        .dsFont(.body)
-                        .foregroundStyle(Color(nsColor: .systemGreen))
+                        .font(.body)
+                        .foregroundStyle(.green)
                 }
                 .buttonStyle(.plain)
                 .frame(width: 16, height: 16)
                 .opacity(newTrigger.isEmpty || newExpansion.isEmpty ? 0 : 1)
-                .padding(.trailing, 26)
+
+                // Placeholder for edit button alignment
+                Color.clear
+                    .frame(width: 16, height: 16)
+
+                // Placeholder for toggle alignment
+                Toggle("", isOn: .constant(true))
+                    .toggleStyle(.switch)
+                    .controlSize(.mini)
+                    .labelsHidden()
+                    .hidden()
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -927,16 +947,16 @@ struct ShortcutRow: View {
             if isEditing {
                 TextField("Voice trigger", text: $editTrigger)
                     .textFieldStyle(.plain)
-                    .dsFont(.label)
+                    .font(.body)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Image(systemName: "arrow.right")
-                    .dsFont(.tiny)
+                    .font(.caption)
                     .foregroundStyle(.tertiary)
 
                 TextField("Expansion", text: $editExpansion)
                     .textFieldStyle(.plain)
-                    .dsFont(.label)
+                    .font(.body)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Button(action: {
@@ -944,7 +964,7 @@ struct ShortcutRow: View {
                     isEditing = false
                 }) {
                     Image(systemName: "checkmark.circle.fill")
-                        .dsFont(.body)
+                        .font(.body)
                         .foregroundStyle(.green)
                 }
                 .buttonStyle(.plain)
@@ -955,7 +975,7 @@ struct ShortcutRow: View {
                     isEditing = false
                 }) {
                     Image(systemName: "xmark.circle.fill")
-                        .dsFont(.body)
+                        .font(.body)
                         .foregroundStyle(.secondary)
                 }
                 .buttonStyle(.plain)
@@ -970,16 +990,16 @@ struct ShortcutRow: View {
                 .labelsHidden()
             } else {
                 Text(shortcut.voiceTrigger)
-                    .dsFont(.label)
+                    .font(.body)
                     .foregroundStyle(shortcut.isEnabled ? .primary : .secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 Image(systemName: "arrow.right")
-                    .dsFont(.tiny)
+                    .font(.caption)
                     .foregroundStyle(.tertiary)
 
                 Text(shortcut.expansion)
-                    .dsFont(.label)
+                    .font(.body)
                     .foregroundStyle(shortcut.isEnabled ? .primary : .secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .lineLimit(1)
@@ -990,7 +1010,7 @@ struct ShortcutRow: View {
                     isEditing = true
                 }) {
                     Image(systemName: "pencil.circle.fill")
-                        .dsFont(.body)
+                        .font(.body)
                         .foregroundStyle(.blue)
                 }
                 .buttonStyle(.plain)
@@ -999,7 +1019,7 @@ struct ShortcutRow: View {
 
                 Button(action: onDelete) {
                     Image(systemName: "minus.circle.fill")
-                        .dsFont(.body)
+                        .font(.body)
                         .foregroundStyle(.red)
                 }
                 .buttonStyle(.plain)

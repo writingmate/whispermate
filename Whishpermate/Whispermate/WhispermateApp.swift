@@ -422,7 +422,7 @@ struct WhishpermateApp: App {
         .windowResizability(.contentSize)
         .windowStyle(.titleBar)
         .defaultPosition(.center)
-        .defaultSize(width: 1050, height: 825)
+        .defaultSize(width: 700, height: 500)
         .commandsRemoved()
 
         // Onboarding window

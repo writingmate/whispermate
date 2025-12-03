@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 internal import Combine
+import AVFoundation
 
 enum OverlayPosition: String, CaseIterable, Codable {
     case top = "Top"
@@ -204,6 +205,12 @@ class OverlayWindowManager: ObservableObject {
     // MARK: - Private Methods
 
     private func setupAudioObservers() {
+        // Only set up audio observers if microphone permission is already granted
+        // This prevents triggering the permission dialog on app launch
+        guard AVCaptureDevice.authorizationStatus(for: .audio) == .authorized else {
+            return
+        }
+
         // Observe AudioRecorder's audio level and frequency bands
         let audioRecorder = AudioRecorder.shared
 
@@ -218,6 +225,12 @@ class OverlayWindowManager: ObservableObject {
             .sink { [weak self] bands in
                 self?.frequencyBands = bands
             }
+    }
+
+    /// Call this after microphone permission is granted to set up audio observers
+    func initializeAudioObservers() {
+        guard audioLevelCancellable == nil else { return }
+        setupAudioObservers()
     }
 
     private func createWindow() {

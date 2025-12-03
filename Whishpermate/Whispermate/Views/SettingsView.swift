@@ -827,15 +827,15 @@ struct RuleRow: View {
         HStack(spacing: 12) {
             // Rule text
             Text(rule.text)
-                .dsFont(.body)
-                .foregroundStyle(rule.isEnabled ? Color.dsForeground : Color.dsMutedForeground)
+                .font(.body)
+                .foregroundStyle(rule.isEnabled ? .primary : .secondary)
 
             Spacer()
 
             // Delete button (visible on hover) - always present to prevent height changes
             Button(action: onDelete) {
                 Image(systemName: "minus.circle.fill")
-                    .dsFont(.body)
+                    .font(.body)
                     .foregroundStyle(.red)
             }
             .buttonStyle(.plain)
@@ -855,12 +855,12 @@ struct RuleRow: View {
         .padding(.vertical, 12)
         .background(
             Rectangle()
-                .fill(Color.dsCard)
+                .fill(Color(nsColor: .controlBackgroundColor))
         )
         .overlay(
             Rectangle()
                 .frame(height: 1)
-                .foregroundColor(Color.dsBorder),
+                .foregroundColor(Color(nsColor: .separatorColor)),
             alignment: .bottom
         )
         .onHover { hovering in

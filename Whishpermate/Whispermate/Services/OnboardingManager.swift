@@ -9,15 +9,13 @@ import WhisperMateShared
 enum OnboardingStep: Int, CaseIterable {
     case microphone = 0
     case accessibility = 1
-    case screenRecording = 2
-    case language = 3
-    case hotkey = 4
+    case language = 2
+    case hotkey = 3
 
     var title: String {
         switch self {
         case .microphone: return "Enable Microphone"
         case .accessibility: return "Enable Accessibility"
-        case .screenRecording: return "Enable Screen Recording"
         case .language: return "Select Your Languages"
         case .hotkey: return "Set Your Hotkey"
         }
@@ -27,7 +25,6 @@ enum OnboardingStep: Int, CaseIterable {
         switch self {
         case .microphone: return "mic.circle.fill"
         case .accessibility: return "hand.tap.fill"
-        case .screenRecording: return "rectangle.dashed.badge.record"
         case .language: return "globe"
         case .hotkey: return "keyboard.fill"
         }
@@ -39,8 +36,6 @@ enum OnboardingStep: Int, CaseIterable {
             return "AIDictation needs access to your microphone to record your voice for transcription."
         case .accessibility:
             return "AIDictation needs accessibility permissions to automatically paste transcriptions into your apps."
-        case .screenRecording:
-            return "Optional: Enable screen recording to capture context from your screen for smarter transcriptions."
         case .language:
             return "Select the languages you speak. You can choose multiple languages or use auto-detect."
         case .hotkey:
@@ -49,10 +44,7 @@ enum OnboardingStep: Int, CaseIterable {
     }
 
     var isOptional: Bool {
-        switch self {
-        case .screenRecording: return true
-        default: return false
-        }
+        return false
     }
 }
 
@@ -63,15 +55,20 @@ class OnboardingManager: ObservableObject {
     // MARK: - Published Properties
 
     @Published var showOnboarding: Bool = false
-    @Published var currentStep: OnboardingStep = .microphone
+    @Published var currentStep: OnboardingStep = .microphone {
+        didSet {
+            // Persist the current step so we can resume after app restart
+            UserDefaults.standard.set(currentStep.rawValue, forKey: Keys.currentOnboardingStep)
+        }
+    }
     @Published var accessibilityGranted: Bool = false
     @Published var microphoneGranted: Bool = false
-    @Published var screenRecordingGranted: Bool = false
 
     // MARK: - Private Properties
 
     private enum Keys {
         static let onboardingCompleted = "has_completed_onboarding"
+        static let currentOnboardingStep = "current_onboarding_step"
         static let hotkeyKeycode = "hotkey_keycode"
         static let hotkeyModifiers = "hotkey_modifiers"
     }
@@ -81,7 +78,6 @@ class OnboardingManager: ObservableObject {
     private init() {
         accessibilityGranted = AXIsProcessTrusted()
         microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
-        screenRecordingGranted = CGPreflightScreenCaptureAccess()
     }
 
     // MARK: - Public API
@@ -94,9 +90,6 @@ class OnboardingManager: ObservableObject {
         microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
     }
 
-    func updateScreenRecordingStatus() {
-        screenRecordingGranted = CGPreflightScreenCaptureAccess()
-    }
 
     func checkOnboardingStatus() {
         DebugLog.info("Checking onboarding status", context: "OnboardingManager")
@@ -105,10 +98,20 @@ class OnboardingManager: ObservableObject {
         let hasCompleted = UserDefaults.standard.bool(forKey: Keys.onboardingCompleted)
 
         if !hasCompleted {
-            // First time launch - ALWAYS show onboarding, regardless of permission status
-            DebugLog.info("First launch detected - showing mandatory onboarding", context: "OnboardingManager")
+            // Onboarding not completed - show it
+            DebugLog.info("Onboarding not completed - showing onboarding", context: "OnboardingManager")
             showOnboarding = true
-            currentStep = .microphone
+
+            // Restore the saved step, or find the first incomplete step
+            if let savedStepRaw = UserDefaults.standard.value(forKey: Keys.currentOnboardingStep) as? Int,
+               let savedStep = OnboardingStep(rawValue: savedStepRaw) {
+                // Resume from saved step, but verify previous steps are still complete
+                currentStep = findFirstIncompleteStepUpTo(savedStep)
+                DebugLog.info("Resuming onboarding at step: \(currentStep)", context: "OnboardingManager")
+            } else {
+                currentStep = .microphone
+                DebugLog.info("Starting onboarding from beginning", context: "OnboardingManager")
+            }
         } else {
             // User has completed onboarding before
             // Check if all permissions are still granted
@@ -125,6 +128,19 @@ class OnboardingManager: ObservableObject {
         }
     }
 
+    /// Find the first incomplete step, but don't go past maxStep
+    private func findFirstIncompleteStepUpTo(_ maxStep: OnboardingStep) -> OnboardingStep {
+        for step in OnboardingStep.allCases {
+            if !isStepComplete(step) {
+                return step
+            }
+            if step == maxStep {
+                return maxStep
+            }
+        }
+        return maxStep
+    }
+
     func checkAllPermissions() -> Bool {
         return isMicrophoneGranted() && isAccessibilityGranted() && isHotkeyConfigured()
     }
@@ -137,10 +153,6 @@ class OnboardingManager: ObservableObject {
         return AXIsProcessTrusted()
     }
 
-    func isScreenRecordingGranted() -> Bool {
-        return CGPreflightScreenCaptureAccess()
-    }
-
     func isHotkeyConfigured() -> Bool {
         // Check the same keys that HotkeyManager uses
         return UserDefaults.standard.value(forKey: Keys.hotkeyKeycode) != nil &&
@@ -151,7 +163,6 @@ class OnboardingManager: ObservableObject {
         switch step {
         case .microphone: return isMicrophoneGranted()
         case .accessibility: return isAccessibilityGranted()
-        case .screenRecording: return true // Optional step - always allow continuing
         case .language: return true // Always allow continuing from language step
         case .hotkey: return isHotkeyConfigured()
         }
@@ -192,6 +203,7 @@ class OnboardingManager: ObservableObject {
 
         DebugLog.info("✅ Onboarding complete!", context: "OnboardingManager")
         UserDefaults.standard.set(true, forKey: Keys.onboardingCompleted)
+        UserDefaults.standard.removeObject(forKey: Keys.currentOnboardingStep)
         showOnboarding = false
 
         // Post notification to close onboarding window and show main window
@@ -203,6 +215,8 @@ class OnboardingManager: ObservableObject {
             DispatchQueue.main.async {
                 DebugLog.info("Microphone permission: \(granted)", context: "OnboardingManager")
                 if granted {
+                    // Initialize audio observers now that permission is granted
+                    OverlayWindowManager.shared.initializeAudioObservers()
                     self?.moveToNextStep()
                 }
             }
@@ -214,13 +228,6 @@ class OnboardingManager: ObservableObject {
         let options: NSDictionary = [kAXTrustedCheckOptionPrompt.takeRetainedValue() as String: true]
         _ = AXIsProcessTrustedWithOptions(options)
         DebugLog.info("Permission dialog triggered", context: "OnboardingManager")
-    }
-
-    func requestScreenRecordingPermission() {
-        DebugLog.info("Triggering screen recording permission request", context: "OnboardingManager")
-        // This will trigger the system permission dialog for screen recording
-        CGRequestScreenCaptureAccess()
-        DebugLog.info("Screen recording permission dialog triggered", context: "OnboardingManager")
     }
 
     func reopenOnboarding() {

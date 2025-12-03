@@ -81,6 +81,50 @@ public struct AudioVisualizationView: View {
     }
 }
 
+// MARK: - Processing Wave Animation
+
+public struct ProcessingWaveView: View {
+    public var color: Color = .white
+
+    public init(color: Color = .white) {
+        self.color = color
+    }
+
+    private let totalBars = 14
+    private let barWidth: CGFloat = 4
+    private let barSpacing: CGFloat = 2
+    private let maxBarHeight: CGFloat = 18
+    private let minBarHeight: CGFloat = 4
+    private let cycleDuration: Double = 0.9
+
+    private func barHeight(for index: Int, phase: CGFloat) -> CGFloat {
+        let normalizedIndex = CGFloat(index) / CGFloat(totalBars - 1)
+
+        // Wave moves left to right
+        let wavePosition = normalizedIndex * 2.0 * .pi - phase
+
+        // Pure sine wave, normalized to 0-1
+        let sineValue = (sin(wavePosition) + 1.0) / 2.0
+
+        let heightRange = maxBarHeight - minBarHeight
+        return minBarHeight + (heightRange * sineValue)
+    }
+
+    public var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 60.0)) { timeline in
+            let phase = timeline.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: cycleDuration) / cycleDuration * 2.0 * .pi
+
+            HStack(spacing: barSpacing) {
+                ForEach(0 ..< totalBars, id: \.self) { index in
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(color)
+                        .frame(width: barWidth, height: barHeight(for: index, phase: CGFloat(phase)))
+                }
+            }
+        }
+    }
+}
+
 #Preview {
     VStack(spacing: 20) {
         AudioVisualizationView(audioLevel: 0.3)
@@ -94,5 +138,10 @@ public struct AudioVisualizationView: View {
         AudioVisualizationView(audioLevel: 1.0)
             .frame(height: 40)
             .padding()
+
+        ProcessingWaveView(color: .orange)
+            .frame(height: 40)
+            .padding()
+            .background(Color.black.opacity(0.8))
     }
 }
