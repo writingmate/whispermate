@@ -41,10 +41,8 @@ enum AIApp: String, CaseIterable, Identifiable {
 /// Master-detail view that combines history list with recording interface
 struct HistoryMasterDetailView: View {
     @ObservedObject private var historyManager = HistoryManager.shared
-    @ObservedObject private var onboardingManager = OnboardingManager.shared
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
     @State private var selectedRecording: Recording?
-    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         NavigationSplitView(columnVisibility: $columnVisibility) {
@@ -126,36 +124,6 @@ struct HistoryMasterDetailView: View {
         .onReceive(NotificationCenter.default.publisher(for: .showHistory)) { _ in
             // Show sidebar when history is requested from menu
             columnVisibility = .all
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .showSettings)) { _ in
-            openWindow(id: "settings")
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .showOnboarding)) { _ in
-            onboardingManager.reopenOnboarding()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .onboardingComplete)) { _ in
-            // Close onboarding window
-            if let window = NSApplication.shared.windows.first(where: { $0.identifier == WindowIdentifiers.onboarding }) {
-                window.close()
-            }
-
-            // Show and center main window
-            if let mainWindow = NSApplication.shared.windows.first(where: { $0.identifier == WindowIdentifiers.main }) {
-                mainWindow.center()
-                mainWindow.setIsVisible(true)
-                mainWindow.makeKeyAndOrderFront(nil)
-            }
-        }
-        .onChange(of: onboardingManager.showOnboarding) { newValue in
-            if newValue {
-                // Hide main window before opening onboarding
-                if let mainWindow = NSApplication.shared.windows.first(where: { $0.identifier == WindowIdentifiers.main }) {
-                    mainWindow.setIsVisible(false)
-                }
-
-                // Open onboarding window
-                openWindow(id: "onboarding")
-            }
         }
     }
 }

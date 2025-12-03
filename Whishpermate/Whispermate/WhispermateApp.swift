@@ -390,39 +390,32 @@ struct WhishpermateApp: App {
     }
 
     var body: some Scene {
-        // Use Window instead of WindowGroup to prevent multiple instances
+        // Main window is now Settings
         Window("AIDictation", id: "main") {
-            HistoryMasterDetailView()
+            SettingsWindowView()
+                .windowIdentifier(WindowIdentifiers.main)
                 .onOpenURL { url in
                     handleURL(url)
                 }
         }
         .windowResizability(.contentSize)
         .windowStyle(.titleBar)
-        .defaultSize(width: 900, height: 600)
+        .defaultPosition(.center)
+        .defaultSize(width: 700, height: 500)
         .commands {
-            // Replace default "Preferences" with our Settings
-            CommandGroup(replacing: .appSettings) {
-                Button("Settings...") {
-                    NotificationCenter.default.post(name: .showSettings, object: nil)
-                }
-                .keyboardShortcut(",", modifiers: .command)
-            }
-
-            // Remove History command since it's now part of main window
             // Remove File > New Window command since we only want one main window
             CommandGroup(replacing: .newItem) {}
         }
 
-        // Settings window
-        Window("Settings", id: "settings") {
-            SettingsWindowView()
-                .windowIdentifier(WindowIdentifiers.settings)
+        // History window - opens from Settings
+        Window("History", id: "history") {
+            HistoryMasterDetailView()
+                .windowIdentifier(WindowIdentifiers.history)
         }
         .windowResizability(.contentSize)
         .windowStyle(.titleBar)
         .defaultPosition(.center)
-        .defaultSize(width: 700, height: 500)
+        .defaultSize(width: 900, height: 600)
         .commandsRemoved()
 
         // Onboarding window

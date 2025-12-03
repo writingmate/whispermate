@@ -31,6 +31,7 @@ enum SettingsSection: String, CaseIterable, Identifiable {
     case dictionary = "Dictionary"
     case contextRules = "Context Rules"
     case shortcuts = "Shortcuts"
+    case history = "History"
 
     var id: String { rawValue }
 
@@ -38,6 +39,7 @@ enum SettingsSection: String, CaseIterable, Identifiable {
         switch self {
         case .general: return "gear"
         case .account: return "person.circle"
+        case .history: return "clock.arrow.circlepath"
         case .permissions: return "lock.shield"
         case .audio: return "waveform"
         case .language: return "globe"
@@ -51,6 +53,7 @@ enum SettingsSection: String, CaseIterable, Identifiable {
         switch self {
         case .general: return "Hotkey, overlay, and startup settings"
         case .account: return "Subscription and account management"
+        case .history: return "View and manage transcription history"
         case .permissions: return "Microphone, accessibility, and screen recording"
         case .audio: return "Input device and audio settings"
         case .language: return "Transcription language preferences"
@@ -89,8 +92,23 @@ struct SettingsView: View {
     var body: some View {
         NavigationSplitView {
             List(SettingsSection.allCases, selection: $selectedSection) { section in
-                Label(section.rawValue, systemImage: section.icon)
-                    .tag(section)
+                if section == .history {
+                    Button(action: {
+                        openWindow(id: "history")
+                    }) {
+                        HStack {
+                            Label(section.rawValue, systemImage: section.icon)
+                            Spacer()
+                            Image(systemName: "arrow.up.forward.square")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Label(section.rawValue, systemImage: section.icon)
+                        .tag(section)
+                }
             }
             .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 220)
             .listStyle(.sidebar)
@@ -102,6 +120,9 @@ struct SettingsView: View {
                         generalSection
                     case .account:
                         accountSection
+                    case .history:
+                        // History opens in separate window, show placeholder
+                        EmptyView()
                     case .permissions:
                         permissionsSection
                     case .audio:
@@ -377,6 +398,8 @@ struct SettingsView: View {
     }
 
     // MARK: - General Section
+
+    @Environment(\.openWindow) private var openWindow
 
     private var generalSection: some View {
         VStack(alignment: .leading, spacing: 12) {
