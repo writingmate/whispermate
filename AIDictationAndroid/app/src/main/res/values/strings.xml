@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AIDictation</string>
+    <string name="ime_name">AI Dictation</string>
+    <string name="subtype_en_US">English (US)</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome_title">Welcome to AI Dictation</string>
+    <string name="onboarding_welcome_subtitle">Your voice, instantly transcribed</string>
+    <string name="onboarding_feature_1">Speak naturally</string>
+    <string name="onboarding_feature_2">Fast transcription</string>
+    <string name="onboarding_feature_3">Secure &amp; private</string>
+    <string name="onboarding_continue">Continue</string>
+    <string name="onboarding_mic_title">Microphone Access</string>
+    <string name="onboarding_mic_subtitle">We need microphone access to transcribe your voice</string>
+    <string name="onboarding_mic_enable">Enable Microphone</string>
+    <string name="onboarding_keyboard_title">Enable Keyboard</string>
+    <string name="onboarding_keyboard_subtitle">Enable AI Dictation keyboard to use voice input anywhere</string>
+    <string name="onboarding_keyboard_step1">1. Open Settings</string>
+    <string name="onboarding_keyboard_step2">2. Languages &amp; Input → On-screen keyboard</string>
+    <string name="onboarding_keyboard_step3">3. Enable AI Dictation</string>
+    <string name="onboarding_open_settings">Open Settings</string>
+    <string name="onboarding_get_started">Get Started</string>
+
+    <!-- Main -->
+    <string name="tab_history">History</string>
+    <string name="tab_settings">Settings</string>
+    <string name="no_recordings">No recordings yet</string>
+    <string name="record">Record</string>
+
+    <!-- Recording -->
+    <string name="recording">Recording…</string>
+    <string name="processing">Processing…</string>
+    <string name="copy">Copy</string>
+    <string name="copied">Copied</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="play">Play</string>
+
+    <!-- Settings -->
+    <string name="settings_permissions">Permissions</string>
+    <string name="settings_microphone">Microphone Access</string>
+    <string name="settings_keyboard">Keyboard Settings</string>
+    <string name="settings_transcription">Transcription</string>
+    <string name="settings_transcription_settings">Transcription Settings</string>
+    <string name="settings_about">About</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_data">Data</string>
+    <string name="settings_clear_history">Clear All History</string>
+
+    <!-- Transcription Settings -->
+    <string name="transcription_dictionary">Dictionary</string>
+    <string name="transcription_tone_style">Context Rules</string>
+    <string name="transcription_shortcuts">Shortcuts</string>
+    <string name="dictionary_trigger">Trigger word</string>
+    <string name="dictionary_replacement">Replacement</string>
+    <string name="dictionary_add">Add Entry</string>
+    <string name="dictionary_footer">Dictionary entries help recognize and format specific words correctly</string>
+    <string name="tone_name">Rule name</string>
+    <string name="tone_app_ids">App package names (comma separated)</string>
+    <string name="tone_instructions">Instructions</string>
+    <string name="tone_add">Add Rule</string>
+    <string name="shortcut_trigger">Voice trigger</string>
+    <string name="shortcut_expansion">Expansion text</string>
+    <string name="shortcut_add">Add Shortcut</string>
+
+    <!-- Errors -->
+    <string name="error_transcription_failed">Transcription failed</string>
+    <string name="error_recording_failed">Recording failed</string>
+    <string name="error_permission_denied">Permission denied</string>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AI Dictation keyboard configuration -->
+<input-method xmlns:android="http://schemas.android.com/apk/res/android"
+    android:settingsActivity="com.whispermate.aidictation.MainActivity"
+    android:supportsSwitchingToNextInputMethod="true">
+    <subtype
+        android:icon="@drawable/ic_ime_switcher_dark"
+        android:imeSubtypeMode="keyboard"
+        android:isAsciiCapable="true" />
+</input-method>

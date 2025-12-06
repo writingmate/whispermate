@@ -1,0 +1,26 @@
+# Gradle files
+.gradle/
+build/
+!gradle-wrapper.jar
+!gradle-wrapper.properties
+
+# Local configuration
+local.properties
+
+# Android Studio
+*.iml
+.idea/
+.externalNativeBuild/
+.cxx/
+
+# Generated files
+captures/
+*.apk
+*.ap_
+output.json
+
+# Kotlin
+*.kotlin_module
+
+# Mac files
+.DS_Store

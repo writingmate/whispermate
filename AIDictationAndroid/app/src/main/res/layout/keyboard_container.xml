@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="false"
+    android:focusable="false">
+
+    <!-- Inner container positioned at bottom -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical">
+
+        <!-- Toolbar with suggestions and mic button -->
+        <LinearLayout
+            android:id="@+id/keyboard_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="@color/background_lxx_system"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Suggestion buttons -->
+            <LinearLayout
+                android:id="@+id/suggestions_container"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/suggestion_1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:textSize="14sp"
+                    android:textColor="@color/key_text_color_lxx_system"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp" />
+
+                <View
+                    android:id="@+id/divider_1"
+                    android:layout_width="1dp"
+                    android:layout_height="24dp"
+                    android:background="@color/key_hint_letter_color_lxx_system"
+                    android:alpha="0.3"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/suggestion_2"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:textSize="14sp"
+                    android:textColor="@color/key_text_color_lxx_system"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp" />
+
+                <View
+                    android:id="@+id/divider_2"
+                    android:layout_width="1dp"
+                    android:layout_height="24dp"
+                    android:background="@color/key_hint_letter_color_lxx_system"
+                    android:alpha="0.3"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/suggestion_3"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:textSize="14sp"
+                    android:textColor="@color/key_text_color_lxx_system"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp" />
+
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/mic_button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Voice input"
+                android:src="@drawable/ic_mic_toolbar"
+                android:scaleType="centerInside"
+                android:padding="8dp"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <!-- Keyboard will be added here programmatically -->
+        <FrameLayout
+            android:id="@+id/keyboard_frame"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
+</FrameLayout>

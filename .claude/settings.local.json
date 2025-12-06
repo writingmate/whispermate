@@ -24,7 +24,10 @@
       "Bash(brew install:*)",
       "Bash(arch -arm64 brew install:*)",
       "Bash(create-dmg:*)",
-      "Bash(gh release create:*)"
+      "Bash(gh release create:*)",
+      "Bash(./gradlew assembleDebug:*)",
+      "Bash(adb:*)",
+      "Bash(timeout 20 adb:*)"
     ],
     "deny": [],
     "ask": []

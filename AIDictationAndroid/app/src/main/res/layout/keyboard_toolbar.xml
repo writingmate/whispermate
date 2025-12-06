@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/keyboard_toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="44dp"
+    android:background="?android:attr/colorBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="8dp">
+
+    <!-- Spacer to push mic button to center-right area -->
+    <View
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
+
+    <!-- Mic button -->
+    <ImageButton
+        android:id="@+id/mic_button"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Voice input"
+        android:src="@drawable/ic_mic_toolbar"
+        android:scaleType="centerInside"
+        android:padding="8dp" />
+
+</LinearLayout>

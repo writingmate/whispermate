@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Functional key background (shift, backspace, enter, numbers, etc.) -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true"
+          android:drawable="@drawable/btn_keyboard_key_pressed_border" />
+    <item android:drawable="@drawable/btn_keyboard_key_functional_normal" />
+</selector>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 6 white rounded bars forming wave pattern like iOS icon -->
+    <!-- Bar heights match iOS: short, medium-tall, tallest, tallest, medium-tall, short -->
+    <!-- Centered in safe zone (center is 54, safe zone is 24-84) -->
+    <!-- Bar width: 6dp, spacing: 4dp, total width: 6*6 + 5*4 = 56dp -->
+    <!-- Start X: 54 - 28 = 26, bars at: 26, 36, 46, 56, 66, 76 -->
+
+    <!-- Bar 1 - shortest (height ~18) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M26,45 L26,63 Q26,66 29,66 Q32,66 32,63 L32,45 Q32,42 29,42 Q26,42 26,45 Z"/>
+
+    <!-- Bar 2 - medium-tall (height ~28) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M36,40 L36,68 Q36,71 39,71 Q42,71 42,68 L42,40 Q42,37 39,37 Q36,37 36,40 Z"/>
+
+    <!-- Bar 3 - tallest (height ~38) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M46,35 L46,73 Q46,76 49,76 Q52,76 52,73 L52,35 Q52,32 49,32 Q46,32 46,35 Z"/>
+
+    <!-- Bar 4 - tallest (height ~38) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M56,35 L56,73 Q56,76 59,76 Q62,76 62,73 L62,35 Q62,32 59,32 Q56,32 56,35 Z"/>
+
+    <!-- Bar 5 - medium-tall (height ~28) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M66,40 L66,68 Q66,71 69,71 Q72,71 72,68 L72,40 Q72,37 69,37 Q66,37 66,40 Z"/>
+
+    <!-- Bar 6 - shortest (height ~18) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M76,45 L76,63 Q76,66 79,66 Q82,66 82,63 L82,45 Q82,42 79,42 Q76,42 76,45 Z"/>
+</vector>

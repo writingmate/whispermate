@@ -1,0 +1,14 @@
+# Copy this file to local.properties and fill in your API credentials
+# Do NOT commit local.properties to version control
+
+# Android SDK location
+sdk.dir=/path/to/Android/Sdk
+
+# Transcription API Configuration
+TRANSCRIPTION_API_KEY=your_openai_or_groq_api_key_here
+TRANSCRIPTION_ENDPOINT=https://api.openai.com/v1/audio/transcriptions
+TRANSCRIPTION_MODEL=whisper-1
+
+# For Groq, use:
+# TRANSCRIPTION_ENDPOINT=https://api.groq.com/openai/v1/audio/transcriptions
+# TRANSCRIPTION_MODEL=whisper-large-v3
