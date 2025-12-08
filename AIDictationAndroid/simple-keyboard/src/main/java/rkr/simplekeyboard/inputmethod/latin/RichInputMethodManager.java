@@ -514,6 +514,73 @@ public class RichInputMethodManager {
     }
 
     /**
+     * Notify the OS about the current subtype so spell checking uses the correct language.
+     * @param context the input method service for this IME.
+     */
+    public void notifySubtypeToSystem(final InputMethodService context) {
+        android.util.Log.d(TAG, "notifySubtypeToSystem called");
+
+        final Subtype currentSubtype = getCurrentSubtype();
+        if (currentSubtype == null) {
+            android.util.Log.d(TAG, "notifySubtypeToSystem: currentSubtype is null");
+            return;
+        }
+        android.util.Log.d(TAG, "notifySubtypeToSystem: currentSubtype locale=" + currentSubtype.getLocale());
+
+        final IBinder token = context.getWindow().getWindow().getAttributes().token;
+        if (token == null) {
+            android.util.Log.d(TAG, "notifySubtypeToSystem: token is null");
+            return;
+        }
+
+        // Find our IME's InputMethodInfo and matching system subtype
+        final String ourPackage = context.getPackageName();
+        InputMethodInfo ourImi = null;
+        for (final InputMethodInfo imi : mImmService.getEnabledInputMethodList()) {
+            if (imi.getPackageName().equals(ourPackage)) {
+                ourImi = imi;
+                break;
+            }
+        }
+        if (ourImi == null) {
+            android.util.Log.d(TAG, "notifySubtypeToSystem: ourImi is null, package=" + ourPackage);
+            return;
+        }
+        android.util.Log.d(TAG, "notifySubtypeToSystem: found ourImi id=" + ourImi.getId());
+
+        final String imiId = ourImi.getId();
+        final String targetLocale = currentSubtype.getLocale();
+
+        // Find matching system subtype by locale
+        InputMethodSubtype matchingSubtype = null;
+        final List<InputMethodSubtype> subtypes = mImmService.getEnabledInputMethodSubtypeList(ourImi, true);
+        android.util.Log.d(TAG, "notifySubtypeToSystem: found " + subtypes.size() + " enabled subtypes");
+        for (final InputMethodSubtype subtype : subtypes) {
+            android.util.Log.d(TAG, "notifySubtypeToSystem: checking subtype locale=" + subtype.getLocale());
+            if (subtype.getLocale().equals(targetLocale)) {
+                matchingSubtype = subtype;
+                break;
+            }
+        }
+
+        if (matchingSubtype == null) {
+            android.util.Log.d(TAG, "notifySubtypeToSystem: no matching subtype found for locale=" + targetLocale);
+            return;
+        }
+
+        android.util.Log.d(TAG, "notifySubtypeToSystem: calling setInputMethodAndSubtype with locale=" + matchingSubtype.getLocale());
+        final InputMethodSubtype finalSubtype = matchingSubtype;
+        final InputMethodManager imm = mImmService;
+        Executors.newSingleThreadExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                imm.setInputMethodAndSubtype(token, imiId, finalSubtype);
+                android.util.Log.d(TAG, "notifySubtypeToSystem: setInputMethodAndSubtype completed");
+            }
+        });
+    }
+
+    /**
      * Check if the IME should offer ways to switch to a next input method (eg: a globe key).
      * @param binder supplies the identifying token given to an input method when it was started,
      *              which allows it to perform this operation on itself.

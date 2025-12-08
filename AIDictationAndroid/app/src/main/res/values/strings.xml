@@ -3,6 +3,11 @@
     <string name="app_name">AIDictation</string>
     <string name="ime_name">AI Dictation</string>
     <string name="subtype_en_US">English (US)</string>
+    <string name="subtype_es_ES">Spanish</string>
+    <string name="subtype_fr_FR">French</string>
+    <string name="subtype_de_DE">German</string>
+    <string name="subtype_pt_BR">Portuguese (Brazil)</string>
+    <string name="subtype_ru_RU">Russian</string>
 
     <!-- Onboarding -->
     <string name="onboarding_welcome_title">Welcome to AI Dictation</string>
@@ -16,9 +21,9 @@
     <string name="onboarding_mic_enable">Enable Microphone</string>
     <string name="onboarding_keyboard_title">Enable Keyboard</string>
     <string name="onboarding_keyboard_subtitle">Enable AI Dictation keyboard to use voice input anywhere</string>
-    <string name="onboarding_keyboard_step1">1. Open Settings</string>
-    <string name="onboarding_keyboard_step2">2. Languages &amp; Input → On-screen keyboard</string>
-    <string name="onboarding_keyboard_step3">3. Enable AI Dictation</string>
+    <string name="onboarding_keyboard_step1">Enable AI Dictation keyboard</string>
+    <string name="onboarding_keyboard_step2">Select AI Dictation as your keyboard</string>
+    <string name="onboarding_keyboard_step3">Tap the mic button and dictate</string>
     <string name="onboarding_open_settings">Open Settings</string>
     <string name="onboarding_get_started">Get Started</string>
 

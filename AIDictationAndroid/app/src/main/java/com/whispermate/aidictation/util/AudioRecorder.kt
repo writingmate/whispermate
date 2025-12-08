@@ -182,7 +182,7 @@ class AudioRecorder(
                         if (frameCount % 20 == 0) {
                             val maxBand = bands.maxOrNull() ?: 0f
                             val avgBand = bands.average().toFloat()
-                            android.util.Log.d("AudioRecorder", "Frame $frameCount: bands max=$maxBand avg=$avgBand, values=${bands.contentToString()}")
+                            android.util.Log.d("AudioRecorder", "Frame $frameCount: prob=$probability, bands max=$maxBand avg=$avgBand")
                         }
 
                         // Check if we should auto-stop

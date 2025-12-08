@@ -23,4 +23,14 @@ class OnboardingViewModel @Inject constructor(
             appPreferences.setOnboardingCompleted(true)
         }
     }
+
+    fun saveContextRulesFromOnboarding(enabledStates: List<Boolean>) {
+        viewModelScope.launch {
+            val defaultRules = AppPreferences.defaultContextRules
+            val updatedRules = defaultRules.mapIndexed { index, rule ->
+                rule.copy(isEnabled = enabledStates.getOrElse(index) { false })
+            }
+            appPreferences.saveContextRules(updatedRules)
+        }
+    }
 }

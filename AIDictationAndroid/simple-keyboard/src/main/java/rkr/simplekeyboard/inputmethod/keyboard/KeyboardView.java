@@ -150,6 +150,10 @@ public class KeyboardView extends View {
         keyAttr.recycle();
 
         mPaint.setAntiAlias(true);
+
+        // Load custom font
+        KeyDrawParams.loadTypeface(context);
+        mKeyDrawParams.mTypeface = KeyDrawParams.getDefaultTypeface();
     }
 
     private static void blendAlpha(final Paint paint, final int alpha) {

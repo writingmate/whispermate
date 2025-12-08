@@ -17,12 +17,34 @@
 
 package rkr.simplekeyboard.inputmethod.keyboard.internal;
 
+import android.content.Context;
 import android.graphics.Typeface;
 
+import androidx.core.content.res.ResourcesCompat;
+
+import rkr.simplekeyboard.inputmethod.R;
 import rkr.simplekeyboard.inputmethod.latin.utils.ResourceUtils;
 
 public final class KeyDrawParams {
-    public Typeface mTypeface = Typeface.DEFAULT;
+    // Default typeface - will be replaced with Google Sans Flex if available
+    public Typeface mTypeface = Typeface.create("sans-serif-medium", Typeface.NORMAL);
+
+    private static Typeface sGoogleSansFlex = null;
+    private static boolean sTypefaceLoaded = false;
+
+    public static void loadTypeface(final Context context) {
+        if (sTypefaceLoaded) return;
+        sTypefaceLoaded = true;
+        try {
+            sGoogleSansFlex = ResourcesCompat.getFont(context, R.font.google_sans_flex);
+        } catch (Exception e) {
+            // Font not available, keep default
+        }
+    }
+
+    public static Typeface getDefaultTypeface() {
+        return sGoogleSansFlex != null ? sGoogleSansFlex : Typeface.create("sans-serif-medium", Typeface.NORMAL);
+    }
 
     public int mLetterSize;
     public int mLabelSize;

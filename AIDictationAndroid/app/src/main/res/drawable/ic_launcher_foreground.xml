@@ -5,38 +5,37 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     <!-- 6 white rounded bars forming wave pattern like iOS icon -->
-    <!-- Bar heights match iOS: short, medium-tall, tallest, tallest, medium-tall, short -->
-    <!-- Centered in safe zone (center is 54, safe zone is 24-84) -->
-    <!-- Bar width: 6dp, spacing: 4dp, total width: 6*6 + 5*4 = 56dp -->
-    <!-- Start X: 54 - 28 = 26, bars at: 26, 36, 46, 56, 66, 76 -->
+    <!-- Pattern: short, medium, tall, tall, medium, short -->
+    <!-- Bar width: 7, gap: 3, total: 6*7 + 5*3 = 57 -->
+    <!-- Center at 54, start at 54-28.5 = 25.5 -->
 
-    <!-- Bar 1 - shortest (height ~18) -->
+    <!-- Bar 1 - short -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M26,45 L26,63 Q26,66 29,66 Q32,66 32,63 L32,45 Q32,42 29,42 Q26,42 26,45 Z"/>
+        android:fillColor="#FFFAF5"
+        android:pathData="M25.5,46 C25.5,43.5 27.5,41.5 30,41.5 C32.5,41.5 34.5,43.5 34.5,46 L34.5,62 C34.5,64.5 32.5,66.5 30,66.5 C27.5,66.5 25.5,64.5 25.5,62 Z"/>
 
-    <!-- Bar 2 - medium-tall (height ~28) -->
+    <!-- Bar 2 - medium -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M36,40 L36,68 Q36,71 39,71 Q42,71 42,68 L42,40 Q42,37 39,37 Q36,37 36,40 Z"/>
+        android:fillColor="#FFFAF5"
+        android:pathData="M37.5,38 C37.5,35.5 39.5,33.5 42,33.5 C44.5,33.5 46.5,35.5 46.5,38 L46.5,70 C46.5,72.5 44.5,74.5 42,74.5 C39.5,74.5 37.5,72.5 37.5,70 Z"/>
 
-    <!-- Bar 3 - tallest (height ~38) -->
+    <!-- Bar 3 - tall -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M46,35 L46,73 Q46,76 49,76 Q52,76 52,73 L52,35 Q52,32 49,32 Q46,32 46,35 Z"/>
+        android:fillColor="#FFFAF5"
+        android:pathData="M49.5,30 C49.5,27.5 51.5,25.5 54,25.5 C56.5,25.5 58.5,27.5 58.5,30 L58.5,78 C58.5,80.5 56.5,82.5 54,82.5 C51.5,82.5 49.5,80.5 49.5,78 Z"/>
 
-    <!-- Bar 4 - tallest (height ~38) -->
+    <!-- Bar 4 - tall -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M56,35 L56,73 Q56,76 59,76 Q62,76 62,73 L62,35 Q62,32 59,32 Q56,32 56,35 Z"/>
+        android:fillColor="#FFFAF5"
+        android:pathData="M61.5,30 C61.5,27.5 63.5,25.5 66,25.5 C68.5,25.5 70.5,27.5 70.5,30 L70.5,78 C70.5,80.5 68.5,82.5 66,82.5 C63.5,82.5 61.5,80.5 61.5,78 Z"/>
 
-    <!-- Bar 5 - medium-tall (height ~28) -->
+    <!-- Bar 5 - medium -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M66,40 L66,68 Q66,71 69,71 Q72,71 72,68 L72,40 Q72,37 69,37 Q66,37 66,40 Z"/>
+        android:fillColor="#FFFAF5"
+        android:pathData="M73.5,38 C73.5,35.5 75.5,33.5 78,33.5 C80.5,33.5 82.5,35.5 82.5,38 L82.5,70 C82.5,72.5 80.5,74.5 78,74.5 C75.5,74.5 73.5,72.5 73.5,70 Z"/>
 
-    <!-- Bar 6 - shortest (height ~18) -->
+    <!-- Bar 6 - short -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M76,45 L76,63 Q76,66 79,66 Q82,66 82,63 L82,45 Q82,42 79,42 Q76,42 76,45 Z"/>
+        android:fillColor="#FFFAF5"
+        android:pathData="M85.5,46 C85.5,43.5 87.5,41.5 90,41.5 C92.5,41.5 94.5,43.5 94.5,46 L94.5,62 C94.5,64.5 92.5,66.5 90,66.5 C87.5,66.5 85.5,64.5 85.5,62 Z"/>
 </vector>

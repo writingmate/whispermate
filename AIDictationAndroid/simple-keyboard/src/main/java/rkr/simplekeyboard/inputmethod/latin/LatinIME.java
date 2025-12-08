@@ -363,6 +363,8 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
     public void onCurrentSubtypeChanged() {
         mInputLogic.onSubtypeChanged();
         loadKeyboard();
+        // Notify OS about subtype change so spell checker uses correct language
+        mRichImm.notifySubtypeToSystem(this);
     }
 
     void onStartInputInternal(final EditorInfo editorInfo, final boolean restarting) {
@@ -380,6 +382,10 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
 
     void onStartInputViewInternal(final EditorInfo editorInfo, final boolean restarting) {
         super.onStartInputView(editorInfo, restarting);
+
+        // Notify OS about current subtype so spell checker uses correct language
+        Log.d(TAG, "onStartInputViewInternal: calling notifySubtypeToSystem");
+        mRichImm.notifySubtypeToSystem(this);
 
         // Switch to the null consumer to handle cases leading to early exit below, for which we
         // also wouldn't be consuming gesture data.

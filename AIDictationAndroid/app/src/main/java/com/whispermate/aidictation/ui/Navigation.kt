@@ -39,6 +39,9 @@ fun AIDictationNavHost(
                     navController.navigate(Screen.Main.route) {
                         popUpTo(Screen.Onboarding.route) { inclusive = true }
                     }
+                },
+                onSaveContextRules = { enabledStates ->
+                    onboardingViewModel.saveContextRulesFromOnboarding(enabledStates)
                 }
             )
         }

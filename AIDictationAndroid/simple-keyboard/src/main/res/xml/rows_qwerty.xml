@@ -37,14 +37,14 @@
     >
         <Key
             latin:keyStyle="shiftKeyStyle"
-            latin:keyWidth="14%p" />
+            latin:keyWidth="15%p" />
         <include
             latin:keyXPos="15%p"
             latin:keyboardLayout="@xml/rowkeys_qwerty3" />
         <Key
             latin:keyStyle="deleteKeyStyle"
-            latin:keyXPos="86%p"
-            latin:keyWidth="14%p" />
+            latin:keyXPos="85%p"
+            latin:keyWidth="15%p" />
     </Row>
     <include
         latin:keyboardLayout="@xml/row_qwerty4" />

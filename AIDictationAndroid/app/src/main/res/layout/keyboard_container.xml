@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clickable="false"
@@ -16,16 +17,31 @@
         <LinearLayout
             android:id="@+id/keyboard_toolbar"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
+            android:layout_height="44dp"
+            android:paddingTop="4dp"
             android:background="@color/background_lxx_system"
             android:gravity="center_vertical"
             android:orientation="horizontal">
+
+            <!-- Settings button -->
+            <ImageButton
+                android:id="@+id/settings_button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Settings"
+                android:src="@drawable/ic_settings"
+                android:scaleType="centerInside"
+                android:padding="8dp"
+                android:clickable="true"
+                android:focusable="true" />
 
             <!-- Suggestion buttons -->
             <LinearLayout
                 android:id="@+id/suggestions_container"
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
+                android:layout_height="40dp"
                 android:layout_weight="1"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
@@ -37,6 +53,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:textSize="14sp"
+                    android:fontFamily="@font/google_sans_flex"
                     android:textColor="@color/key_text_color_lxx_system"
                     android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
@@ -61,6 +78,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:textSize="14sp"
+                    android:fontFamily="@font/google_sans_flex"
                     android:textColor="@color/key_text_color_lxx_system"
                     android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
@@ -85,6 +103,7 @@
                     android:layout_weight="1"
                     android:gravity="center"
                     android:textSize="14sp"
+                    android:fontFamily="@font/google_sans_flex"
                     android:textColor="@color/key_text_color_lxx_system"
                     android:background="?android:attr/selectableItemBackground"
                     android:clickable="true"
@@ -96,17 +115,93 @@
 
             </LinearLayout>
 
+            <!-- Command mic button - shows after dictation for voice commands -->
             <ImageButton
-                android:id="@+id/mic_button"
+                android:id="@+id/command_mic_button"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Voice command"
+                android:src="@drawable/ic_command_mic"
+                android:scaleType="centerInside"
+                android:padding="8dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone" />
+
+            <!-- Cleanup button - shows after dictation -->
+            <ImageButton
+                android:id="@+id/cleanup_button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Clean up text"
+                android:src="@drawable/ic_cleanup"
+                android:scaleType="centerInside"
+                android:padding="8dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone" />
+
+            <com.whispermate.aidictation.ui.views.CircularMicButtonView
+                android:id="@+id/mic_button"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginEnd="8dp"
                 android:contentDescription="Voice input"
-                android:src="@drawable/ic_mic_toolbar"
+                app:idleColor="@color/key_text_color_lxx_system"
+                app:activeColor="#FFFF9500" />
+        </LinearLayout>
+
+        <!-- Cleanup action bar - shows during cleanup review -->
+        <LinearLayout
+            android:id="@+id/cleanup_action_bar"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:background="@color/background_lxx_system"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <!-- Rollback/cancel button -->
+            <ImageButton
+                android:id="@+id/cleanup_rollback_button"
+                android:layout_width="48dp"
+                android:layout_height="40dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Rollback changes"
+                android:src="@drawable/ic_close"
                 android:scaleType="centerInside"
                 android:padding="8dp"
                 android:clickable="true"
                 android:focusable="true" />
+
+            <!-- Status text -->
+            <TextView
+                android:id="@+id/cleanup_status_text"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:textSize="14sp"
+                android:fontFamily="@font/google_sans_flex"
+                android:textColor="@color/key_text_color_lxx_system"
+                android:text="Review cleaned text" />
+
+            <!-- Accept button -->
+            <ImageButton
+                android:id="@+id/cleanup_accept_button"
+                android:layout_width="48dp"
+                android:layout_height="40dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Accept changes"
+                android:src="@drawable/ic_check"
+                android:scaleType="centerInside"
+                android:padding="8dp"
+                android:clickable="true"
+                android:focusable="true" />
+
         </LinearLayout>
 
         <!-- Keyboard will be added here programmatically -->

@@ -38,4 +38,5 @@
     <!-- Normal keys. -->
     <item android:state_pressed="true"
           android:drawable="@drawable/btn_keyboard_key_pressed_border" />
+    <item android:drawable="@drawable/btn_keyboard_key_normal_border" />
 </selector>

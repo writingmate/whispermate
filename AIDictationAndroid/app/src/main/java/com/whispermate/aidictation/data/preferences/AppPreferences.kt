@@ -9,6 +9,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
+import com.whispermate.aidictation.R
+import com.whispermate.aidictation.domain.model.Command
 import com.whispermate.aidictation.domain.model.ContextRule
 import com.whispermate.aidictation.domain.model.DictionaryEntry
 import com.whispermate.aidictation.domain.model.Shortcut
@@ -32,6 +34,7 @@ class AppPreferences @Inject constructor(
         val TONE_STYLES = stringPreferencesKey("tone_styles")
         val CONTEXT_RULES = stringPreferencesKey("context_rules")
         val SHORTCUTS = stringPreferencesKey("shortcuts")
+        val COMMANDS = stringPreferencesKey("commands")
         val API_KEY = stringPreferencesKey("api_key")
     }
 
@@ -133,6 +136,39 @@ class AppPreferences @Inject constructor(
         }
     }
 
+    // Commands
+    private val commandListType = Types.newParameterizedType(List::class.java, Command::class.java)
+    private val commandAdapter = moshi.adapter<List<Command>>(commandListType)
+
+    val commands: Flow<List<Command>> = context.dataStore.data.map { preferences ->
+        val json = preferences[Keys.COMMANDS]
+        if (json.isNullOrEmpty()) {
+            defaultCommands
+        } else {
+            commandAdapter.fromJson(json) ?: defaultCommands
+        }
+    }
+
+    suspend fun saveCommands(commands: List<Command>) {
+        context.dataStore.edit { preferences ->
+            preferences[Keys.COMMANDS] = commandAdapter.toJson(commands)
+        }
+    }
+
+    /**
+     * Get all enabled commands for voice detection.
+     */
+    suspend fun getEnabledCommands(): List<Command> {
+        return commands.first().filter { it.isEnabled }
+    }
+
+    /**
+     * Get commands that have toolbar buttons.
+     */
+    suspend fun getToolbarCommands(): List<Command> {
+        return commands.first().filter { it.isEnabled && it.iconRes != null }
+    }
+
     companion object {
         val defaultDictionaryEntries = listOf(
             DictionaryEntry(trigger = "AI dictation", replacement = "AIDictation", isEnabled = false),
@@ -186,6 +222,45 @@ class AppPreferences @Inject constructor(
                 appPackageNames = emptyList(),
                 instructions = "Reduce overused adverbs like 'really', 'very', 'literally'.",
                 isEnabled = false
+            ),
+        )
+
+        val defaultCommands = listOf(
+            Command(
+                id = "cleanup",
+                name = "Cleanup",
+                voiceTriggers = listOf("clean this up", "clean up", "fix grammar", "fix this"),
+                systemPrompt = "Clean up the text. Fix grammar, spelling, and punctuation errors. Remove filler words and make it read naturally. Preserve the original meaning and tone.",
+                iconRes = R.drawable.ic_cleanup,
+                isBuiltIn = true,
+                isEnabled = true
+            ),
+            Command(
+                id = "rewrite",
+                name = "Rewrite",
+                voiceTriggers = listOf("rewrite this", "rewrite it", "rephrase this"),
+                systemPrompt = "Rewrite the text to be clearer and more concise while preserving the original meaning.",
+                iconRes = null,
+                isBuiltIn = true,
+                isEnabled = true
+            ),
+            Command(
+                id = "shorten",
+                name = "Shorten",
+                voiceTriggers = listOf("make it shorter", "shorten this", "shorter"),
+                systemPrompt = "Make the text shorter while keeping the key points and meaning intact.",
+                iconRes = null,
+                isBuiltIn = true,
+                isEnabled = true
+            ),
+            Command(
+                id = "expand",
+                name = "Expand",
+                voiceTriggers = listOf("expand this", "make it longer", "expand"),
+                systemPrompt = "Expand the text with more detail while maintaining the same tone and style.",
+                iconRes = null,
+                isBuiltIn = true,
+                isEnabled = true
             ),
         )
     }

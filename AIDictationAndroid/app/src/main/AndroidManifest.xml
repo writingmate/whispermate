@@ -30,6 +30,12 @@
             </intent-filter>
         </activity>
 
+        <!-- Color Debug Activity -->
+        <activity
+            android:name=".ui.ColorDebugActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AIDictation" />
+
         <!-- IME Keyboard Service (based on simple-keyboard) -->
         <service
             android:name=".service.AIDictationIME"

@@ -42,7 +42,7 @@
     >
         <item name="android:background">@color/background_lxx_system</item>
         <item name="keyBackground">@drawable/btn_keyboard_key_border</item>
-        <item name="functionalKeyBackground">@drawable/btn_keyboard_key_border</item>
+        <item name="functionalKeyBackground">@drawable/btn_keyboard_key_functional</item>
         <item name="spacebarBackground">@drawable/btn_keyboard_key_border</item>
         <item name="keyTextColor">@color/key_text_color_lxx_system</item>
         <item name="keyTextInactivatedColor">@color/key_text_inactive_color_lxx_system</item>

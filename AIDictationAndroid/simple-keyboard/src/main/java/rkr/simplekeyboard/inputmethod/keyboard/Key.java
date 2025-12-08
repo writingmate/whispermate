@@ -891,12 +891,13 @@ public class Key implements Comparable<Key> {
             final Drawable functionalKeyBackground,
             final Drawable spacebarBackground) {
         final Drawable background;
-        if (mBackgroundType == BACKGROUND_TYPE_FUNCTIONAL) {
-            background = functionalKeyBackground;
-        } else if (mBackgroundType == BACKGROUND_TYPE_SPACEBAR) {
+        if (mBackgroundType == BACKGROUND_TYPE_SPACEBAR) {
             background = spacebarBackground;
-        } else {
+        } else if (mBackgroundType == BACKGROUND_TYPE_NORMAL || mBackgroundType == BACKGROUND_TYPE_EMPTY) {
             background = keyBackground;
+        } else {
+            // FUNCTIONAL, STICKY_OFF, STICKY_ON, ACTION all use functional background
+            background = functionalKeyBackground;
         }
         final int[] state = KeyBackgroundState.STATES[mBackgroundType].getState(mPressed);
         background.setState(state);
