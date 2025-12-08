@@ -90,7 +90,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		C1CE643F2ED8417000D24235 /* Whispermate.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Whispermate.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C1CE643F2ED8417000D24235 /* AIDictation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AIDictation.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1CE64402ED8417000D24235 /* WhisperMateIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhisperMateIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1CE64412ED8417000D24235 /* WhisperMateKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WhisperMateKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C1E7D2AD2EBA925200A07338 /* WhisperMateShared.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WhisperMateShared.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -205,7 +205,7 @@
 				C1E7D3062EBA92C900A07338 /* WhisperMateKeyboard */,
 				C12A3A0E2ED4CFAA002D97E6 /* Frameworks */,
 				C1CE643E2ED8417000D24235 /* Recovered References */,
-				C1CE643F2ED8417000D24235 /* Whispermate.app */,
+				C1CE643F2ED8417000D24235 /* AIDictation.app */,
 				C1CE64402ED8417000D24235 /* WhisperMateIOS.app */,
 				C1CE64412ED8417000D24235 /* WhisperMateKeyboard.appex */,
 			);
@@ -252,7 +252,7 @@
 			);
 			name = Whispermate;
 			productName = Whishpermate;
-			productReference = C1CE643F2ED8417000D24235 /* Whispermate.app */;
+			productReference = C1CE643F2ED8417000D24235 /* AIDictation.app */;
 			productType = "com.apple.product-type.application";
 		};
 		C1E7D2AC2EBA925200A07338 /* WhisperMateShared */ = {
@@ -624,7 +624,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.0.35;
+				MARKETING_VERSION = 0.0.36;
 				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.macos;
 				PRODUCT_NAME = AIDictation;
 				REGISTER_APP_GROUPS = YES;
@@ -664,7 +664,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.0.35;
+				MARKETING_VERSION = 0.0.36;
 				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.macos;
 				PRODUCT_NAME = AIDictation;
 				REGISTER_APP_GROUPS = YES;
@@ -700,7 +700,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 0.0.35;
+				MARKETING_VERSION = 0.0.36;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.shared;
@@ -746,7 +746,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				MARKETING_VERSION = 0.0.35;
+				MARKETING_VERSION = 0.0.36;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
 				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.shared;
@@ -791,7 +791,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.0.35;
+				MARKETING_VERSION = 0.0.36;
 				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -828,7 +828,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.0.35;
+				MARKETING_VERSION = 0.0.36;
 				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "73de4d13-37e6-49ca-a9f0-35378e49c33d";
@@ -861,7 +861,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.0.35;
+				MARKETING_VERSION = 0.0.36;
 				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.ios.keyboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -893,7 +893,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 0.0.35;
+				MARKETING_VERSION = 0.0.36;
 				PRODUCT_BUNDLE_IDENTIFIER = com.whispermate.ios.keyboard;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "db6f8085-4d33-4b22-af3e-741fdf9c2c29";
