@@ -247,7 +247,7 @@ private fun WelcomeStep() {
         // App icon placeholder
         Box(
             modifier = Modifier
-                .size(100.dp)
+                .size(72.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
@@ -255,42 +255,42 @@ private fun WelcomeStep() {
             Icon(
                 imageVector = Icons.Default.Mic,
                 contentDescription = null,
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(36.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         Text(
             text = stringResource(R.string.onboarding_welcome_title),
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         Text(
             text = stringResource(R.string.onboarding_welcome_subtitle),
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         // Features
         FeatureItem(
             icon = Icons.Default.Translate,
             text = stringResource(R.string.onboarding_feature_1)
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         FeatureItem(
             icon = Icons.Default.Speed,
             text = stringResource(R.string.onboarding_feature_2)
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         FeatureItem(
             icon = Icons.Default.Security,
             text = stringResource(R.string.onboarding_feature_3)
@@ -305,7 +305,7 @@ private fun MicrophonePermissionStep(hasPermission: Boolean) {
     ) {
         Box(
             modifier = Modifier
-                .size(100.dp)
+                .size(72.dp)
                 .clip(CircleShape)
                 .background(
                     if (hasPermission) MaterialTheme.colorScheme.primaryContainer
@@ -316,44 +316,45 @@ private fun MicrophonePermissionStep(hasPermission: Boolean) {
             Icon(
                 imageVector = if (hasPermission) Icons.Default.Check else Icons.Default.Mic,
                 contentDescription = null,
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(36.dp),
                 tint = if (hasPermission) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.secondary
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         Text(
             text = stringResource(R.string.onboarding_mic_title),
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         Text(
             text = stringResource(R.string.onboarding_mic_subtitle),
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
 
         if (hasPermission) {
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "Permission granted",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
@@ -373,7 +374,7 @@ private fun ContextRulesStep(
     ) {
         Box(
             modifier = Modifier
-                .size(100.dp)
+                .size(72.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
@@ -381,30 +382,30 @@ private fun ContextRulesStep(
             Icon(
                 imageVector = Icons.Default.Tune,
                 contentDescription = null,
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(36.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             text = "Speech Cleanup",
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         Text(
             text = "Choose which cleanup rules to apply to your dictation",
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         defaultRules.forEachIndexed { index, rule ->
             Row(
@@ -413,30 +414,31 @@ private fun ContextRulesStep(
                     .clickable { onToggle(index, !enabledStates[index]) }
                     .background(
                         MaterialTheme.colorScheme.surfaceVariant,
-                        shape = MaterialTheme.shapes.medium
+                        shape = MaterialTheme.shapes.small
                     )
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Checkbox(
                     checked = enabledStates[index],
-                    onCheckedChange = { onToggle(index, it) }
+                    onCheckedChange = { onToggle(index, it) },
+                    modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = rule.name,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
                         text = rule.instructions,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
         }
     }
 }
@@ -465,7 +467,7 @@ private fun KeyboardSetupStep(
     ) {
         Box(
             modifier = Modifier
-                .size(100.dp)
+                .size(72.dp)
                 .clip(CircleShape)
                 .background(
                     if (hasDictated) MaterialTheme.colorScheme.primaryContainer
@@ -476,66 +478,69 @@ private fun KeyboardSetupStep(
             Icon(
                 imageVector = if (hasDictated) Icons.Default.Check else Icons.Default.Keyboard,
                 contentDescription = null,
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(36.dp),
                 tint = if (hasDictated) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.secondary
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             text = stringResource(R.string.onboarding_keyboard_title),
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         Text(
             text = stringResource(R.string.onboarding_keyboard_subtitle),
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Step 1: Enable keyboard
         SetupStepItem(
             number = "1",
             text = stringResource(R.string.onboarding_keyboard_step1),
-            isCompleted = isKeyboardEnabled
+            isCompleted = isKeyboardEnabled,
+            onClick = if (!isKeyboardEnabled) onOpenSettings else null
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Step 2: Select keyboard
         SetupStepItem(
             number = "2",
             text = stringResource(R.string.onboarding_keyboard_step2),
-            isCompleted = isKeyboardSelected
+            isCompleted = isKeyboardSelected,
+            onClick = if (isKeyboardEnabled && !isKeyboardSelected) onSelectKeyboard else null
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Step 3: Try dictation
         SetupStepItem(
             number = "3",
             text = stringResource(R.string.onboarding_keyboard_step3),
             isCompleted = hasDictated,
+            onClick = if (isKeyboardSelected && !hasDictated) {{ focusRequester.requestFocus() }} else null,
             trailingContent = if (isKeyboardSelected) {
                 {
                     CircularMicButton(
                         state = MicButtonState.Idle,
                         onClick = { },
-                        size = 32.dp
+                        size = 28.dp
                     )
                 }
             } else null
         )
 
         if (isKeyboardSelected) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             androidx.compose.material3.OutlinedTextField(
                 value = testText,
@@ -546,8 +551,10 @@ private fun KeyboardSetupStep(
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusRequester),
-                placeholder = { Text("Tap here and use voice input...") },
-                minLines = 2
+                placeholder = { Text("Say something like \"Hello, this is a test\"", style = MaterialTheme.typography.bodySmall) },
+                minLines = 2,
+                textStyle = MaterialTheme.typography.bodySmall,
+                shape = MaterialTheme.shapes.small
             )
         }
     }
@@ -557,11 +564,11 @@ private fun KeyboardSetupStep(
 private fun FeatureItem(icon: ImageVector, text: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth(0.8f)
+        modifier = Modifier.fillMaxWidth(0.85f)
     ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
+                .size(32.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
@@ -569,14 +576,14 @@ private fun FeatureItem(icon: ImageVector, text: String) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(16.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
         }
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyMedium
         )
     }
 }
@@ -586,6 +593,7 @@ private fun SetupStepItem(
     number: String,
     text: String,
     isCompleted: Boolean = false,
+    onClick: (() -> Unit)? = null,
     trailingContent: @Composable (() -> Unit)? = null
 ) {
     Row(
@@ -595,13 +603,17 @@ private fun SetupStepItem(
             .background(
                 if (isCompleted) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
                 else MaterialTheme.colorScheme.surfaceVariant,
-                shape = MaterialTheme.shapes.medium
+                shape = MaterialTheme.shapes.small
             )
-            .padding(16.dp)
+            .then(
+                if (onClick != null) Modifier.clickable(onClick = onClick)
+                else Modifier
+            )
+            .padding(12.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(28.dp)
+                .size(24.dp)
                 .clip(CircleShape)
                 .background(
                     if (isCompleted) MaterialTheme.colorScheme.primary
@@ -613,21 +625,21 @@ private fun SetupStepItem(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier.size(14.dp),
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
                 Text(
                     text = number,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.surface
                 )
             }
         }
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(10.dp))
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodySmall,
             color = if (isCompleted) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)

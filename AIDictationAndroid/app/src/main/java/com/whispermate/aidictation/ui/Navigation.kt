@@ -1,14 +1,18 @@
 package com.whispermate.aidictation.ui
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.whispermate.aidictation.ui.screens.main.MainScreen
+import com.whispermate.aidictation.ui.screens.main.RecordingDetailScreen
 import com.whispermate.aidictation.ui.screens.onboarding.OnboardingScreen
 import com.whispermate.aidictation.ui.screens.onboarding.OnboardingViewModel
 import com.whispermate.aidictation.ui.screens.transcription.TranscriptionSettingsScreen
@@ -17,6 +21,9 @@ sealed class Screen(val route: String) {
     data object Onboarding : Screen("onboarding")
     data object Main : Screen("main")
     data object TranscriptionSettings : Screen("transcription_settings")
+    data object RecordingDetail : Screen("recording_detail/{recordingId}") {
+        fun createRoute(recordingId: String) = "recording_detail/$recordingId"
+    }
 }
 
 @Composable
@@ -50,12 +57,27 @@ fun AIDictationNavHost(
             MainScreen(
                 onNavigateToTranscriptionSettings = {
                     navController.navigate(Screen.TranscriptionSettings.route)
+                },
+                onNavigateToRecordingDetail = { recordingId ->
+                    Log.d("Navigation", "Navigating to recording detail: $recordingId")
+                    navController.navigate(Screen.RecordingDetail.createRoute(recordingId))
                 }
             )
         }
 
         composable(Screen.TranscriptionSettings.route) {
             TranscriptionSettingsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Screen.RecordingDetail.route,
+            arguments = listOf(navArgument("recordingId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val recordingId = backStackEntry.arguments?.getString("recordingId") ?: return@composable
+            RecordingDetailScreen(
+                recordingId = recordingId,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

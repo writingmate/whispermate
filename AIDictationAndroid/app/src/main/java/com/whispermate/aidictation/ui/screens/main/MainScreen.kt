@@ -64,12 +64,12 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScreen(
     onNavigateToTranscriptionSettings: () -> Unit,
+    onNavigateToRecordingDetail: (String) -> Unit,
     viewModel: MainViewModel = hiltViewModel()
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val recordings by viewModel.recordings.collectAsState()
     val recordingState by viewModel.recordingState.collectAsState()
-    val selectedRecording by viewModel.selectedRecording.collectAsState()
     val error by viewModel.error.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -169,7 +169,7 @@ fun MainScreen(
                 recordings = recordings,
                 onDelete = { viewModel.deleteRecording(it) },
                 onCopy = { copyToClipboard(context, it.transcription) },
-                onSelect = { viewModel.selectRecording(it) },
+                onSelect = { onNavigateToRecordingDetail(it.id) },
                 modifier = Modifier.padding(paddingValues)
             )
             1 -> SettingsScreen(
@@ -179,15 +179,6 @@ fun MainScreen(
                 modifier = Modifier.padding(paddingValues)
             )
         }
-    }
-
-    // Recording detail sheet
-    selectedRecording?.let { recording ->
-        RecordingDetailSheet(
-            recording = recording,
-            onDismiss = { viewModel.clearSelectedRecording() },
-            onDelete = { viewModel.deleteRecording(recording) }
-        )
     }
 }
 
