@@ -25,6 +25,7 @@ class HotkeyManager: ObservableObject {
     private enum Keys {
         static let hotkeyKeycode = "hotkey_keycode"
         static let hotkeyModifiers = "hotkey_modifiers"
+        static let hotkeyMouseButton = "hotkey_mouse_button"
         static let pushToTalk = "pushToTalk"
     }
 
@@ -82,12 +83,21 @@ class HotkeyManager: ObservableObject {
         currentHotkey = nil
         UserDefaults.standard.removeObject(forKey: Keys.hotkeyKeycode)
         UserDefaults.standard.removeObject(forKey: Keys.hotkeyModifiers)
+        UserDefaults.standard.removeObject(forKey: Keys.hotkeyMouseButton)
         unregisterHotkey()
     }
 
     // MARK: - Private Methods
 
     private func loadHotkey() {
+        // Check for mouse button hotkey first
+        if let mouseButton = UserDefaults.standard.value(forKey: Keys.hotkeyMouseButton) as? Int32 {
+            currentHotkey = Hotkey(keyCode: 0, modifiers: [], mouseButton: mouseButton)
+            registerHotkey()
+            return
+        }
+
+        // Load keyboard hotkey
         guard let keyCode = UserDefaults.standard.value(forKey: Keys.hotkeyKeycode) as? UInt16,
               let modifiers = UserDefaults.standard.value(forKey: Keys.hotkeyModifiers) as? UInt
         else {
@@ -100,8 +110,18 @@ class HotkeyManager: ObservableObject {
 
     private func saveHotkey() {
         guard let hotkey = currentHotkey else { return }
-        UserDefaults.standard.set(hotkey.keyCode, forKey: Keys.hotkeyKeycode)
-        UserDefaults.standard.set(hotkey.modifiers.rawValue, forKey: Keys.hotkeyModifiers)
+
+        if let mouseButton = hotkey.mouseButton {
+            // Save mouse button hotkey
+            UserDefaults.standard.set(mouseButton, forKey: Keys.hotkeyMouseButton)
+            UserDefaults.standard.removeObject(forKey: Keys.hotkeyKeycode)
+            UserDefaults.standard.removeObject(forKey: Keys.hotkeyModifiers)
+        } else {
+            // Save keyboard hotkey
+            UserDefaults.standard.set(hotkey.keyCode, forKey: Keys.hotkeyKeycode)
+            UserDefaults.standard.set(hotkey.modifiers.rawValue, forKey: Keys.hotkeyModifiers)
+            UserDefaults.standard.removeObject(forKey: Keys.hotkeyMouseButton)
+        }
     }
 
     private func registerHotkey() {
@@ -111,12 +131,23 @@ class HotkeyManager: ObservableObject {
             return
         }
 
-        DebugLog.info("registerHotkey: keyCode=\(hotkey.keyCode), modifiers=\(hotkey.modifiers.rawValue)", context: "HotkeyManager LOG")
         DebugLog.info("registerHotkey: displayString=\(hotkey.displayString)", context: "HotkeyManager LOG")
 
         // Always unregister and re-register to ensure clean state
         // This fixes issues where the hotkey gets stuck and won't work
         unregisterHotkey()
+
+        // If hotkey is a mouse button, use mouse event tap
+        if hotkey.isMouseButton {
+            DebugLog.info("========================================", context: "HotkeyManager LOG")
+            DebugLog.info("Using mouse button path with CGEventTap", context: "HotkeyManager LOG")
+            DebugLog.info("Mouse button: \(hotkey.mouseButton ?? -1)", context: "HotkeyManager LOG")
+            DebugLog.info("========================================", context: "HotkeyManager LOG")
+            setupMouseEventTap()
+            return
+        }
+
+        DebugLog.info("registerHotkey: keyCode=\(hotkey.keyCode), modifiers=\(hotkey.modifiers.rawValue)", context: "HotkeyManager LOG")
 
         // If hotkey is just Fn key, use polling-based monitoring
         if hotkey.modifiers == .function, hotkey.keyCode == 63 {
@@ -199,6 +230,93 @@ class HotkeyManager: ObservableObject {
         CGEvent.tapEnable(tap: tap, enable: true)
 
         DebugLog.info("Event tap created and enabled", context: "HotkeyManager LOG")
+    }
+
+    private func setupMouseEventTap() {
+        // Create event tap for mouse button events (otherMouseDown/Up covers middle and side buttons)
+        let eventMask = (1 << CGEventType.otherMouseDown.rawValue) | (1 << CGEventType.otherMouseUp.rawValue)
+
+        let selfPtr = Unmanaged.passUnretained(self).toOpaque()
+
+        guard let tap = CGEvent.tapCreate(
+            tap: .cgSessionEventTap,
+            place: .headInsertEventTap,
+            options: .defaultTap,
+            eventsOfInterest: CGEventMask(eventMask),
+            callback: { proxy, type, event, refcon -> Unmanaged<CGEvent>? in
+                let manager = Unmanaged<HotkeyManager>.fromOpaque(refcon!).takeUnretainedValue()
+                return manager.handleMouseEvent(proxy: proxy, type: type, event: event)
+            },
+            userInfo: selfPtr
+        ) else {
+            DebugLog.info("Failed to create mouse event tap - accessibility permission may not be granted", context: "HotkeyManager LOG")
+            return
+        }
+
+        eventTap = tap
+        eventTapRunLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
+        CFRunLoopAddSource(CFRunLoopGetCurrent(), eventTapRunLoopSource, .commonModes)
+        CGEvent.tapEnable(tap: tap, enable: true)
+
+        DebugLog.info("Mouse event tap created and enabled", context: "HotkeyManager LOG")
+    }
+
+    private func handleMouseEvent(proxy _: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
+        guard let hotkey = currentHotkey, let targetButton = hotkey.mouseButton else {
+            return Unmanaged.passUnretained(event)
+        }
+
+        let buttonNumber = event.getIntegerValueField(.mouseEventButtonNumber)
+
+        // Check if this is our target button
+        guard buttonNumber == Int64(targetButton) else {
+            return Unmanaged.passUnretained(event)
+        }
+
+        if type == .otherMouseDown {
+            DebugLog.info("🖱️ Mouse button \(buttonNumber) pressed", context: "HotkeyManager LOG")
+
+            // Check for double-tap
+            let now = Date()
+            if let lastTap = lastTapTime, now.timeIntervalSince(lastTap) < Constants.doubleTapInterval {
+                DebugLog.info("🖱️ DOUBLE-TAP detected - calling onDoubleTap", context: "HotkeyManager LOG")
+                lastTapTime = nil
+                isHoldingKey = false
+                isToggleRecording = false
+                onDoubleTap?()
+                return nil // Consume the event
+            }
+
+            if isPushToTalk {
+                DebugLog.info("🖱️ Push-to-Talk - calling onHotkeyPressed", context: "HotkeyManager LOG")
+                lastTapTime = now
+                isHoldingKey = true
+                onHotkeyPressed?()
+            } else {
+                DebugLog.info("🖱️ Toggle mode - isToggleRecording=\(isToggleRecording)", context: "HotkeyManager LOG")
+                lastTapTime = now
+                if isToggleRecording {
+                    isToggleRecording = false
+                    onHotkeyReleased?()
+                } else {
+                    isToggleRecording = true
+                    onHotkeyPressed?()
+                }
+            }
+            return nil // Consume the event
+
+        } else if type == .otherMouseUp {
+            DebugLog.info("🖱️ Mouse button \(buttonNumber) released", context: "HotkeyManager LOG")
+
+            if isPushToTalk && isHoldingKey {
+                DebugLog.info("🖱️ Push-to-Talk - calling onHotkeyReleased", context: "HotkeyManager LOG")
+                isHoldingKey = false
+                onHotkeyReleased?()
+            }
+            return nil // Consume the event
+        }
+
+        return Unmanaged.passUnretained(event)
     }
 
     private func handleCGEvent(proxy _: CGEventTapProxy, type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
@@ -374,8 +492,29 @@ class HotkeyManager: ObservableObject {
 struct Hotkey: Equatable {
     let keyCode: UInt16
     let modifiers: NSEvent.ModifierFlags
+    let mouseButton: Int32?  // nil for keyboard, 2=middle, 3=side1, 4=side2
+
+    init(keyCode: UInt16, modifiers: NSEvent.ModifierFlags, mouseButton: Int32? = nil) {
+        self.keyCode = keyCode
+        self.modifiers = modifiers
+        self.mouseButton = mouseButton
+    }
+
+    var isMouseButton: Bool {
+        mouseButton != nil
+    }
 
     var displayString: String {
+        // Mouse button hotkey
+        if let button = mouseButton {
+            switch button {
+            case 2: return "🖱️ Middle Click"
+            case 3: return "🖱️ Side Button 1"
+            case 4: return "🖱️ Side Button 2"
+            default: return "🖱️ Button \(button)"
+            }
+        }
+
         // Special case: just Fn key alone
         if modifiers == .function && keyCode == 63 {
             return "Fn"

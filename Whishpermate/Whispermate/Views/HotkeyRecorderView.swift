@@ -16,6 +16,10 @@ enum HotkeyOption: String, CaseIterable, Identifiable {
     case optionShift = "opt_shift"
     case controlShift = "ctrl_shift"
     case optionR = "opt_r"
+    // Mouse buttons
+    case mouseMiddle = "mouse_middle"
+    case mouseSide1 = "mouse_side1"
+    case mouseSide2 = "mouse_side2"
 
     var id: String { rawValue }
 
@@ -33,6 +37,9 @@ enum HotkeyOption: String, CaseIterable, Identifiable {
         case .optionShift: return "⌥ + ⇧"
         case .controlShift: return "⌃ + ⇧"
         case .optionR: return "⌥ + R"
+        case .mouseMiddle: return "Middle Click"
+        case .mouseSide1: return "Side Button 1"
+        case .mouseSide2: return "Side Button 2"
         }
     }
 
@@ -68,11 +75,30 @@ enum HotkeyOption: String, CaseIterable, Identifiable {
         case .optionR:
             // R key code is 15
             return Hotkey(keyCode: 15, modifiers: .option)
+        case .mouseMiddle:
+            // Middle click is button 2
+            return Hotkey(keyCode: 0, modifiers: [], mouseButton: 2)
+        case .mouseSide1:
+            // Side button 1 (back) is button 3
+            return Hotkey(keyCode: 0, modifiers: [], mouseButton: 3)
+        case .mouseSide2:
+            // Side button 2 (forward) is button 4
+            return Hotkey(keyCode: 0, modifiers: [], mouseButton: 4)
         }
     }
 
     static func from(hotkey: Hotkey?) -> HotkeyOption? {
         guard let hotkey = hotkey else { return nil }
+
+        // Check for mouse buttons first
+        if let mouseButton = hotkey.mouseButton {
+            switch mouseButton {
+            case 2: return .mouseMiddle
+            case 3: return .mouseSide1
+            case 4: return .mouseSide2
+            default: return nil
+            }
+        }
 
         // Check for Fn key
         if hotkey.modifiers == .function && hotkey.keyCode == 63 {
