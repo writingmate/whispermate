@@ -76,30 +76,43 @@ enum Language: String, CaseIterable, Identifiable {
     }
 }
 
+/// Manages language selection for transcription
 class LanguageManager: ObservableObject {
+    static let shared = LanguageManager()
+
+    // MARK: - Keys
+
+    private enum Keys {
+        static let selectedLanguages = "selected_languages"
+    }
+
+    // MARK: - Published Properties
+
     @Published var selectedLanguages: Set<Language> = []
 
-    private let userDefaultsKey = "selected_languages"
+    // MARK: - Initialization
 
-    init() {
+    private init() {
         loadLanguages()
     }
 
+    // MARK: - Public API
+
     func loadLanguages() {
-        if let savedLanguages = UserDefaults.standard.array(forKey: userDefaultsKey) as? [String] {
+        if let savedLanguages = UserDefaults.standard.array(forKey: Keys.selectedLanguages) as? [String] {
             selectedLanguages = Set(savedLanguages.compactMap { Language(rawValue: $0) })
-            DebugLog.info("Loaded languages: \(selectedLanguages.map { $0.displayName })", context: "LanguageManager LOG")
+            DebugLog.info("Loaded languages: \(selectedLanguages.map { $0.displayName })", context: "LanguageManager")
         } else {
             // Default to auto-detect
             selectedLanguages = [.auto]
-            DebugLog.info("No saved languages, defaulting to auto-detect", context: "LanguageManager LOG")
+            DebugLog.info("No saved languages, defaulting to auto-detect", context: "LanguageManager")
         }
     }
 
     func saveLanguages() {
         let languageCodes = Array(selectedLanguages.map { $0.rawValue })
-        UserDefaults.standard.set(languageCodes, forKey: userDefaultsKey)
-        DebugLog.info("Saved languages: \(selectedLanguages.map { $0.displayName })", context: "LanguageManager LOG")
+        UserDefaults.standard.set(languageCodes, forKey: Keys.selectedLanguages)
+        DebugLog.info("Saved languages: \(selectedLanguages.map { $0.displayName })", context: "LanguageManager")
     }
 
     func toggleLanguage(_ language: Language) {

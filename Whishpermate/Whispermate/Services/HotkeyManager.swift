@@ -63,7 +63,7 @@ class HotkeyManager: ObservableObject {
 
     private init() {
         // Load push-to-talk setting (default true)
-        self.isPushToTalk = UserDefaults.standard.object(forKey: Keys.pushToTalk) as? Bool ?? true
+        isPushToTalk = UserDefaults.standard.object(forKey: Keys.pushToTalk) as? Bool ?? true
         DebugLog.info("HotkeyManager init - loading hotkeys", context: "HotkeyManager LOG")
         loadHotkey()
         loadCommandHotkey()
@@ -227,7 +227,7 @@ class HotkeyManager: ObservableObject {
         let needsMouseTap = (dictationHotkey?.isMouseButton == true) || (cmdHotkey?.isMouseButton == true)
         let needsFnMonitor = (dictationHotkey?.modifiers == .function && dictationHotkey?.keyCode == 63)
         let needsKeyTap = (dictationHotkey != nil && dictationHotkey?.isMouseButton != true && !(dictationHotkey?.modifiers == .function && dictationHotkey?.keyCode == 63)) ||
-                          (cmdHotkey != nil && cmdHotkey?.isMouseButton != true)
+            (cmdHotkey != nil && cmdHotkey?.isMouseButton != true)
 
         // Setup mouse event tap if needed
         if needsMouseTap {
@@ -246,27 +246,31 @@ class HotkeyManager: ObservableObject {
             fnKeyMonitor = FnKeyMonitor()
             fnKeyMonitor?.onFnPressed = { [weak self] in
                 guard let self = self else { return }
-                if self.isPushToTalk {
-                    DebugLog.info("🔥 Fn key pressed (Push-to-Talk) - calling onHotkeyPressed 🔥", context: "HotkeyManager LOG")
-                    self.onHotkeyPressed?()
-                } else {
-                    DebugLog.info("🔥 Fn key pressed (Toggle mode) - isToggleRecording=\(self.isToggleRecording) 🔥", context: "HotkeyManager LOG")
-                    if self.isToggleRecording {
-                        self.isToggleRecording = false
-                        self.onHotkeyReleased?()
-                    } else {
-                        self.isToggleRecording = true
+                DispatchQueue.main.async {
+                    if self.isPushToTalk {
+                        DebugLog.info("🔥 Fn key pressed (Push-to-Talk) - calling onHotkeyPressed 🔥", context: "HotkeyManager LOG")
                         self.onHotkeyPressed?()
+                    } else {
+                        DebugLog.info("🔥 Fn key pressed (Toggle mode) - isToggleRecording=\(self.isToggleRecording) 🔥", context: "HotkeyManager LOG")
+                        if self.isToggleRecording {
+                            self.isToggleRecording = false
+                            self.onHotkeyReleased?()
+                        } else {
+                            self.isToggleRecording = true
+                            self.onHotkeyPressed?()
+                        }
                     }
                 }
             }
             fnKeyMonitor?.onFnReleased = { [weak self] in
                 guard let self = self else { return }
-                if self.isPushToTalk {
-                    DebugLog.info("🔥 Fn key released (Push-to-Talk) - calling onHotkeyReleased 🔥", context: "HotkeyManager LOG")
-                    self.onHotkeyReleased?()
-                } else {
-                    DebugLog.info("🔥 Fn key released (Toggle mode) - ignoring 🔥", context: "HotkeyManager LOG")
+                DispatchQueue.main.async {
+                    if self.isPushToTalk {
+                        DebugLog.info("🔥 Fn key released (Push-to-Talk) - calling onHotkeyReleased 🔥", context: "HotkeyManager LOG")
+                        self.onHotkeyReleased?()
+                    } else {
+                        DebugLog.info("🔥 Fn key released (Toggle mode) - ignoring 🔥", context: "HotkeyManager LOG")
+                    }
                 }
             }
             fnKeyMonitor?.startMonitoring()
@@ -283,8 +287,8 @@ class HotkeyManager: ObservableObject {
     private func setupEventTap() {
         // Create event tap that intercepts key events AND flagsChanged (for modifier-only hotkeys like Control)
         let eventMask = (1 << CGEventType.keyDown.rawValue) |
-                        (1 << CGEventType.keyUp.rawValue) |
-                        (1 << CGEventType.flagsChanged.rawValue)
+            (1 << CGEventType.keyUp.rawValue) |
+            (1 << CGEventType.flagsChanged.rawValue)
 
         DebugLog.info("setupEventTap: Creating event tap with keyDown, keyUp, and flagsChanged", context: "HotkeyManager LOG")
 
@@ -415,13 +419,13 @@ class HotkeyManager: ObservableObject {
             DebugLog.info("🖱️ Mouse button \(buttonNumber) released (isDictation=\(isDictation))", context: "HotkeyManager LOG")
 
             if isDictation {
-                if isPushToTalk && isHoldingKey {
+                if isPushToTalk, isHoldingKey {
                     DebugLog.info("🖱️ Dictation Push-to-Talk - calling onHotkeyReleased", context: "HotkeyManager LOG")
                     isHoldingKey = false
                     onHotkeyReleased?()
                 }
             } else {
-                if isPushToTalk && isHoldingCommandKey {
+                if isPushToTalk, isHoldingCommandKey {
                     DebugLog.info("🖱️ Command Push-to-Talk - calling onCommandHotkeyReleased", context: "HotkeyManager LOG")
                     isHoldingCommandKey = false
                     onCommandHotkeyReleased?()
@@ -707,7 +711,7 @@ class HotkeyManager: ObservableObject {
 struct Hotkey: Equatable {
     let keyCode: UInt16
     let modifiers: NSEvent.ModifierFlags
-    let mouseButton: Int32?  // nil for keyboard, 2=middle, 3=side1, 4=side2
+    let mouseButton: Int32? // nil for keyboard, 2=middle, 3=side1, 4=side2
 
     init(keyCode: UInt16, modifiers: NSEvent.ModifierFlags, mouseButton: Int32? = nil) {
         self.keyCode = keyCode

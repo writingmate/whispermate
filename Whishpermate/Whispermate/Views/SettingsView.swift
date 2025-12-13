@@ -26,7 +26,7 @@ enum SettingsSection: String, CaseIterable, Identifiable {
     case general = "General"
     case account = "Account"
     case permissions = "Permissions"
-    case transcription = "Transcription"
+    // case transcription = "Transcription" // Hidden for now
     case audio = "Audio"
     case language = "Language"
     case dictionary = "Dictionary"
@@ -42,7 +42,7 @@ enum SettingsSection: String, CaseIterable, Identifiable {
         case .account: return "person.circle"
         case .history: return "clock.arrow.circlepath"
         case .permissions: return "lock.shield"
-        case .transcription: return "text.bubble"
+        // case .transcription: return "text.bubble"
         case .audio: return "waveform"
         case .language: return "globe"
         case .dictionary: return "book.closed"
@@ -57,7 +57,7 @@ enum SettingsSection: String, CaseIterable, Identifiable {
         case .account: return "Subscription and account management"
         case .history: return "View and manage transcription history"
         case .permissions: return "Microphone, accessibility, and screen recording"
-        case .transcription: return "Transcription provider and model settings"
+        // case .transcription: return "Transcription provider and model settings"
         case .audio: return "Input device and audio settings"
         case .language: return "Transcription language preferences"
         case .dictionary: return "Custom word replacements and corrections"
@@ -129,8 +129,8 @@ struct SettingsView: View {
                         EmptyView()
                     case .permissions:
                         permissionsSection
-                    case .transcription:
-                        transcriptionSection
+                    // case .transcription:
+                    //     transcriptionSection
                     case .audio:
                         audioSection
                     case .language:
@@ -430,23 +430,23 @@ struct SettingsView: View {
                     Divider()
                         .padding(.vertical, 6)
 
-                    // Command Hotkey
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Command Hotkey")
-                                .dsFont(.body)
-                                .foregroundStyle(Color.dsForeground)
-                            Text("Transform selected text with voice instructions")
-                                .dsFont(.label)
-                                .foregroundStyle(Color.dsMutedForeground)
-                        }
-                        Spacer()
-                        HotkeyRecorderView(hotkeyManager: hotkeyManager, hotkeyType: .command)
-                    }
-                    .padding(.vertical, 2)
+                    // Command Hotkey - Hidden for now
+                    // HStack(spacing: 12) {
+                    //     VStack(alignment: .leading, spacing: 2) {
+                    //         Text("Command Hotkey")
+                    //             .dsFont(.body)
+                    //             .foregroundStyle(Color.dsForeground)
+                    //         Text("Transform selected text with voice instructions")
+                    //             .dsFont(.label)
+                    //             .foregroundStyle(Color.dsMutedForeground)
+                    //     }
+                    //     Spacer()
+                    //     HotkeyRecorderView(hotkeyManager: hotkeyManager, hotkeyType: .command)
+                    // }
+                    // .padding(.vertical, 2)
 
-                    Divider()
-                        .padding(.vertical, 6)
+                    // Divider()
+                    //     .padding(.vertical, 6)
 
                     // Push-to-Talk Toggle
                     HStack(spacing: 12) {
@@ -858,19 +858,19 @@ struct SettingsView: View {
                         if transcriptionProviderManager.enableLLMPostProcessing {
                             Divider()
 
-                            // LLM Provider picker
+                            // Post-processing provider picker
                             HStack(spacing: 12) {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("LLM Provider")
+                                    Text("Post-Processing")
                                         .dsFont(.body)
                                         .foregroundStyle(Color.dsForeground)
                                 }
                                 Spacer()
                                 Picker("", selection: Binding(
-                                    get: { llmProviderManager.selectedProvider },
-                                    set: { llmProviderManager.setProvider($0) }
+                                    get: { transcriptionProviderManager.postProcessingProvider },
+                                    set: { transcriptionProviderManager.setPostProcessingProvider($0) }
                                 )) {
-                                    ForEach(LLMProvider.allCases) { provider in
+                                    ForEach(PostProcessingProvider.allCases) { provider in
                                         Text(provider.displayName).tag(provider)
                                     }
                                 }
@@ -878,28 +878,51 @@ struct SettingsView: View {
                                 .fixedSize()
                             }
 
-                            // LLM API Key
-                            HStack {
-                                SecureField("Enter LLM API key", text: $llmApiKey)
-                                    .textFieldStyle(.roundedBorder)
+                            // Show LLM settings only when Custom LLM is selected
+                            if transcriptionProviderManager.postProcessingProvider == .customLLM {
+                                // LLM Provider picker
+                                HStack(spacing: 12) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("LLM Provider")
+                                            .dsFont(.body)
+                                            .foregroundStyle(Color.dsForeground)
+                                    }
+                                    Spacer()
+                                    Picker("", selection: Binding(
+                                        get: { llmProviderManager.selectedProvider },
+                                        set: { llmProviderManager.setProvider($0) }
+                                    )) {
+                                        ForEach(LLMProvider.allCases) { provider in
+                                            Text(provider.displayName).tag(provider)
+                                        }
+                                    }
+                                    .pickerStyle(.menu)
+                                    .fixedSize()
+                                }
 
-                                Button("Save") {
-                                    KeychainHelper.save(
-                                        key: llmProviderManager.selectedProvider.apiKeyName,
-                                        value: llmApiKey
-                                    )
-                                    showingLLMKeySaved = true
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                        showingLLMKeySaved = false
+                                // LLM API Key
+                                HStack {
+                                    SecureField("Enter LLM API key", text: $llmApiKey)
+                                        .textFieldStyle(.roundedBorder)
+
+                                    Button("Save") {
+                                        KeychainHelper.save(
+                                            key: llmProviderManager.selectedProvider.apiKeyName,
+                                            value: llmApiKey
+                                        )
+                                        showingLLMKeySaved = true
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                            showingLLMKeySaved = false
+                                        }
+                                    }
+                                    .controlSize(.small)
+
+                                    if showingLLMKeySaved {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundStyle(.green)
                                     }
                                 }
-                                .controlSize(.small)
-
-                                if showingLLMKeySaved {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundStyle(.green)
-                                }
-                            }
+                            } // end if customLLM
                         }
                     }
                 }
@@ -929,7 +952,7 @@ struct SettingsView: View {
             return "Ready"
         case .transcribing:
             return "Transcribing..."
-        case .error(let message):
+        case let .error(message):
             return "Error: \(message)"
         }
     }
@@ -1197,9 +1220,9 @@ struct RuleRow: View {
         var body: some View {
             SettingsView(
                 hotkeyManager: HotkeyManager.shared,
-                languageManager: LanguageManager(),
+                languageManager: LanguageManager.shared,
                 transcriptionProviderManager: TranscriptionProviderManager(),
-                llmProviderManager: LLMProviderManager(),
+                llmProviderManager: LLMProviderManager.shared,
                 dictionaryManager: DictionaryManager.shared,
                 contextRulesManager: ContextRulesManager.shared,
                 shortcutManager: ShortcutManager.shared,

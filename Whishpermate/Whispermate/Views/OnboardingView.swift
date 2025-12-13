@@ -72,7 +72,7 @@ struct OnboardingView: View {
         VStack(spacing: 0) {
             // Step indicators
             HStack(spacing: 8) {
-                ForEach(0..<4, id: \.self) { index in
+                ForEach(0 ..< 4, id: \.self) { index in
                     Circle()
                         .fill(index <= currentUIStep.rawValue ? accentOrange : Color.secondary.opacity(0.3))
                         .frame(width: 8, height: 8)
@@ -253,7 +253,7 @@ struct OnboardingView: View {
             LazyVGrid(columns: [
                 GridItem(.flexible()),
                 GridItem(.flexible()),
-                GridItem(.flexible())
+                GridItem(.flexible()),
             ], spacing: 10) {
                 // Auto-detect option first
                 languageButton(flag: "🌐", name: "Auto-detect", isSelected: false)

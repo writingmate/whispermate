@@ -61,6 +61,7 @@ class OnboardingManager: ObservableObject {
             UserDefaults.standard.set(currentStep.rawValue, forKey: Keys.currentOnboardingStep)
         }
     }
+
     @Published var accessibilityGranted: Bool = false
     @Published var microphoneGranted: Bool = false
     @Published var microphoneDenied: Bool = false
@@ -91,7 +92,6 @@ class OnboardingManager: ObservableObject {
         microphoneGranted = AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
     }
 
-
     func checkOnboardingStatus() {
         DebugLog.info("Checking onboarding status", context: "OnboardingManager")
 
@@ -105,7 +105,8 @@ class OnboardingManager: ObservableObject {
 
             // Restore the saved step, or find the first incomplete step
             if let savedStepRaw = UserDefaults.standard.value(forKey: Keys.currentOnboardingStep) as? Int,
-               let savedStep = OnboardingStep(rawValue: savedStepRaw) {
+               let savedStep = OnboardingStep(rawValue: savedStepRaw)
+            {
                 // Resume from saved step, but verify previous steps are still complete
                 currentStep = findFirstIncompleteStepUpTo(savedStep)
                 DebugLog.info("Resuming onboarding at step: \(currentStep)", context: "OnboardingManager")

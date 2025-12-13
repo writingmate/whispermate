@@ -105,7 +105,6 @@ class ClipboardManager {
         let targetApp = previousApp ?? NSWorkspace.shared.frontmostApplication
         DebugLog.info("Target app for paste: \(targetApp?.localizedName ?? "unknown")", context: "ClipboardManager")
 
-
         // Activate the target app first
         if let app = targetApp {
             DebugLog.info("Activating target app: \(app.localizedName ?? "unknown")", context: "ClipboardManager")
@@ -220,9 +219,10 @@ class ClipboardManager {
         let deleteKeyCode: CGKeyCode = 0x33 // Backspace/Delete
         let loc = CGEventTapLocation.cghidEventTap
 
-        DispatchQueue.global(qos: .userInteractive).async {
+        // CGEvent must be posted from main thread for thread safety
+        DispatchQueue.main.async {
             // First, move cursor forward to the end of the original selection
-            for _ in 0..<characterCount {
+            for _ in 0 ..< characterCount {
                 guard let keyDown = CGEvent(keyboardEventSource: source, virtualKey: rightArrowKeyCode, keyDown: true) else { continue }
                 keyDown.post(tap: loc)
 
@@ -235,7 +235,7 @@ class ClipboardManager {
             usleep(10000) // 10ms pause before deleting
 
             // Now delete backwards the same number of characters
-            for _ in 0..<characterCount {
+            for _ in 0 ..< characterCount {
                 guard let keyDown = CGEvent(keyboardEventSource: source, virtualKey: deleteKeyCode, keyDown: true) else { continue }
                 keyDown.post(tap: loc)
 
@@ -245,10 +245,8 @@ class ClipboardManager {
                 usleep(300) // 0.3ms between each key
             }
 
-            DispatchQueue.main.async {
-                DebugLog.info("moveForwardAndDelete: Delete complete", context: "ClipboardManager")
-                completion()
-            }
+            DebugLog.info("moveForwardAndDelete: Delete complete", context: "ClipboardManager")
+            completion()
         }
     }
 
@@ -266,8 +264,9 @@ class ClipboardManager {
         let deleteKeyCode: CGKeyCode = 0x33 // Backspace/Delete
         let loc = CGEventTapLocation.cghidEventTap
 
-        DispatchQueue.global(qos: .userInteractive).async {
-            for _ in 0..<characterCount {
+        // CGEvent must be posted from main thread for thread safety
+        DispatchQueue.main.async {
+            for _ in 0 ..< characterCount {
                 guard let keyDown = CGEvent(keyboardEventSource: source, virtualKey: deleteKeyCode, keyDown: true) else { continue }
                 keyDown.post(tap: loc)
 
@@ -277,10 +276,8 @@ class ClipboardManager {
                 usleep(300) // 0.3ms between each key
             }
 
-            DispatchQueue.main.async {
-                DebugLog.info("deleteBackwards: Delete complete", context: "ClipboardManager")
-                completion()
-            }
+            DebugLog.info("deleteBackwards: Delete complete", context: "ClipboardManager")
+            completion()
         }
     }
 

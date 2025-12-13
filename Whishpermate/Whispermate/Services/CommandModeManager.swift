@@ -32,7 +32,7 @@ class CommandModeManager: ObservableObject {
 
     // MARK: - Private Properties
 
-    private let llmProviderManager = LLMProviderManager()
+    private let llmProviderManager = LLMProviderManager.shared
 
     // MARK: - Initialization
 
@@ -184,7 +184,7 @@ class CommandModeManager: ObservableObject {
 
             let messages: [[String: String]] = [
                 ["role": "system", "content": systemPrompt],
-                ["role": "user", "content": userContent]
+                ["role": "user", "content": userContent],
             ]
 
             // Log the full prompt being sent

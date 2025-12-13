@@ -163,45 +163,45 @@ class OverlayWindowManager: ObservableObject {
             return
         }
 
-        let previousState = self.overlayState
-        self.overlayState = newState
+        let previousState = overlayState
+        overlayState = newState
 
         // Update derived properties for backward compatibility with views
         switch newState {
         case .hidden:
-            self.isRecording = false
-            self.isProcessing = false
-            self.isCommandMode = false
-            self.overlayWindow?.orderOut(nil)
+            isRecording = false
+            isProcessing = false
+            isCommandMode = false
+            overlayWindow?.orderOut(nil)
             DebugLog.info("transition: window hidden", context: "OverlayWindowManager")
 
         case .idle:
-            self.isRecording = false
-            self.isProcessing = false
-            self.isCommandMode = false
-            if self.hideIdleState {
-                self.overlayWindow?.orderOut(nil)
+            isRecording = false
+            isProcessing = false
+            isCommandMode = false
+            if hideIdleState {
+                overlayWindow?.orderOut(nil)
             } else {
-                self.ensureWindowExists()
-                self.overlayWindow?.orderFrontRegardless()
+                ensureWindowExists()
+                overlayWindow?.orderFrontRegardless()
             }
-            self.updateWindowSizeForState(newState, animated: previousState != .hidden)
+            updateWindowSizeForState(newState, animated: previousState != .hidden)
 
-        case .recording(let commandMode):
-            self.isRecording = true
-            self.isProcessing = false
-            self.isCommandMode = commandMode
-            self.ensureWindowExists()
-            self.overlayWindow?.orderFrontRegardless()
-            self.updateWindowSizeForState(newState, animated: true)
+        case let .recording(commandMode):
+            isRecording = true
+            isProcessing = false
+            isCommandMode = commandMode
+            ensureWindowExists()
+            overlayWindow?.orderFrontRegardless()
+            updateWindowSizeForState(newState, animated: true)
 
-        case .processing(let commandMode):
-            self.isRecording = false
-            self.isProcessing = true
-            self.isCommandMode = commandMode
-            self.ensureWindowExists()
-            self.overlayWindow?.orderFrontRegardless()
-            self.updateWindowSizeForState(newState, animated: true)
+        case let .processing(commandMode):
+            isRecording = false
+            isProcessing = true
+            isCommandMode = commandMode
+            ensureWindowExists()
+            overlayWindow?.orderFrontRegardless()
+            updateWindowSizeForState(newState, animated: true)
         }
     }
 
@@ -216,9 +216,9 @@ class OverlayWindowManager: ObservableObject {
 
         let screenFrame = screen.visibleFrame
         let isActive = state == .recording(isCommandMode: true) ||
-                       state == .recording(isCommandMode: false) ||
-                       state == .processing(isCommandMode: true) ||
-                       state == .processing(isCommandMode: false)
+            state == .recording(isCommandMode: false) ||
+            state == .processing(isCommandMode: true) ||
+            state == .processing(isCommandMode: false)
 
         let (windowWidth, windowHeight): (CGFloat, CGFloat)
         if isActive {

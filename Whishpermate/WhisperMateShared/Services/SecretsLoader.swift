@@ -38,6 +38,14 @@ public enum SecretsLoader {
         }
     }
 
+    public static func aidictationPostProcessingEndpoint() -> String? {
+        return secretsDictionary?["AIDictationPostProcessingEndpoint"] as? String
+    }
+
+    public static func aidictationPostProcessingKey() -> String? {
+        return secretsDictionary?["AIDictationPostProcessingKey"] as? String
+    }
+
     public static func getValue(for key: String) -> String? {
         return secretsDictionary?[key] as? String
     }

@@ -3,9 +3,9 @@ import WhisperMateShared
 
 struct SettingsWindowView: View {
     @ObservedObject private var hotkeyManager = HotkeyManager.shared
-    @StateObject private var languageManager = LanguageManager()
+    @ObservedObject private var languageManager = LanguageManager.shared
     @StateObject private var transcriptionProviderManager = TranscriptionProviderManager()
-    @StateObject private var llmProviderManager = LLMProviderManager()
+    @ObservedObject private var llmProviderManager = LLMProviderManager.shared
     @ObservedObject private var dictionaryManager = DictionaryManager.shared
     @ObservedObject private var contextRulesManager = ContextRulesManager.shared
     @ObservedObject private var shortcutManager = ShortcutManager.shared

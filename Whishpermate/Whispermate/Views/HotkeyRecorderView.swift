@@ -11,7 +11,7 @@ enum HotkeyType {
 // MARK: - Predefined Hotkey Options
 
 enum HotkeyOption: String, CaseIterable, Identifiable {
-    case fn = "fn"
+    case fn
     case leftControl = "left_ctrl"
     case rightCommand = "right_cmd"
     case rightOption = "right_opt"
@@ -113,31 +113,31 @@ enum HotkeyOption: String, CaseIterable, Identifiable {
         }
 
         // Check for Fn key
-        if hotkey.modifiers == .function && hotkey.keyCode == 63 {
+        if hotkey.modifiers == .function, hotkey.keyCode == 63 {
             return .fn
         }
 
         // Check for left Control (keyCode 59)
-        if hotkey.keyCode == 59 && hotkey.modifiers.contains(.control) {
+        if hotkey.keyCode == 59, hotkey.modifiers.contains(.control) {
             return .leftControl
         }
 
         // Check for right-side modifier keys
-        if hotkey.keyCode == 54 && hotkey.modifiers.contains(.command) {
+        if hotkey.keyCode == 54, hotkey.modifiers.contains(.command) {
             return .rightCommand
         }
-        if hotkey.keyCode == 61 && hotkey.modifiers.contains(.option) {
+        if hotkey.keyCode == 61, hotkey.modifiers.contains(.option) {
             return .rightOption
         }
-        if hotkey.keyCode == 60 && hotkey.modifiers.contains(.shift) {
+        if hotkey.keyCode == 60, hotkey.modifiers.contains(.shift) {
             return .rightShift
         }
-        if hotkey.keyCode == 62 && hotkey.modifiers.contains(.control) {
+        if hotkey.keyCode == 62, hotkey.modifiers.contains(.control) {
             return .rightControl
         }
 
         // Check for Option+R
-        if hotkey.keyCode == 15 && hotkey.modifiers == .option {
+        if hotkey.keyCode == 15, hotkey.modifiers == .option {
             return .optionR
         }
 

@@ -4,7 +4,7 @@ internal import Combine
 // MARK: - Transcription Provider
 
 enum TranscriptionProvider: String, CaseIterable, Identifiable {
-    case parakeet  // On-device (first for prominence)
+    case parakeet // On-device (first for prominence)
     case groq
     case openai
     case custom
@@ -31,7 +31,7 @@ enum TranscriptionProvider: String, CaseIterable, Identifiable {
 
     var defaultEndpoint: String {
         switch self {
-        case .parakeet: return ""  // On-device, no endpoint
+        case .parakeet: return "" // On-device, no endpoint
         case .groq: return "https://api.groq.com/openai/v1/audio/transcriptions"
         case .openai: return "https://api.openai.com/v1/audio/transcriptions"
         case .custom: return "https://new-git-fix-workspace-image-handling-and-api-28a97e-writingmate.vercel.app/api/openai/v1/audio/transcriptions"
@@ -40,7 +40,7 @@ enum TranscriptionProvider: String, CaseIterable, Identifiable {
 
     var defaultModel: String {
         switch self {
-        case .parakeet: return "parakeet-tdt-0.6b-v3"  // Multilingual
+        case .parakeet: return "parakeet-tdt-0.6b-v3" // Multilingual
         case .groq: return "whisper-large-v3-turbo"
         case .openai: return "whisper-1"
         case .custom: return "gpt-4o-transcribe"
@@ -65,16 +65,44 @@ enum TranscriptionProvider: String, CaseIterable, Identifiable {
     }
 }
 
+// MARK: - Post-Processing Provider
+
+enum PostProcessingProvider: String, CaseIterable, Identifiable {
+    case aidictation // Use AIDictation cloud (no API key needed)
+    case customLLM // Use user's own LLM provider
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .aidictation: return "AIDictation"
+        case .customLLM: return "Custom LLM"
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .aidictation: return "Cloud formatting, no API key required"
+        case .customLLM: return "Use your own LLM provider"
+        }
+    }
+
+    /// Default model for AIDictation post-processing
+    static let aidictationModel = "openai/gpt-oss-20b"
+}
+
 class TranscriptionProviderManager: ObservableObject {
     @Published var selectedProvider: TranscriptionProvider = .custom
     @Published var customEndpoint: String = ""
     @Published var customModel: String = ""
     @Published var enableLLMPostProcessing: Bool = false
+    @Published var postProcessingProvider: PostProcessingProvider = .aidictation
 
     private let providerKey = "selected_transcription_provider"
     private let endpointKey = "transcription_custom_endpoint"
     private let modelKey = "transcription_custom_model"
     private let llmPostProcessingKey = "enable_llm_post_processing"
+    private let postProcessingProviderKey = "post_processing_provider"
 
     init() {
         loadSettings()
@@ -92,7 +120,12 @@ class TranscriptionProviderManager: ObservableObject {
         customEndpoint = UserDefaults.standard.string(forKey: endpointKey) ?? ""
         customModel = UserDefaults.standard.string(forKey: modelKey) ?? ""
         enableLLMPostProcessing = UserDefaults.standard.bool(forKey: llmPostProcessingKey)
-        DebugLog.info("Loaded: \(selectedProvider.displayName), LLM post-processing: \(enableLLMPostProcessing)", context: "TranscriptionProviderManager")
+        if let savedPostProcessor = UserDefaults.standard.string(forKey: postProcessingProviderKey),
+           let provider = PostProcessingProvider(rawValue: savedPostProcessor)
+        {
+            postProcessingProvider = provider
+        }
+        DebugLog.info("Loaded: \(selectedProvider.displayName), LLM post-processing: \(enableLLMPostProcessing), post-processor: \(postProcessingProvider.displayName)", context: "TranscriptionProviderManager")
     }
 
     func setProvider(_ provider: TranscriptionProvider) {
@@ -105,6 +138,12 @@ class TranscriptionProviderManager: ObservableObject {
         enableLLMPostProcessing = enabled
         UserDefaults.standard.set(enabled, forKey: llmPostProcessingKey)
         DebugLog.info("LLM post-processing: \(enabled)", context: "TranscriptionProviderManager")
+    }
+
+    func setPostProcessingProvider(_ provider: PostProcessingProvider) {
+        postProcessingProvider = provider
+        UserDefaults.standard.set(provider.rawValue, forKey: postProcessingProviderKey)
+        DebugLog.info("Post-processing provider: \(provider.displayName)", context: "TranscriptionProviderManager")
     }
 
     func saveCustomSettings(endpoint: String, model: String) {
@@ -194,42 +233,57 @@ enum LLMProvider: String, CaseIterable, Identifiable {
     }
 }
 
+/// Manages LLM provider selection for post-processing
 class LLMProviderManager: ObservableObject {
+    static let shared = LLMProviderManager()
+
+    // MARK: - Keys
+
+    private enum Keys {
+        static let provider = "selected_llm_provider"
+        static let endpoint = "llm_custom_endpoint"
+        static let model = "llm_custom_model"
+    }
+
+    // MARK: - Published Properties
+
     @Published var selectedProvider: LLMProvider = .groq
     @Published var customEndpoint: String = ""
     @Published var customModel: String = ""
 
-    private let providerKey = "selected_llm_provider"
-    private let endpointKey = "llm_custom_endpoint"
-    private let modelKey = "llm_custom_model"
+    // MARK: - Initialization
 
-    init() {
+    private init() {
         loadSettings()
     }
 
+    // MARK: - Public API
+
     func loadSettings() {
-        if let savedProvider = UserDefaults.standard.string(forKey: providerKey),
+        if let savedProvider = UserDefaults.standard.string(forKey: Keys.provider),
            let provider = LLMProvider(rawValue: savedProvider)
         {
             selectedProvider = provider
         }
-        customEndpoint = UserDefaults.standard.string(forKey: endpointKey) ?? ""
-        customModel = UserDefaults.standard.string(forKey: modelKey) ?? ""
+        customEndpoint = UserDefaults.standard.string(forKey: Keys.endpoint) ?? ""
+        customModel = UserDefaults.standard.string(forKey: Keys.model) ?? ""
         DebugLog.info("Loaded: \(selectedProvider.displayName)", context: "LLMProviderManager")
     }
 
     func setProvider(_ provider: LLMProvider) {
         selectedProvider = provider
-        UserDefaults.standard.set(provider.rawValue, forKey: providerKey)
+        UserDefaults.standard.set(provider.rawValue, forKey: Keys.provider)
         DebugLog.info("Set provider: \(provider.displayName)", context: "LLMProviderManager")
     }
 
     func saveCustomSettings(endpoint: String, model: String) {
         customEndpoint = endpoint
         customModel = model
-        UserDefaults.standard.set(endpoint, forKey: endpointKey)
-        UserDefaults.standard.set(model, forKey: modelKey)
+        UserDefaults.standard.set(endpoint, forKey: Keys.endpoint)
+        UserDefaults.standard.set(model, forKey: Keys.model)
     }
+
+    // MARK: - Computed Properties
 
     var effectiveEndpoint: String {
         if !customEndpoint.isEmpty {

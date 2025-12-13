@@ -107,7 +107,8 @@ class AudioRecorder: NSObject, ObservableObject {
 
                     // Convert to output format if needed
                     if bufferFormat.sampleRate != outputFormat.sampleRate || bufferFormat.channelCount != outputFormat.channelCount,
-                       let converter = AVAudioConverter(from: bufferFormat, to: outputFormat) {
+                       let converter = AVAudioConverter(from: bufferFormat, to: outputFormat)
+                    {
                         let ratio = outputFormat.sampleRate / bufferFormat.sampleRate
                         let convertedBuffer = AVAudioPCMBuffer(
                             pcmFormat: outputFormat,
@@ -189,7 +190,7 @@ class AudioRecorder: NSObject, ObservableObject {
         recordingURL = newRecordingURL
 
         guard let outputFormat = outputFormat else {
-            DebugLog.info("❌ Output format not initialized", context: "AudioRecorder LOG")
+            DebugLog.info("❌ Output format not initialized - audioEngine: \(audioEngine != nil)", context: "AudioRecorder LOG")
             return
         }
 

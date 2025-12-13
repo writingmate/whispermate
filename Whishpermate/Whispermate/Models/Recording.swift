@@ -17,6 +17,51 @@ struct Recording: Identifiable, Codable, Hashable {
     let duration: TimeInterval?
     var wordCount: Int?
 
+    // MARK: - Codable
+
+    private enum CodingKeys: String, CodingKey {
+        case id, timestamp, audioFilePath, transcription, status, errorMessage, retryCount, duration, wordCount
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        timestamp = try container.decode(Date.self, forKey: .timestamp)
+        let path = try container.decode(String.self, forKey: .audioFilePath)
+        audioFileURL = URL(fileURLWithPath: path)
+        transcription = try container.decodeIfPresent(String.self, forKey: .transcription)
+        status = try container.decode(TranscriptionStatus.self, forKey: .status)
+        errorMessage = try container.decodeIfPresent(String.self, forKey: .errorMessage)
+        retryCount = try container.decode(Int.self, forKey: .retryCount)
+        duration = try container.decodeIfPresent(TimeInterval.self, forKey: .duration)
+        wordCount = try container.decodeIfPresent(Int.self, forKey: .wordCount)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(timestamp, forKey: .timestamp)
+        try container.encode(audioFileURL.path, forKey: .audioFilePath)
+        try container.encodeIfPresent(transcription, forKey: .transcription)
+        try container.encode(status, forKey: .status)
+        try container.encodeIfPresent(errorMessage, forKey: .errorMessage)
+        try container.encode(retryCount, forKey: .retryCount)
+        try container.encodeIfPresent(duration, forKey: .duration)
+        try container.encodeIfPresent(wordCount, forKey: .wordCount)
+    }
+
+    // MARK: - Hashable
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
+    static func == (lhs: Recording, rhs: Recording) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    // MARK: - Initialization
+
     init(
         id: UUID = UUID(),
         timestamp: Date = Date(),

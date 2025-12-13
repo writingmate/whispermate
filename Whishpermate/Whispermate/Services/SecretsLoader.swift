@@ -13,7 +13,7 @@ enum SecretsLoader {
     static func transcriptionKey(for provider: TranscriptionProvider) -> String? {
         switch provider {
         case .parakeet:
-            return nil  // On-device, no API key needed
+            return nil // On-device, no API key needed
         case .groq:
             return secretsDictionary?["GroqTranscriptionKey"] as? String
         case .custom:
@@ -29,6 +29,14 @@ enum SecretsLoader {
 
     static func customTranscriptionModel() -> String? {
         return secretsDictionary?["CustomTranscriptionModel"] as? String
+    }
+
+    static func aidictationPostProcessingEndpoint() -> String? {
+        return secretsDictionary?["AIDictationPostProcessingEndpoint"] as? String
+    }
+
+    static func aidictationPostProcessingKey() -> String? {
+        return secretsDictionary?["AIDictationPostProcessingKey"] as? String
     }
 
     static func llmKey(for provider: LLMProvider) -> String? {

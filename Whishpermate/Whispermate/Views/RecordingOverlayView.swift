@@ -56,15 +56,20 @@ struct RecordingOverlayView: View {
     // MARK: - Body
 
     var body: some View {
-        let _ = print("[RecordingOverlayView] 🎨 body rendering - isRecording: \(manager.isRecording), isProcessing: \(manager.isProcessing), audioLevel: \(manager.audioLevel)")
-
-        return GeometryReader { geometry in
+        GeometryReader { geometry in
             // Position content absolutely to prevent Spacer from compressing
             ZStack(alignment: manager.position == .top ? .top : .bottom) {
                 overlayContent(geometry: geometry)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.clear)
+        }
+        .onAppear {
+            // Handle case where view appears while already recording
+            if manager.isRecording && !shouldShowExpandedPill {
+                shouldShowExpandedPill = true
+                shouldShowContent = true
+            }
         }
         .onChange(of: manager.isRecording) { newValue in
             if newValue {
@@ -220,7 +225,6 @@ struct RecordingOverlayView: View {
         .frame(width: expandButtonSize, height: expandButtonSize)
         .transition(.scale.combined(with: .opacity))
     }
-
 }
 
 #Preview {

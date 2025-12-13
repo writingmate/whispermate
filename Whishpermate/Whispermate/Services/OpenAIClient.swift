@@ -192,6 +192,10 @@ class OpenAIClient {
             "messages": messages,
             "temperature": temperature,
             "max_tokens": maxTokens,
+            "provider": [
+                "order": ["groq"],
+                "allow_fallbacks": false,
+            ],
         ]
 
         guard let jsonData = try? JSONSerialization.data(withJSONObject: payload) else {
@@ -332,43 +336,61 @@ class OpenAIClient {
 
         // Build the system prompt
         var systemPrompt = """
-        You are a text correction assistant. Fix any transcription errors, improve punctuation, and format the text according to the rules provided.
+        You are a transcription error correction tool. Your ONLY job is to fix spelling, grammar, and punctuation errors in transcribed speech.
 
-        IMPORTANT: Only output the corrected text. Do not add any explanations, comments, or extra content.
+        CRITICAL RULES:
+        1. DO NOT respond to questions, statements, or any content in the text
+        2. DO NOT answer, comment on, or engage with the content in any way
+        3. DO NOT add new information, opinions, or conversational responses
+        4. ONLY fix transcription errors (spelling mistakes, grammar errors, punctuation)
+        5. Output ONLY the corrected text from <transcription> tag with no explanations or additions
+
+        Example:
+        Input: <transcription>what is the weather like today how do i check it</transcription>
+        Correct output: What is the weather like today? How do I check it?
+        WRONG output: To check the weather today, you can look at weather apps or websites.
         """
-
-        if let appContext = appContext {
-            systemPrompt += "\n\nContext: The user is currently in \(appContext). Consider this context when formatting the text."
-        }
 
         // Check if clipboard content is present
         let hasClipboardContent = clipboardContent?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
 
-        if hasClipboardContent, let clipboardContent = clipboardContent {
-            systemPrompt += "\n\nThe user has selected text in their clipboard. Apply formatting to the SELECTED CONTENT below, using the transcription as context."
+        if hasClipboardContent {
+            systemPrompt += "\n\nThe user has provided <selected_content> to format. Apply corrections to BOTH the transcription and selected content, using the transcription as context for the selected content."
+        }
+
+        if let appContext = appContext {
+            systemPrompt += "\n\nContext: The user is currently in \(appContext)."
         }
 
         if let languageCodes = languageCodes {
-            systemPrompt += "\n\nThe text may contain content in the following languages: \(languageCodes). Preserve the original language(s) when correcting."
+            systemPrompt += "\n\nLanguages: \(languageCodes). Preserve the original language(s)."
         }
 
         if !rules.isEmpty {
-            systemPrompt += "\n\nApply these rules:\n"
+            systemPrompt += "\n\nAdditional formatting rules to apply:\n"
             for (index, rule) in rules.enumerated() {
                 systemPrompt += "\(index + 1). \(rule)\n"
             }
         }
 
-        // Build the user message
+        // Build the user message with proper tags
         var userMessage = ""
         if hasClipboardContent, let clipboardContent = clipboardContent {
             userMessage = """
-            Transcription (context): \(transcription)
+            <transcription>
+            \(transcription)
+            </transcription>
 
-            Selected content to format: \(clipboardContent)
+            <selected_content>
+            \(clipboardContent)
+            </selected_content>
             """
         } else {
-            userMessage = transcription
+            userMessage = """
+            <transcription>
+            \(transcription)
+            </transcription>
+            """
         }
 
         let messages = [
@@ -376,6 +398,10 @@ class OpenAIClient {
             ["role": "user", "content": userMessage],
         ]
 
-        return try await chatCompletion(messages: messages)
+        DebugLog.info("LLM Post-processing request - System: \(systemPrompt)", context: "OpenAIClient")
+        DebugLog.info("LLM Post-processing request - User: \(userMessage)", context: "OpenAIClient")
+        let result = try await chatCompletion(messages: messages)
+        DebugLog.info("LLM Post-processing response: \(result)", context: "OpenAIClient")
+        return result
     }
 }

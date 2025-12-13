@@ -81,9 +81,9 @@ class FnKeyMonitor {
         // AND only if no other modifiers are pressed (to filter out synthetic events from paste)
         let isFnKeyCode = keyCode == 63 || keyCode == 179
         let hasOtherModifiers = modifiers.contains(.command) || modifiers.contains(.option) ||
-                                modifiers.contains(.control) || modifiers.contains(.shift)
+            modifiers.contains(.control) || modifiers.contains(.shift)
 
-        guard isFnKeyCode && !hasOtherModifiers else {
+        guard isFnKeyCode, !hasOtherModifiers else {
             // Not a pure Fn key event, ignore
             return
         }

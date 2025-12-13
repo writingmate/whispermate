@@ -332,9 +332,9 @@ struct WhishpermateApp: App {
             OnboardingView(
                 onboardingManager: OnboardingManager.shared,
                 hotkeyManager: HotkeyManager.shared,
-                languageManager: LanguageManager(),
+                languageManager: LanguageManager.shared,
                 promptRulesManager: PromptRulesManager.shared,
-                llmProviderManager: LLMProviderManager()
+                llmProviderManager: LLMProviderManager.shared
             )
             .windowIdentifier(WindowIdentifiers.onboarding)
         }

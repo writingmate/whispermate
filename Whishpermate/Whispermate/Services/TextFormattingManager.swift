@@ -11,7 +11,7 @@ class TextFormattingManager {
     private init() {
         // Initialize with default configuration
         let transcriptionProviderManager = TranscriptionProviderManager()
-        let llmProviderManager = LLMProviderManager()
+        let llmProviderManager = LLMProviderManager.shared
 
         let config = OpenAIClient.Configuration(
             transcriptionEndpoint: transcriptionProviderManager.effectiveEndpoint,

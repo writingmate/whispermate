@@ -6,8 +6,7 @@ import WhisperMateShared
 struct WhisperMateApp: App {
     @StateObject private var onboardingManager = OnboardingManager()
 
-    init() {
-    }
+    init() {}
 
     var body: some Scene {
         WindowGroup {
