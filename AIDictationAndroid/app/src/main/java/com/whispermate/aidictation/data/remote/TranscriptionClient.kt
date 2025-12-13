@@ -40,7 +40,12 @@ object TranscriptionClient {
     suspend fun transcribe(audioFile: File, prompt: String? = null): Result<String> = withContext(Dispatchers.IO) {
         try {
             val apiKey = BuildConfig.TRANSCRIPTION_API_KEY
+            Log.d(TAG, "Transcribing file: ${audioFile.absolutePath}, size: ${audioFile.length()} bytes")
+            Log.d(TAG, "Endpoint: ${BuildConfig.TRANSCRIPTION_ENDPOINT}")
+            Log.d(TAG, "Model: ${BuildConfig.TRANSCRIPTION_MODEL}")
+
             if (apiKey.isEmpty()) {
+                Log.e(TAG, "API key is empty!")
                 return@withContext Result.failure(Exception("API key not configured"))
             }
 
@@ -57,6 +62,7 @@ object TranscriptionClient {
                 .apply {
                     if (!prompt.isNullOrEmpty()) {
                         addFormDataPart("prompt", prompt)
+                        Log.d(TAG, "Prompt: $prompt")
                     }
                 }
                 .build()
@@ -67,19 +73,25 @@ object TranscriptionClient {
                 .post(requestBody)
                 .build()
 
+            Log.d(TAG, "Sending transcription request...")
             val response = okHttpClient.newCall(request).execute()
+            Log.d(TAG, "Response code: ${response.code}")
 
             if (!response.isSuccessful) {
                 val errorBody = response.body?.string() ?: "Unknown error"
+                Log.e(TAG, "Transcription failed: ${response.code} - $errorBody")
                 return@withContext Result.failure(Exception("Transcription failed: ${response.code} - $errorBody"))
             }
 
             val responseBody = response.body?.string()
+            Log.d(TAG, "Response body: $responseBody")
             val json = JSONObject(responseBody ?: "{}")
             val text = json.optString("text", "").trim()
+            Log.d(TAG, "Transcribed text: '$text'")
 
             Result.success(text)
         } catch (e: Exception) {
+            Log.e(TAG, "Transcription exception", e)
             Result.failure(e)
         }
     }

@@ -68,21 +68,18 @@ class AIDictationIME : LatinIME() {
     private var vadJob: Job? = null
     private var suggestionJob: Job? = null
     private var settingsButton: ImageButton? = null
-    private var micButton: ImageButton? = null
+    private var micButton: com.whispermate.aidictation.ui.components.AnimatedMicButton? = null
     private var commandButton: TextView? = null
     private var commandMicButton: TextView? = null
     private var toolbarView: View? = null
-    private var commandActionBar: View? = null
-    private var commandRollbackButton: ImageButton? = null
-    private var commandAcceptButton: ImageButton? = null
-    private var commandStatusText: TextView? = null
+    private var undoButton: TextView? = null
     private var suggestion1: TextView? = null
     private var suggestion2: TextView? = null
     private var suggestion3: TextView? = null
     private var divider1: View? = null
     private var divider2: View? = null
     private var suggestionsContainer: View? = null
-    private var waveformView: com.whispermate.aidictation.ui.components.WaveformView? = null
+    private var speakNowText: TextView? = null
     private var waveformJob: Job? = null
     private var processingAnimationJob: Job? = null
     private var lastText: String = ""
@@ -142,7 +139,7 @@ class AIDictationIME : LatinIME() {
         }
 
         // Set up mic button
-        micButton = container.findViewById<ImageButton>(R.id.mic_button)?.apply {
+        micButton = container.findViewById<com.whispermate.aidictation.ui.components.AnimatedMicButton>(R.id.mic_button)?.apply {
             setOnClickListener { toggleVoiceInput() }
         }
 
@@ -156,14 +153,9 @@ class AIDictationIME : LatinIME() {
             setOnClickListener { executeDefaultCommand() }
         }
 
-        // Set up command action bar (reused for all commands)
-        commandActionBar = container.findViewById(R.id.cleanup_action_bar)
-        commandStatusText = container.findViewById(R.id.cleanup_status_text)
-        commandRollbackButton = container.findViewById<ImageButton>(R.id.cleanup_rollback_button)?.apply {
+        // Set up undo button
+        undoButton = container.findViewById<TextView>(R.id.undo_button)?.apply {
             setOnClickListener { rollbackCommand() }
-        }
-        commandAcceptButton = container.findViewById<ImageButton>(R.id.cleanup_accept_button)?.apply {
-            setOnClickListener { acceptCommand() }
         }
 
         // Set up suggestion buttons
@@ -179,7 +171,7 @@ class AIDictationIME : LatinIME() {
         divider1 = container.findViewById(R.id.divider_1)
         divider2 = container.findViewById(R.id.divider_2)
         suggestionsContainer = container.findViewById(R.id.suggestions_container)
-        waveformView = container.findViewById(R.id.waveform_view)
+        speakNowText = container.findViewById(R.id.speak_now_text)
 
         // Store reference to toolbar for insets calculation
         toolbarView = container.findViewById<LinearLayout>(R.id.keyboard_toolbar)
@@ -261,31 +253,44 @@ class AIDictationIME : LatinIME() {
         val isRecording = _recordingState.value == RecordingState.Recording
         val isProcessing = _recordingState.value == RecordingState.Processing
 
-        val color = when (_recordingState.value) {
-            RecordingState.Idle -> ContextCompat.getColor(this, rkr.simplekeyboard.inputmethod.R.color.key_text_color_lxx_system)
-            RecordingState.Recording, RecordingState.Processing -> Color.parseColor("#FFFF9500")
+        // Control AnimatedMicButton state
+        when (_recordingState.value) {
+            RecordingState.Idle -> micButton?.stopRecording()
+            RecordingState.Recording -> micButton?.startRecording()
+            RecordingState.Processing -> micButton?.startProcessing()
         }
-        micButton?.imageTintList = ColorStateList.valueOf(color)
 
-        // Show/hide waveform and suggestions container
+        // Show/hide UI elements and start/stop audio level updates
         if (isRecording || isProcessing) {
             settingsButton?.visibility = View.GONE
             suggestionsContainer?.visibility = View.GONE
             commandButton?.visibility = View.GONE
             commandMicButton?.visibility = View.GONE
-            waveformView?.visibility = View.VISIBLE
+            speakNowText?.visibility = View.VISIBLE
             if (isRecording) {
-                waveformView?.reset()
+                speakNowText?.text = "Speak now"
+                speakNowText?.alpha = 1f
                 startWaveformUpdates()
             } else {
-                // Processing state - animate idle pulsing
+                // Processing state - fade transition
+                speakNowText?.animate()
+                    ?.alpha(0f)
+                    ?.setDuration(150)
+                    ?.withEndAction {
+                        speakNowText?.text = "Processing..."
+                        speakNowText?.animate()
+                            ?.alpha(1f)
+                            ?.setDuration(150)
+                            ?.start()
+                    }
+                    ?.start()
                 stopWaveformUpdates()
-                startProcessingAnimation()
             }
         } else {
             settingsButton?.visibility = View.VISIBLE
             suggestionsContainer?.visibility = View.VISIBLE
-            waveformView?.visibility = View.GONE
+            speakNowText?.visibility = View.GONE
+            speakNowText?.alpha = 1f
             stopWaveformUpdates()
             stopProcessingAnimation()
         }
@@ -296,7 +301,7 @@ class AIDictationIME : LatinIME() {
         waveformJob = scope.launch {
             while (isActive) {
                 val level = audioRecorder?.audioLevel?.value ?: 0f
-                waveformView?.setAudioLevel(level)
+                micButton?.setAudioLevel(level)
                 delay(50)
             }
         }
@@ -308,24 +313,8 @@ class AIDictationIME : LatinIME() {
     }
 
     private fun startProcessingAnimation() {
+        // SpeakNowView handles processing animation internally
         processingAnimationJob?.cancel()
-        processingAnimationJob = scope.launch {
-            var position = 0f
-            var direction = 1f
-            while (isActive) {
-                // Wave bounces back and forth
-                waveformView?.setWavePosition(position)
-                position += 0.02f * direction
-                if (position >= 1f) {
-                    position = 1f
-                    direction = -1f
-                } else if (position <= 0f) {
-                    position = 0f
-                    direction = 1f
-                }
-                delay(16) // ~60fps for smooth animation
-            }
-        }
     }
 
     private fun stopProcessingAnimation() {
@@ -626,9 +615,7 @@ class AIDictationIME : LatinIME() {
             // Get context (text before the target)
             val context = if (targetStart > 0) fullText.substring(0, targetStart).takeLast(200) else ""
 
-            // Show processing state
-            commandStatusText?.text = "Processing..."
-            showCommandActionBar()
+            // Show processing state (undo button will appear after success)
 
             // Get context rules
             val contextRules = appPreferences.getInstructionsForApp(currentPackage)
@@ -650,7 +637,7 @@ class AIDictationIME : LatinIME() {
                 ic.deleteSurroundingText(fullText.length, 0)
                 ic.commitText(newText, 1)
 
-                commandStatusText?.text = "Review changes"
+                showCommandActionBar()
                 isInCommandReview = true
             }.onFailure { error ->
                 Log.e(TAG, "Command execution failed", error)
@@ -732,7 +719,6 @@ class AIDictationIME : LatinIME() {
 
                 transformedText = transcriptionResult.text
                 isInCommandReview = true
-                commandStatusText?.text = "Review ${command?.name ?: "command"}"
                 showCommandActionBar()
             } else {
                 // Normal transcription
@@ -883,10 +869,6 @@ class AIDictationIME : LatinIME() {
         // Get current app's package name for context rules
         val currentPackage = currentInputEditorInfo?.packageName
 
-        // Show processing state
-        commandStatusText?.text = "${command.name}..."
-        showCommandActionBar()
-
         scope.launch {
             // Get context rules for command execution
             val contextRules = appPreferences.getInstructionsForApp(currentPackage)
@@ -901,7 +883,7 @@ class AIDictationIME : LatinIME() {
                 ic.deleteSurroundingText(fullText.length, 0)
                 ic.commitText(newText, 1)
 
-                commandStatusText?.text = "Review ${command.name}"
+                showCommandActionBar()
                 isInCommandReview = true
             }.onFailure { error ->
                 Log.e(TAG, "Command '${command.name}' failed", error)
@@ -912,13 +894,14 @@ class AIDictationIME : LatinIME() {
     }
 
     private fun showCommandActionBar() {
-        toolbarView?.visibility = View.GONE
-        commandActionBar?.visibility = View.VISIBLE
+        // Show undo button, hide other action buttons
+        undoButton?.visibility = View.VISIBLE
+        commandButton?.visibility = View.GONE
+        commandMicButton?.visibility = View.GONE
     }
 
     private fun hideCommandActionBar() {
-        commandActionBar?.visibility = View.GONE
-        toolbarView?.visibility = View.VISIBLE
+        undoButton?.visibility = View.GONE
         isInCommandReview = false
     }
 

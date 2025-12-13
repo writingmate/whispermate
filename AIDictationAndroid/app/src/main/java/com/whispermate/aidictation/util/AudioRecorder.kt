@@ -22,13 +22,16 @@ class AudioRecorder(
     private val enableVAD: Boolean = true
 ) {
     private var mediaRecorder: MediaRecorder? = null
-    private var audioRecord: AudioRecord? = null
     private var audioLevelJob: Job? = null
-    private var vadJob: Job? = null
     private var outputFile: File? = null
     private var startTime: Long = 0
-    private var sileroVAD: SileroVAD? = null
     private var frequencyAnalyzer: FrequencyAnalyzer? = null
+
+    // Speech detection based on amplitude
+    private var speechDetected = false
+    private var silenceStartTime: Long = 0
+    private val speechThreshold = 1000 // Amplitude threshold for speech
+    private val silenceDurationMs = 1500L // 1.5 seconds of silence to auto-stop
 
     private val _isRecording = MutableStateFlow(false)
     val isRecording: StateFlow<Boolean> = _isRecording.asStateFlow()
@@ -45,22 +48,8 @@ class AudioRecorder(
     private val _shouldAutoStop = MutableStateFlow(false)
     val shouldAutoStop: StateFlow<Boolean> = _shouldAutoStop.asStateFlow()
 
-    // VAD settings
-    companion object {
-        private const val VAD_SAMPLE_RATE = 16000
-        private const val VAD_CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
-        private const val VAD_AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT
-    }
-
     init {
-        if (enableVAD) {
-            try {
-                sileroVAD = SileroVAD(context)
-            } catch (e: Exception) {
-                android.util.Log.e("AudioRecorder", "Failed to initialize VAD", e)
-            }
-        }
-        frequencyAnalyzer = FrequencyAnalyzer(sampleRate = VAD_SAMPLE_RATE, bandCount = 6)
+        frequencyAnalyzer = FrequencyAnalyzer(sampleRate = 44100, bandCount = 6)
     }
 
     @SuppressLint("MissingPermission")
@@ -90,32 +79,58 @@ class AudioRecorder(
             startTime = System.currentTimeMillis()
             _isRecording.value = true
             _shouldAutoStop.value = false
-            sileroVAD?.reset()
+            speechDetected = false
+            silenceStartTime = 0
             frequencyAnalyzer?.reset()
 
-            // Start audio level monitoring
+            // Start audio level monitoring and speech detection
             audioLevelJob = CoroutineScope(Dispatchers.Default).launch {
+                var frameCount = 0
                 while (isActive && _isRecording.value) {
                     try {
                         val maxAmplitude = mediaRecorder?.maxAmplitude ?: 0
+                        frameCount++
+
+                        // Detect speech based on amplitude
+                        val isSpeech = maxAmplitude > speechThreshold
+                        if (isSpeech) {
+                            speechDetected = true
+                            silenceStartTime = 0
+                            _speechProbability.value = 1f
+                        } else if (speechDetected) {
+                            _speechProbability.value = 0f
+                            // Track silence after speech
+                            if (silenceStartTime == 0L) {
+                                silenceStartTime = System.currentTimeMillis()
+                            } else if (System.currentTimeMillis() - silenceStartTime > silenceDurationMs) {
+                                _shouldAutoStop.value = true
+                            }
+                        }
+
+                        // Log every 20 frames (~1 second)
+                        if (frameCount % 20 == 0) {
+                            android.util.Log.d("AudioRecorder", "Frame $frameCount: amplitude=$maxAmplitude, speechDetected=$speechDetected")
+                        }
+
                         // Use logarithmic scale for better visual response
-                        // Noise gate at 500 to filter background noise
                         val normalizedLevel = if (maxAmplitude > 500) {
-                            // Log scale with threshold to filter noise
                             val logLevel = kotlin.math.log10(maxAmplitude.toFloat()) / 4.5f
                             (logLevel - 0.55f).coerceIn(0f, 1f)
                         } else {
                             0f
                         }
                         _audioLevel.value = normalizedLevel
+
+                        // Generate fake frequency bands based on amplitude for visualization
+                        val bands = FloatArray(6) { i ->
+                            val base = normalizedLevel * (0.5f + 0.5f * kotlin.math.sin(i.toFloat() + frameCount * 0.1f).toFloat())
+                            base.coerceIn(0f, 1f)
+                        }
+                        _frequencyBands.value = bands
                     } catch (_: Exception) { }
                     delay(50)
                 }
             }
-
-            // Start VAD/frequency processing
-            // Always start for frequency analysis, VAD is optional
-            startVADProcessing()
 
             return outputFile
         } catch (e: Exception) {
@@ -125,90 +140,9 @@ class AudioRecorder(
         }
     }
 
-    @SuppressLint("MissingPermission")
-    private fun startVADProcessing() {
-        android.util.Log.d("AudioRecorder", "startVADProcessing called")
-
-        val bufferSize = AudioRecord.getMinBufferSize(
-            VAD_SAMPLE_RATE,
-            VAD_CHANNEL_CONFIG,
-            VAD_AUDIO_FORMAT
-        )
-        android.util.Log.d("AudioRecorder", "Buffer size: $bufferSize")
-
-        audioRecord = AudioRecord(
-            MediaRecorder.AudioSource.MIC,
-            VAD_SAMPLE_RATE,
-            VAD_CHANNEL_CONFIG,
-            VAD_AUDIO_FORMAT,
-            bufferSize * 2
-        )
-
-        if (audioRecord?.state != AudioRecord.STATE_INITIALIZED) {
-            android.util.Log.e("AudioRecorder", "Failed to initialize AudioRecord for VAD, state: ${audioRecord?.state}")
-            audioRecord?.release()
-            audioRecord = null
-            return
-        }
-
-        android.util.Log.d("AudioRecorder", "AudioRecord initialized, starting recording")
-        audioRecord?.startRecording()
-
-        android.util.Log.d("AudioRecorder", "Starting VAD job, audioRecord state: ${audioRecord?.state}")
-
-        vadJob = CoroutineScope(Dispatchers.Default).launch {
-            val buffer = ShortArray(512) // Silero VAD expects 512 samples at 16kHz
-            var frameCount = 0
-
-            while (isActive && _isRecording.value) {
-                try {
-                    val read = audioRecord?.read(buffer, 0, buffer.size) ?: 0
-                    if (read > 0) {
-                        frameCount++
-                        // Convert shorts to floats (-1 to 1)
-                        val floatBuffer = FloatArray(read) { i ->
-                            buffer[i] / 32768f
-                        }
-
-                        // Process through VAD
-                        val probability = sileroVAD?.process(floatBuffer) ?: 0f
-                        _speechProbability.value = probability
-
-                        // Process frequency analysis
-                        val bands = frequencyAnalyzer?.analyze(floatBuffer) ?: FloatArray(6) { 0f }
-                        _frequencyBands.value = bands
-
-                        // Log every 20 frames (~1 second)
-                        if (frameCount % 20 == 0) {
-                            val maxBand = bands.maxOrNull() ?: 0f
-                            val avgBand = bands.average().toFloat()
-                            android.util.Log.d("AudioRecorder", "Frame $frameCount: prob=$probability, bands max=$maxBand avg=$avgBand")
-                        }
-
-                        // Check if we should auto-stop
-                        if (sileroVAD?.shouldStopRecording(probability) == true) {
-                            _shouldAutoStop.value = true
-                        }
-                    } else {
-                        android.util.Log.w("AudioRecorder", "AudioRecord read returned $read")
-                    }
-                } catch (e: Exception) {
-                    android.util.Log.e("AudioRecorder", "VAD processing error", e)
-                }
-            }
-            android.util.Log.d("AudioRecorder", "VAD job ended after $frameCount frames")
-        }
-    }
-
     fun stop(): Pair<File?, Long>? {
         return try {
             val duration = System.currentTimeMillis() - startTime
-
-            // Stop VAD first
-            vadJob?.cancel()
-            audioRecord?.stop()
-            audioRecord?.release()
-            audioRecord = null
 
             audioLevelJob?.cancel()
             _audioLevel.value = 0f
@@ -223,6 +157,7 @@ class AudioRecorder(
             }
             mediaRecorder = null
 
+            android.util.Log.d("AudioRecorder", "Recording stopped: duration=${duration}ms, speechDetected=$speechDetected")
             Pair(outputFile, duration)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -232,11 +167,7 @@ class AudioRecorder(
     }
 
     fun release() {
-        vadJob?.cancel()
         audioLevelJob?.cancel()
-
-        audioRecord?.release()
-        audioRecord = null
 
         _audioLevel.value = 0f
         _frequencyBands.value = FloatArray(6) { 0f }
@@ -248,13 +179,10 @@ class AudioRecorder(
             mediaRecorder?.release()
         } catch (_: Exception) { }
         mediaRecorder = null
-
-        sileroVAD?.release()
-        sileroVAD = null
     }
 
     /**
      * Check if speech was detected during recording.
      */
-    fun hasSpeechBeenDetected(): Boolean = sileroVAD?.hasSpeechBeenDetected() ?: true
+    fun hasSpeechBeenDetected(): Boolean = speechDetected
 }
