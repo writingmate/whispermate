@@ -119,7 +119,9 @@ class TranscriptionProviderManager: ObservableObject {
         }
         customEndpoint = UserDefaults.standard.string(forKey: endpointKey) ?? ""
         customModel = UserDefaults.standard.string(forKey: modelKey) ?? ""
-        enableLLMPostProcessing = UserDefaults.standard.bool(forKey: llmPostProcessingKey)
+        // Force disable LLM post-processing for now (settings hidden)
+        enableLLMPostProcessing = false
+        // enableLLMPostProcessing = UserDefaults.standard.bool(forKey: llmPostProcessingKey)
         if let savedPostProcessor = UserDefaults.standard.string(forKey: postProcessingProviderKey),
            let provider = PostProcessingProvider(rawValue: savedPostProcessor)
         {
