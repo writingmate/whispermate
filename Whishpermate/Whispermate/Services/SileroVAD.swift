@@ -124,7 +124,7 @@ class SileroVAD {
                 "hidden_state": hiddenState,
                 "cell_state": cellState,
             ])
-            let output = try model.prediction(from: input)
+            let output = try await model.prediction(from: input)
 
             // Get probability from vad_output
             if let outputArray = output.featureValue(for: "vad_output")?.multiArrayValue {

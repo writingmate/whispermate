@@ -26,6 +26,7 @@ enum SettingsSection: String, CaseIterable, Identifiable {
     case general = "General"
     case account = "Account"
     case permissions = "Permissions"
+    case transcription = "Transcription"
     case audio = "Audio"
     case language = "Language"
     case dictionary = "Dictionary"
@@ -41,6 +42,7 @@ enum SettingsSection: String, CaseIterable, Identifiable {
         case .account: return "person.circle"
         case .history: return "clock.arrow.circlepath"
         case .permissions: return "lock.shield"
+        case .transcription: return "text.bubble"
         case .audio: return "waveform"
         case .language: return "globe"
         case .dictionary: return "book.closed"
@@ -55,6 +57,7 @@ enum SettingsSection: String, CaseIterable, Identifiable {
         case .account: return "Subscription and account management"
         case .history: return "View and manage transcription history"
         case .permissions: return "Microphone, accessibility, and screen recording"
+        case .transcription: return "Transcription provider and model settings"
         case .audio: return "Input device and audio settings"
         case .language: return "Transcription language preferences"
         case .dictionary: return "Custom word replacements and corrections"
@@ -76,6 +79,7 @@ struct SettingsView: View {
     @ObservedObject var launchAtLoginManager = LaunchAtLoginManager.shared
     @ObservedObject var authManager = AuthManager.shared
     @ObservedObject var screenCaptureManager = ScreenCaptureManager.shared
+    @ObservedObject var parakeetService = ParakeetTranscriptionService.shared
     @Binding var selectedSection: SettingsSection
     @State private var transcriptionApiKey = ""
     @State private var llmApiKey = ""
@@ -125,6 +129,8 @@ struct SettingsView: View {
                         EmptyView()
                     case .permissions:
                         permissionsSection
+                    case .transcription:
+                        transcriptionSection
                     case .audio:
                         audioSection
                     case .language:
@@ -406,18 +412,36 @@ struct SettingsView: View {
             // Recording Hotkey Settings Group
             SettingsCard {
                 VStack(spacing: 0) {
-                    // Recording Hotkey
+                    // Dictation Hotkey
                     HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Recording Hotkey")
+                            Text("Dictation Hotkey")
                                 .dsFont(.body)
                                 .foregroundStyle(Color.dsForeground)
-                            Text("Shortcut to start and stop recording")
+                            Text("Shortcut to start and stop dictation")
                                 .dsFont(.label)
                                 .foregroundStyle(Color.dsMutedForeground)
                         }
                         Spacer()
-                        HotkeyRecorderView(hotkeyManager: hotkeyManager)
+                        HotkeyRecorderView(hotkeyManager: hotkeyManager, hotkeyType: .dictation)
+                    }
+                    .padding(.vertical, 2)
+
+                    Divider()
+                        .padding(.vertical, 6)
+
+                    // Command Hotkey
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Command Hotkey")
+                                .dsFont(.body)
+                                .foregroundStyle(Color.dsForeground)
+                            Text("Transform selected text with voice instructions")
+                                .dsFont(.label)
+                                .foregroundStyle(Color.dsMutedForeground)
+                        }
+                        Spacer()
+                        HotkeyRecorderView(hotkeyManager: hotkeyManager, hotkeyType: .command)
                     }
                     .padding(.vertical, 2)
 
@@ -646,6 +670,278 @@ struct SettingsView: View {
                     .padding(.vertical, 2)
                 }
             }
+        }
+    }
+
+    // MARK: - Transcription Section
+
+    private var transcriptionSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Provider Selection
+            SettingsCard {
+                VStack(spacing: 0) {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Transcription Provider")
+                                .dsFont(.body)
+                                .foregroundStyle(Color.dsForeground)
+                            Text("Choose how your voice is transcribed")
+                                .dsFont(.label)
+                                .foregroundStyle(Color.dsMutedForeground)
+                        }
+                        Spacer()
+                        Picker("", selection: Binding(
+                            get: { transcriptionProviderManager.selectedProvider },
+                            set: { transcriptionProviderManager.setProvider($0) }
+                        )) {
+                            ForEach(TranscriptionProvider.allCases) { provider in
+                                Text(provider.displayName).tag(provider)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .fixedSize()
+                    }
+                    .padding(.vertical, 2)
+
+                    // Provider description
+                    HStack {
+                        Text(transcriptionProviderManager.selectedProvider.description)
+                            .dsFont(.label)
+                            .foregroundStyle(Color.dsMutedForeground)
+                        Spacer()
+                    }
+                    .padding(.top, 4)
+                }
+            }
+
+            // On-Device Model Settings (shown when Parakeet is selected)
+            if transcriptionProviderManager.selectedProvider == .parakeet {
+                SettingsCard {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Model Status")
+                                    .dsFont(.body)
+                                    .foregroundStyle(Color.dsForeground)
+                                Text(parakeetStatusText)
+                                    .dsFont(.label)
+                                    .foregroundStyle(parakeetStatusColor)
+                            }
+                            Spacer()
+
+                            switch parakeetService.state {
+                            case .notInitialized:
+                                Button("Download Model (~500 MB)") {
+                                    Task {
+                                        try? await parakeetService.initialize()
+                                    }
+                                }
+                                .controlSize(.small)
+                            case .downloading, .initializing:
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                                    .opacity(0) // Placeholder to maintain layout
+                            case .ready, .transcribing:
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                            case .error:
+                                Button("Retry") {
+                                    parakeetService.cleanup()
+                                    Task {
+                                        try? await parakeetService.initialize()
+                                    }
+                                }
+                                .controlSize(.small)
+                            }
+                        }
+
+                        Text("Multilingual model supporting 25 European languages")
+                            .dsFont(.label)
+                            .foregroundStyle(Color.dsMutedForeground)
+
+                        // Progress bar for downloading/initializing states
+                        if case .downloading = parakeetService.state {
+                            VStack(alignment: .leading, spacing: 4) {
+                                ProgressView()
+                                    .progressViewStyle(.linear)
+                                Text("Downloading model from Hugging Face...")
+                                    .dsFont(.label)
+                                    .foregroundStyle(Color.dsMutedForeground)
+                            }
+                        } else if case .initializing = parakeetService.state {
+                            VStack(alignment: .leading, spacing: 4) {
+                                ProgressView()
+                                    .progressViewStyle(.linear)
+                                Text("Loading model into memory...")
+                                    .dsFont(.label)
+                                    .foregroundStyle(Color.dsMutedForeground)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // API Key (shown for cloud providers except Custom which uses Secrets.plist)
+            if transcriptionProviderManager.selectedProvider.requiresAPIKey && transcriptionProviderManager.selectedProvider != .custom {
+                SettingsCard {
+                    VStack(spacing: 12) {
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("API Key")
+                                    .dsFont(.body)
+                                    .foregroundStyle(Color.dsForeground)
+                                Text("Your \(transcriptionProviderManager.selectedProvider.displayName) API key")
+                                    .dsFont(.label)
+                                    .foregroundStyle(Color.dsMutedForeground)
+                            }
+                            Spacer()
+                        }
+
+                        HStack {
+                            SecureField("Enter API key", text: $transcriptionApiKey)
+                                .textFieldStyle(.roundedBorder)
+
+                            Button("Save") {
+                                KeychainHelper.save(
+                                    key: transcriptionProviderManager.selectedProvider.apiKeyName,
+                                    value: transcriptionApiKey
+                                )
+                                showingTranscriptionKeySaved = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                    showingTranscriptionKeySaved = false
+                                }
+                            }
+                            .controlSize(.small)
+
+                            if showingTranscriptionKeySaved {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                            }
+                        }
+                    }
+                }
+                .onAppear {
+                    transcriptionApiKey = KeychainHelper.get(
+                        key: transcriptionProviderManager.selectedProvider.apiKeyName
+                    ) ?? ""
+                }
+                .onChange(of: transcriptionProviderManager.selectedProvider) { _ in
+                    transcriptionApiKey = KeychainHelper.get(
+                        key: transcriptionProviderManager.selectedProvider.apiKeyName
+                    ) ?? ""
+                }
+            }
+
+            // LLM Post-Processing toggle (shown for all providers except Custom)
+            if transcriptionProviderManager.selectedProvider != .custom {
+                SettingsCard {
+                    VStack(spacing: 12) {
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("LLM Post-Processing")
+                                    .dsFont(.body)
+                                    .foregroundStyle(Color.dsForeground)
+                                Text("Apply dictionary, shortcuts, and context rules")
+                                    .dsFont(.label)
+                                    .foregroundStyle(Color.dsMutedForeground)
+                            }
+                            Spacer()
+                            Toggle("", isOn: Binding(
+                                get: { transcriptionProviderManager.enableLLMPostProcessing },
+                                set: { transcriptionProviderManager.setLLMPostProcessing($0) }
+                            ))
+                            .toggleStyle(.switch)
+                            .controlSize(.mini)
+                            .labelsHidden()
+                        }
+
+                        if transcriptionProviderManager.enableLLMPostProcessing {
+                            Divider()
+
+                            // LLM Provider picker
+                            HStack(spacing: 12) {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("LLM Provider")
+                                        .dsFont(.body)
+                                        .foregroundStyle(Color.dsForeground)
+                                }
+                                Spacer()
+                                Picker("", selection: Binding(
+                                    get: { llmProviderManager.selectedProvider },
+                                    set: { llmProviderManager.setProvider($0) }
+                                )) {
+                                    ForEach(LLMProvider.allCases) { provider in
+                                        Text(provider.displayName).tag(provider)
+                                    }
+                                }
+                                .pickerStyle(.menu)
+                                .fixedSize()
+                            }
+
+                            // LLM API Key
+                            HStack {
+                                SecureField("Enter LLM API key", text: $llmApiKey)
+                                    .textFieldStyle(.roundedBorder)
+
+                                Button("Save") {
+                                    KeychainHelper.save(
+                                        key: llmProviderManager.selectedProvider.apiKeyName,
+                                        value: llmApiKey
+                                    )
+                                    showingLLMKeySaved = true
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                        showingLLMKeySaved = false
+                                    }
+                                }
+                                .controlSize(.small)
+
+                                if showingLLMKeySaved {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(.green)
+                                }
+                            }
+                        }
+                    }
+                }
+                .onAppear {
+                    llmApiKey = KeychainHelper.get(
+                        key: llmProviderManager.selectedProvider.apiKeyName
+                    ) ?? ""
+                }
+                .onChange(of: llmProviderManager.selectedProvider) { _ in
+                    llmApiKey = KeychainHelper.get(
+                        key: llmProviderManager.selectedProvider.apiKeyName
+                    ) ?? ""
+                }
+            }
+        }
+    }
+
+    private var parakeetStatusText: String {
+        switch parakeetService.state {
+        case .notInitialized:
+            return "Model not downloaded"
+        case .downloading:
+            return "Downloading model..."
+        case .initializing:
+            return "Loading model..."
+        case .ready:
+            return "Ready"
+        case .transcribing:
+            return "Transcribing..."
+        case .error(let message):
+            return "Error: \(message)"
+        }
+    }
+
+    private var parakeetStatusColor: Color {
+        switch parakeetService.state {
+        case .ready, .transcribing:
+            return .green
+        case .error:
+            return .red
+        default:
+            return Color.dsMutedForeground
         }
     }
 

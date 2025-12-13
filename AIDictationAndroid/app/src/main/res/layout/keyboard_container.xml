@@ -37,7 +37,7 @@
                 android:clickable="true"
                 android:focusable="true" />
 
-            <!-- Suggestion buttons -->
+            <!-- Suggestion buttons (hidden during recording) -->
             <LinearLayout
                 android:id="@+id/suggestions_container"
                 android:layout_width="0dp"
@@ -115,43 +115,68 @@
 
             </LinearLayout>
 
-            <!-- Command mic button - shows after dictation for voice commands -->
-            <ImageButton
+            <!-- Waveform view (shown during recording) -->
+            <com.whispermate.aidictation.ui.components.WaveformView
+                android:id="@+id/waveform_view"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:visibility="gone" />
+
+            <!-- Rewrite button - shows after dictation for voice commands -->
+            <TextView
                 android:id="@+id/command_mic_button"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Voice command"
-                android:src="@drawable/ic_command_mic"
-                android:scaleType="centerInside"
-                android:padding="8dp"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="4dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="14dp"
+                android:gravity="center"
+                android:text="Rewrite"
+                android:textSize="13sp"
+                android:fontFamily="@font/google_sans_flex"
+                android:textColor="@color/key_text_color_lxx_system"
+                android:background="@drawable/btn_toolbar_chip"
+                android:drawableStart="@drawable/ic_command_mic"
+                android:drawablePadding="6dp"
                 android:clickable="true"
                 android:focusable="true"
                 android:visibility="gone" />
 
-            <!-- Cleanup button - shows after dictation -->
-            <ImageButton
+            <!-- Fix button - shows after dictation -->
+            <TextView
                 android:id="@+id/cleanup_button"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
                 android:layout_marginEnd="8dp"
-                android:background="?android:attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Clean up text"
-                android:src="@drawable/ic_cleanup"
-                android:scaleType="centerInside"
-                android:padding="8dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="14dp"
+                android:gravity="center"
+                android:text="Fix"
+                android:textSize="13sp"
+                android:fontFamily="@font/google_sans_flex"
+                android:textColor="@color/key_text_color_lxx_system"
+                android:background="@drawable/btn_toolbar_chip"
+                android:drawableStart="@drawable/ic_cleanup"
+                android:drawablePadding="6dp"
                 android:clickable="true"
                 android:focusable="true"
                 android:visibility="gone" />
 
-            <com.whispermate.aidictation.ui.views.CircularMicButtonView
+            <ImageButton
                 android:id="@+id/mic_button"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_marginEnd="8dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Voice input"
-                app:idleColor="@color/key_text_color_lxx_system"
-                app:activeColor="#FFFF9500" />
+                android:src="@drawable/ic_mic_toolbar"
+                android:scaleType="centerInside"
+                android:padding="8dp"
+                android:clickable="true"
+                android:focusable="true" />
         </LinearLayout>
 
         <!-- Cleanup action bar - shows during cleanup review -->

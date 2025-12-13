@@ -22,16 +22,16 @@
 <resources>
     <color name="ic_launcher_background">#ECEFF1</color>
 
-    <!-- Color resources for LXX_System theme - uses system/dynamic colors (matching Gboard) -->
-    <color name="background_lxx_system">@android:color/system_neutral2_50</color>
-    <color name="background_secondary_lxx_system">@android:color/system_neutral1_100</color>
-    <color name="key_text_color_lxx_system">@android:color/system_neutral1_900</color>
-    <color name="key_functional_text_color_lxx_system">@android:color/system_neutral1_900</color>
-    <color name="key_text_inactive_color_lxx_system">@android:color/system_neutral1_600</color>
-    <color name="key_hint_letter_color_lxx_system">@android:color/system_neutral1_500</color>
-    <color name="key_background_normal_lxx_system">@android:color/white</color>
-    <color name="key_background_pressed_lxx_system">@android:color/system_neutral1_100</color>
-    <color name="key_background_functional_lxx_system">@android:color/system_accent2_100</color>
+    <!-- Color resources for LXX_System theme - MD3 light surface colors fallback for pre-Android 12 -->
+    <color name="background_lxx_system">#FEF7FF</color>
+    <color name="background_secondary_lxx_system">#E8DEF8</color>
+    <color name="key_text_color_lxx_system">#1D1B20</color>
+    <color name="key_functional_text_color_lxx_system">#1D1B20</color>
+    <color name="key_text_inactive_color_lxx_system">#49454F</color>
+    <color name="key_hint_letter_color_lxx_system">#79747E</color>
+    <color name="key_background_normal_lxx_system">#FFFFFF</color>
+    <color name="key_background_pressed_lxx_system">#E8DEF8</color>
+    <color name="key_background_functional_lxx_system">#E8DEF8</color>
     <!-- Color resources for LXX_Light theme. -->
     <color name="background_lxx_light">#ECEFF1</color>
     <color name="background_secondary_lxx_light">#737373</color>

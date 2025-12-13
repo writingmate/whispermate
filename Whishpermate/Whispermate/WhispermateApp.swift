@@ -19,9 +19,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private let onboardingManager = OnboardingManager.shared
 
     func applicationDidFinishLaunching(_: Notification) {
-        // Debug: Check font loading
-        debugFontLoading()
-
         statusBarManager.setupMenuBar()
 
         // Disable automatic window restoration for all windows except main
@@ -201,105 +198,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
 
-    // MARK: - Font Debug
-
-    private func debugFontLoading() {
-        print("========================================")
-        print("🔤 FONT DEBUG START")
-        print("========================================")
-
-        // Manually register fonts with Core Text for SwiftUI
-        registerFontsManually()
-
-        // Check bundle path
-        let bundle = Bundle.main
-        print("📦 Bundle path: \(bundle.bundlePath)")
-        print("📦 Resources path: \(bundle.resourcePath ?? "nil")")
-
-        // Check if font files exist in bundle
-        let fontNames = ["Geist-Regular", "Geist-Bold", "Geist-Medium", "JetBrainsMono-Regular"]
-        for fontName in fontNames {
-            if let fontPath = bundle.path(forResource: fontName, ofType: "ttf") {
-                print("✅ Found font file: \(fontName).ttf at \(fontPath)")
-            } else {
-                print("❌ Font file NOT found: \(fontName).ttf")
-            }
-        }
-
-        // Check available font families
-        let fontManager = NSFontManager.shared
-        let availableFamilies = fontManager.availableFontFamilies
-
-        // Look for Geist and JetBrains
-        let geistFamilies = availableFamilies.filter { $0.lowercased().contains("geist") }
-        let jetBrainsFamilies = availableFamilies.filter { $0.lowercased().contains("jetbrains") }
-
-        print("\n📋 Geist font families found: \(geistFamilies)")
-        print("📋 JetBrains font families found: \(jetBrainsFamilies)")
-
-        // Try to create fonts directly
-        if let geistFont = NSFont(name: "Geist-Regular", size: 14) {
-            print("✅ NSFont 'Geist-Regular' created: \(geistFont)")
-        } else {
-            print("❌ NSFont 'Geist-Regular' FAILED to create")
-        }
-
-        if let jetBrainsFont = NSFont(name: "JetBrainsMono-Regular", size: 14) {
-            print("✅ NSFont 'JetBrainsMono-Regular' created: \(jetBrainsFont)")
-        } else {
-            print("❌ NSFont 'JetBrainsMono-Regular' FAILED to create")
-        }
-
-        // List all fonts in Geist family if found
-        if !geistFamilies.isEmpty {
-            for family in geistFamilies {
-                let members = fontManager.availableMembers(ofFontFamily: family) ?? []
-                print("📋 Members of '\(family)': \(members)")
-            }
-        }
-
-        // Check Info.plist ATSApplicationFontsPath
-        if let atsPath = bundle.infoDictionary?["ATSApplicationFontsPath"] as? String {
-            print("\n📋 ATSApplicationFontsPath: '\(atsPath)'")
-        } else {
-            print("\n❌ ATSApplicationFontsPath NOT set in Info.plist")
-        }
-
-        print("========================================")
-        print("🔤 FONT DEBUG END")
-        print("========================================\n")
-    }
-
-    private func registerFontsManually() {
-        let bundle = Bundle.main
-        let fontExtensions = ["ttf", "otf"]
-        var registeredCount = 0
-
-        for ext in fontExtensions {
-            guard let fontURLs = bundle.urls(forResourcesWithExtension: ext, subdirectory: nil) else { continue }
-
-            for fontURL in fontURLs {
-                var error: Unmanaged<CFError>?
-                let success = CTFontManagerRegisterFontsForURL(fontURL as CFURL, .process, &error)
-
-                if success {
-                    print("✅ Registered font: \(fontURL.lastPathComponent)")
-                    registeredCount += 1
-                } else if let err = error?.takeRetainedValue() {
-                    let errorDesc = CFErrorCopyDescription(err) as String? ?? "Unknown error"
-                    // Error 105 means font is already registered - that's OK
-                    if errorDesc.contains("105") {
-                        print("ℹ️ Font already registered: \(fontURL.lastPathComponent)")
-                    } else {
-                        print("❌ Failed to register font \(fontURL.lastPathComponent): \(errorDesc)")
-                    }
-                }
-            }
-        }
-
-        print("📋 Manually registered \(registeredCount) fonts with CTFontManager")
-    }
-
     // MARK: - Hotkey Setup
 
     private func setupHotkeyCallbacks() {
@@ -307,20 +205,31 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         DebugLog.info("Setting up hotkey callbacks", context: "AppDelegate")
         DebugLog.info("========================================", context: "AppDelegate")
 
-        // Hotkey callbacks now just delegate to AppState
+        // Dictation hotkey callbacks
         hotkeyManager.onHotkeyPressed = { [weak self] in
-            DebugLog.info("🎯 Hotkey pressed", context: "AppDelegate")
+            DebugLog.info("🎯 Dictation hotkey pressed", context: "AppDelegate")
             self?.appState.startRecording()
         }
 
         hotkeyManager.onHotkeyReleased = { [weak self] in
-            DebugLog.info("🎯 Hotkey released", context: "AppDelegate")
+            DebugLog.info("🎯 Dictation hotkey released", context: "AppDelegate")
             self?.appState.stopRecording()
         }
 
         hotkeyManager.onDoubleTap = { [weak self] in
             DebugLog.info("🎯🎯 Double-tap", context: "AppDelegate")
             self?.appState.toggleContinuousRecording()
+        }
+
+        // Command hotkey callbacks
+        hotkeyManager.onCommandHotkeyPressed = { [weak self] in
+            DebugLog.info("🎯 Command hotkey pressed", context: "AppDelegate")
+            self?.appState.startCommandRecording()
+        }
+
+        hotkeyManager.onCommandHotkeyReleased = { [weak self] in
+            DebugLog.info("🎯 Command hotkey released", context: "AppDelegate")
+            self?.appState.stopRecording()
         }
 
         DebugLog.info("Hotkey callbacks configured!", context: "AppDelegate")
@@ -432,7 +341,7 @@ struct WhishpermateApp: App {
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)
         .defaultPosition(.center)
-        .defaultSize(width: 560, height: 520)
+        .defaultSize(width: 1100, height: 724)
         .commandsRemoved()
     }
 }

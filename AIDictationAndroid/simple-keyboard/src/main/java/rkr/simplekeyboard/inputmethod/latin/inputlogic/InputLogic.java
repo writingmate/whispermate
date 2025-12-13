@@ -234,9 +234,14 @@ public final class InputLogic {
                 final EditorInfo editorInfo = getCurrentInputEditorInfo();
                 final int imeOptionsActionId =
                         InputTypeUtils.getImeOptionsActionIdFromEditorInfo(editorInfo);
+                android.util.Log.d("InputLogic", "CODE_ENTER: imeOptionsActionId=" + imeOptionsActionId
+                        + " imeOptions=0x" + Integer.toHexString(editorInfo != null ? editorInfo.imeOptions : 0)
+                        + " actionId=" + (editorInfo != null ? editorInfo.actionId : -1)
+                        + " actionLabel=" + (editorInfo != null ? editorInfo.actionLabel : null));
                 if (InputTypeUtils.IME_ACTION_CUSTOM_LABEL == imeOptionsActionId) {
                     // Either we have an actionLabel and we should performEditorAction with
                     // actionId regardless of its value.
+                    android.util.Log.d("InputLogic", "CODE_ENTER: performing custom label action");
                     performEditorAction(editorInfo.actionId);
                 } else if (EditorInfo.IME_ACTION_NONE != imeOptionsActionId) {
                     // We didn't have an actionLabel, but we had another action to execute.
@@ -246,10 +251,12 @@ public final class InputLogic {
                     // code for it - presumably it only handles one. It does not have to be treated
                     // in any specific way: anything that is not IME_ACTION_NONE should be sent to
                     // performEditorAction.
+                    android.util.Log.d("InputLogic", "CODE_ENTER: performing editor action " + imeOptionsActionId);
                     performEditorAction(imeOptionsActionId);
                 } else {
                     // No action label, and the action from imeOptions is NONE: this is a regular
                     // enter key that should input a carriage return.
+                    android.util.Log.d("InputLogic", "CODE_ENTER: inserting newline");
                     handleNonSpecialCharacterEvent(event, inputTransaction);
                 }
                 break;

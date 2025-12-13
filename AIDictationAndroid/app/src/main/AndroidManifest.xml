@@ -51,6 +51,20 @@
                 android:resource="@xml/method" />
         </service>
 
+        <!-- Speech Recognition Service (Whisper-based) -->
+        <service
+            android:name=".service.WhisperRecognitionService"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.RECORD_AUDIO">
+            <intent-filter>
+                <action android:name="android.speech.RecognitionService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.speech"
+                android:resource="@xml/recognition_service" />
+        </service>
+
     </application>
 
 </manifest>

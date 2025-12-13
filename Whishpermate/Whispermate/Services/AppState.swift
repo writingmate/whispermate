@@ -23,11 +23,17 @@ class AppState: ObservableObject {
         case background
     }
 
+    enum RecordingMode {
+        case dictation
+        case command
+    }
+
     // MARK: - Published State
 
     @Published var recordingState: RecordingState = .idle
     @Published var appContext: AppContext = .foreground
     @Published var transcriptionText: String = ""
+    @Published var lastOutputText: String = ""  // Last text pasted to document (for command mode chaining)
     @Published var errorMessage: String = ""
     @Published var currentRecording: Recording?
     @Published var isProcessing: Bool = false
@@ -41,6 +47,7 @@ class AppState: ObservableObject {
     private var capturedAppBundleId: String?
     private var capturedWindowTitle: String?
     private var capturedScreenContext: String?
+    private var recordingMode: RecordingMode = .dictation
 
     // MARK: - Dependencies (singletons)
 
@@ -67,14 +74,12 @@ class AppState: ObservableObject {
     // MARK: - Public API
 
     /// Start recording audio
-    func startRecording(continuous: Bool = false) {
-        DebugLog.info("🎬 AppState.startRecording(continuous: \(continuous))", context: "AppState")
+    /// - Parameters:
+    ///   - continuous: Whether this is continuous recording mode
+    ///   - isCommandMode: Whether this is command mode (set by startCommandRecording)
+    func startRecording(continuous: Bool = false, isCommandMode: Bool = false) {
+        DebugLog.info("🎬 AppState.startRecording(continuous: \(continuous), isCommandMode: \(isCommandMode))", context: "AppState")
 
-        // Ignore if onboarding is active
-        guard !onboardingManager.showOnboarding else {
-            DebugLog.info("⚠️ Ignoring - onboarding in progress", context: "AppState")
-            return
-        }
 
         // Don't start if already recording
         guard recordingState == .idle else {
@@ -82,11 +87,18 @@ class AppState: ObservableObject {
             return
         }
 
+        // Reset recording mode - command mode is only active when explicitly requested
+        if !isCommandMode {
+            recordingMode = .dictation
+        }
+
         // Set state
         recordingState = .recording
         isContinuousRecording = continuous
         shouldAutoPaste = true // Always auto-paste when hotkey is triggered
         recordingStartTime = Date()
+
+        DebugLog.info("Recording mode: \(recordingMode)", context: "AppState")
 
         // Clear previous state
         DispatchQueue.main.async { [weak self] in
@@ -119,7 +131,7 @@ class AppState: ObservableObject {
         }
 
         // Store previous app for pasting
-        PasteHelper.storePreviousApp()
+        ClipboardManager.storePreviousApp()
 
         // Start audio recording
         audioRecorder.startRecording()
@@ -127,13 +139,26 @@ class AppState: ObservableObject {
         if audioRecorder.isRecording {
             DebugLog.info("✅ Recording started successfully", context: "AppState")
             if overlayManager.isOverlayMode {
-                overlayManager.updateState(isRecording: true, isProcessing: false)
+                let isCommand = (recordingMode == .command)
+                overlayManager.transition(to: .recording(isCommandMode: isCommand))
+                DebugLog.info("Overlay transitioned to recording (command: \(isCommand))", context: "AppState")
             }
         } else {
             DebugLog.info("❌ Recording failed to start", context: "AppState")
             recordingState = .idle
             errorMessage = "Failed to start recording"
         }
+    }
+
+    /// Start recording in command mode - voice instruction to transform text
+    func startCommandRecording() {
+        DebugLog.info("🎬 AppState.startCommandRecording()", context: "AppState")
+        DebugLog.info("🎯 Command mode activated", context: "AppState")
+        recordingMode = .command
+        // Capture target text (selected text or last dictation) before recording starts
+        CommandModeManager.shared.prepareForCommand()
+        DebugLog.info("🎯 Target text captured: '\(CommandModeManager.shared.targetText.prefix(100))...'", context: "AppState")
+        startRecording(continuous: false, isCommandMode: true)
     }
 
     /// Stop recording and begin transcription
@@ -154,10 +179,11 @@ class AppState: ObservableObject {
                 recordingState = .idle
                 shouldAutoPaste = false
                 recordingStartTime = nil
+                recordingMode = .dictation
                 _ = audioRecorder.stopRecording()
 
                 if overlayManager.isOverlayMode {
-                    overlayManager.updateState(isRecording: false, isProcessing: false)
+                    overlayManager.transition(to: .hidden)
                 }
                 return
             }
@@ -167,9 +193,10 @@ class AppState: ObservableObject {
         guard let audioURL = audioRecorder.stopRecording() else {
             DebugLog.info("❌ Failed to get audio URL", context: "AppState")
             recordingState = .idle
+            recordingMode = .dictation
             errorMessage = "Failed to save recording"
             if overlayManager.isOverlayMode {
-                overlayManager.updateState(isRecording: false, isProcessing: false)
+                overlayManager.transition(to: .hidden)
             }
             return
         }
@@ -183,9 +210,10 @@ class AppState: ObservableObject {
                 DebugLog.info("Audio file too small (\(fileSize) bytes)", context: "AppState")
                 recordingState = .idle
                 shouldAutoPaste = false
+                recordingMode = .dictation
                 try? FileManager.default.removeItem(at: audioURL)
                 if overlayManager.isOverlayMode {
-                    overlayManager.updateState(isRecording: false, isProcessing: false)
+                    overlayManager.transition(to: .hidden)
                 }
                 return
             }
@@ -244,7 +272,8 @@ class AppState: ObservableObject {
         isProcessing = true
 
         if overlayManager.isOverlayMode {
-            overlayManager.updateState(isRecording: false, isProcessing: true)
+            let isCommand = (recordingMode == .command)
+            overlayManager.transition(to: .processing(isCommandMode: isCommand))
         }
 
         Task {
@@ -261,7 +290,7 @@ class AppState: ObservableObject {
                         }
                         try? FileManager.default.removeItem(at: audioURL)
                         if overlayManager.isOverlayMode {
-                            overlayManager.updateState(isRecording: false, isProcessing: false)
+                            overlayManager.transition(to: .hidden)
                         }
 
                         // Show upgrade modal
@@ -290,23 +319,13 @@ class AppState: ObservableObject {
                         }
                         try? FileManager.default.removeItem(at: audioURL)
                         if overlayManager.isOverlayMode {
-                            overlayManager.updateState(isRecording: false, isProcessing: false)
+                            overlayManager.transition(to: .hidden)
                         }
                         return
                     }
                 }
 
-                // Get API key
-                guard let transcriptionApiKey = resolvedTranscriptionApiKey() else {
-                    await MainActor.run {
-                        self.recordingState = .idle
-                        self.isProcessing = false
-                        self.errorMessage = "Please set your transcription API key"
-                    }
-                    return
-                }
-
-                // Build formatting rules
+                // Build context components (used by all providers)
                 var promptComponents: [String] = []
 
                 if !dictionaryManager.transcriptionHints.isEmpty {
@@ -325,47 +344,177 @@ class AppState: ObservableObject {
                     promptComponents.append(instructions)
                 }
 
-                let llmApiKey = !promptComponents.isEmpty ? resolvedLLMApiKey() : nil
+                // Get clipboard and screen context (only for dictation mode)
+                let clipboardContent: String?
+                let screenContextForTranscription: String?
 
-                // Create/update OpenAI client
-                let config = OpenAIClient.Configuration(
-                    transcriptionEndpoint: transcriptionProviderManager.effectiveEndpoint,
-                    transcriptionModel: transcriptionProviderManager.effectiveModel,
-                    chatCompletionEndpoint: llmProviderManager.effectiveEndpoint,
-                    chatCompletionModel: llmProviderManager.effectiveModel,
-                    apiKey: transcriptionApiKey
-                )
-
-                if openAIClient == nil {
-                    openAIClient = OpenAIClient(config: config)
+                if self.recordingMode == .command {
+                    clipboardContent = nil
+                    screenContextForTranscription = nil
+                    DebugLog.info("Command mode: transcribing voice instruction only", context: "AppState")
                 } else {
-                    openAIClient?.updateConfig(config)
+                    clipboardContent = await MainActor.run {
+                        NSPasteboard.general.string(forType: .string)
+                    }
+                    screenContextForTranscription = capturedScreenContext
                 }
 
-                guard let client = openAIClient else {
-                    throw NSError(domain: "AppState", code: -1)
-                }
+                // Transcribe using selected provider
+                let result: String
+                let provider = transcriptionProviderManager.selectedProvider
+                DebugLog.info("Selected transcription provider: \(provider.displayName), isOnDevice: \(provider.isOnDevice)", context: "AppState")
 
-                // Read clipboard content if available
-                let clipboardContent = await MainActor.run {
-                    NSPasteboard.general.string(forType: .string)
-                }
+                if provider == .custom {
+                    // Custom (AIDictation): Server handles both transcription and formatting
+                    DebugLog.info("Using Custom (AIDictation) provider - server handles formatting", context: "AppState")
 
-                if let clipboardContent = clipboardContent, !clipboardContent.isEmpty {
-                    DebugLog.info("Clipboard content detected: \(clipboardContent.prefix(50))...", context: "AppState")
-                }
+                    guard let transcriptionApiKey = resolvedTranscriptionApiKey() else {
+                        await MainActor.run {
+                            self.recordingState = .idle
+                            self.isProcessing = false
+                            self.errorMessage = "Please set your transcription API key"
+                        }
+                        return
+                    }
 
-                // Transcribe
-                let result = try await client.transcribeAndFormat(
-                    audioURL: audioURL,
-                    prompt: nil,
-                    formattingRules: promptComponents,
-                    languageCodes: languageManager.apiLanguageCode,
-                    appContext: capturedAppContext,
-                    llmApiKey: llmApiKey,
-                    clipboardContent: clipboardContent,
-                    screenContext: capturedScreenContext
-                )
+                    let config = OpenAIClient.Configuration(
+                        transcriptionEndpoint: transcriptionProviderManager.effectiveEndpoint,
+                        transcriptionModel: transcriptionProviderManager.effectiveModel,
+                        chatCompletionEndpoint: llmProviderManager.effectiveEndpoint,
+                        chatCompletionModel: llmProviderManager.effectiveModel,
+                        apiKey: transcriptionApiKey
+                    )
+
+                    if openAIClient == nil {
+                        openAIClient = OpenAIClient(config: config)
+                    } else {
+                        openAIClient?.updateConfig(config)
+                    }
+
+                    guard let client = openAIClient else {
+                        throw NSError(domain: "AppState", code: -1)
+                    }
+
+                    // Custom API handles everything server-side
+                    result = try await client.transcribeAndFormat(
+                        audioURL: audioURL,
+                        prompt: nil,
+                        formattingRules: promptComponents,
+                        languageCodes: languageManager.apiLanguageCode,
+                        appContext: capturedAppContext,
+                        llmApiKey: nil,
+                        clipboardContent: clipboardContent,
+                        screenContext: screenContextForTranscription
+                    )
+
+                } else if provider.isOnDevice {
+                    // Parakeet: Local transcription + optional LLM post-processing
+                    DebugLog.info("Using on-device Parakeet transcription", context: "AppState")
+
+                    let rawText = try await ParakeetTranscriptionService.shared.transcribe(audioURL: audioURL)
+
+                    // Optional LLM post-processing
+                    if transcriptionProviderManager.enableLLMPostProcessing && !promptComponents.isEmpty,
+                       let llmApiKey = resolvedLLMApiKey() {
+                        DebugLog.info("Applying LLM post-processing to Parakeet transcription", context: "AppState")
+
+                        let config = OpenAIClient.Configuration(
+                            transcriptionEndpoint: "",
+                            transcriptionModel: "",
+                            chatCompletionEndpoint: llmProviderManager.effectiveEndpoint,
+                            chatCompletionModel: llmProviderManager.effectiveModel,
+                            apiKey: llmApiKey
+                        )
+
+                        if openAIClient == nil {
+                            openAIClient = OpenAIClient(config: config)
+                        } else {
+                            openAIClient?.updateConfig(config)
+                        }
+
+                        if let client = openAIClient {
+                            result = try await client.applyFormattingRules(
+                                transcription: rawText,
+                                rules: promptComponents,
+                                languageCodes: languageManager.apiLanguageCode,
+                                appContext: capturedAppContext,
+                                clipboardContent: clipboardContent
+                            )
+                        } else {
+                            result = rawText
+                        }
+                    } else {
+                        if transcriptionProviderManager.enableLLMPostProcessing && resolvedLLMApiKey() == nil {
+                            DebugLog.warning("LLM post-processing enabled but no API key - using raw transcription", context: "AppState")
+                        }
+                        result = rawText
+                    }
+
+                } else {
+                    // Groq/OpenAI: Cloud transcription + optional LLM post-processing
+                    DebugLog.info("Using \(provider.displayName) cloud transcription", context: "AppState")
+
+                    guard let transcriptionApiKey = resolvedTranscriptionApiKey() else {
+                        await MainActor.run {
+                            self.recordingState = .idle
+                            self.isProcessing = false
+                            self.errorMessage = "Please set your \(provider.displayName) API key"
+                        }
+                        return
+                    }
+
+                    let config = OpenAIClient.Configuration(
+                        transcriptionEndpoint: transcriptionProviderManager.effectiveEndpoint,
+                        transcriptionModel: transcriptionProviderManager.effectiveModel,
+                        chatCompletionEndpoint: llmProviderManager.effectiveEndpoint,
+                        chatCompletionModel: llmProviderManager.effectiveModel,
+                        apiKey: transcriptionApiKey
+                    )
+
+                    if openAIClient == nil {
+                        openAIClient = OpenAIClient(config: config)
+                    } else {
+                        openAIClient?.updateConfig(config)
+                    }
+
+                    guard let client = openAIClient else {
+                        throw NSError(domain: "AppState", code: -1)
+                    }
+
+                    // Stage 1: Pure transcription
+                    let rawText = try await client.transcribe(audioURL: audioURL)
+
+                    // Stage 2: Optional LLM post-processing
+                    if transcriptionProviderManager.enableLLMPostProcessing && !promptComponents.isEmpty {
+                        DebugLog.info("Applying LLM post-processing", context: "AppState")
+
+                        let llmApiKey = resolvedLLMApiKey()
+                        if llmApiKey != nil {
+                            // Update client with LLM API key if different
+                            let llmConfig = OpenAIClient.Configuration(
+                                transcriptionEndpoint: transcriptionProviderManager.effectiveEndpoint,
+                                transcriptionModel: transcriptionProviderManager.effectiveModel,
+                                chatCompletionEndpoint: llmProviderManager.effectiveEndpoint,
+                                chatCompletionModel: llmProviderManager.effectiveModel,
+                                apiKey: llmApiKey!
+                            )
+                            client.updateConfig(llmConfig)
+
+                            result = try await client.applyFormattingRules(
+                                transcription: rawText,
+                                rules: promptComponents,
+                                languageCodes: languageManager.apiLanguageCode,
+                                appContext: capturedAppContext,
+                                clipboardContent: clipboardContent
+                            )
+                        } else {
+                            DebugLog.warning("LLM post-processing enabled but no API key - using raw transcription", context: "AppState")
+                            result = rawText
+                        }
+                    } else {
+                        result = rawText
+                    }
+                }
 
                 // Success - save to history
                 let duration = recordingStartTime.map { Date().timeIntervalSince($0) } ?? 0
@@ -398,10 +547,16 @@ class AppState: ObservableObject {
                 )
                 recording.wordCount = wordCount
 
+                // Capture mode and target before resetting
+                let wasCommandMode = self.recordingMode == .command
+                let commandTargetText = CommandModeManager.shared.targetText
+
+                // Update common state
                 await MainActor.run {
+                    self.recordingMode = .dictation // Reset recording mode
                     historyManager.addRecording(recording)
                     self.currentRecording = recording
-                    self.transcriptionText = result
+                    self.transcriptionText = result  // Always store raw transcription
                     self.recordingState = .idle
                     self.isProcessing = false
                 }
@@ -409,20 +564,11 @@ class AppState: ObservableObject {
                 // Notify recording completed
                 NotificationCenter.default.post(name: .recordingCompleted, object: recording)
 
-                // Auto-paste if needed
-                if shouldAutoPaste && !onboardingManager.showOnboarding {
-                    DebugLog.info("Auto-pasting...", context: "AppState")
-                    await MainActor.run {
-                        self.recordingState = .pasting
-                    }
-                    PasteHelper.copyAndPaste(result)
-                    await MainActor.run {
-                        self.recordingState = .idle
-                    }
-                }
-
-                if overlayManager.isOverlayMode {
-                    overlayManager.updateState(isRecording: false, isProcessing: false)
+                // Dispatch to appropriate handler based on mode
+                if wasCommandMode {
+                    await processCommandResult(instruction: result, targetText: commandTargetText)
+                } else {
+                    await processDictationResult(transcription: result)
                 }
 
             } catch {
@@ -445,6 +591,8 @@ class AppState: ObservableObject {
                         self.errorMessage = error.localizedDescription
                         self.recordingState = .idle
                         self.isProcessing = false
+                        self.recordingMode = .dictation // Reset recording mode on error
+                        CommandModeManager.shared.reset()
                     }
 
                     // Notify recording completed (even if failed)
@@ -452,7 +600,7 @@ class AppState: ObservableObject {
                 }
 
                 if overlayManager.isOverlayMode {
-                    overlayManager.updateState(isRecording: false, isProcessing: false)
+                    overlayManager.transition(to: .hidden)
                 }
             }
 
@@ -498,5 +646,124 @@ class AppState: ObservableObject {
         }
 
         return nil
+    }
+
+    // MARK: - Dictation Result Processing
+
+    /// Process dictation result: update state and paste transcribed text
+    private func processDictationResult(transcription: String) async {
+        DebugLog.info("Processing dictation result...", context: "AppState")
+
+        // Update state
+        await MainActor.run {
+            self.transcriptionText = transcription
+            self.lastOutputText = transcription
+        }
+
+        // Paste if needed
+        if shouldAutoPaste {
+            DebugLog.info("Auto-pasting dictation...", context: "AppState")
+            await MainActor.run {
+                self.recordingState = .pasting
+            }
+            ClipboardManager.copyAndPaste(transcription)
+            await MainActor.run {
+                self.recordingState = .idle
+                self.overlayManager.transition(to: .hidden)
+            }
+        } else if overlayManager.isOverlayMode {
+            // Not auto-pasting, just reset overlay state
+            overlayManager.transition(to: overlayManager.hideIdleState ? .hidden : .idle)
+        }
+    }
+
+    // MARK: - Command Result Processing
+
+    /// Process command result: execute LLM instruction and paste result
+    private func processCommandResult(instruction: String, targetText: String) async {
+        DebugLog.info("Processing command: '\(instruction)'", context: "AppState")
+
+        let targetSource = CommandModeManager.shared.targetSource
+        let selectedTextLength = CommandModeManager.shared.selectedTextLength
+        let hasTargetText = !targetText.isEmpty
+
+        DebugLog.info("Command mode: source=\(targetSource), targetTextLength=\(targetText.count), selectedTextLength=\(selectedTextLength)", context: "AppState")
+
+        // Build screen context: always include app info, add OCR if available
+        var screenContextParts: [String] = []
+        if let appContext = self.capturedAppContext {
+            screenContextParts.append("App: \(appContext)")
+        }
+        if let ocrContext = self.capturedScreenContext {
+            screenContextParts.append("Screen content:\n\(ocrContext)")
+        }
+        let screenContext: String? = screenContextParts.isEmpty ? nil : screenContextParts.joined(separator: "\n\n")
+
+        // Build context rules (same as transcription)
+        var contextRules: [String] = []
+        if !dictionaryManager.transcriptionHints.isEmpty {
+            contextRules.append("Vocabulary: \(dictionaryManager.transcriptionHints)")
+        }
+        if !shortcutManager.transcriptionHints.isEmpty {
+            contextRules.append("Phrases: \(shortcutManager.transcriptionHints)")
+        }
+        if let instructions = dictionaryManager.formattingInstructions {
+            contextRules.append(instructions)
+        }
+        if let instructions = shortcutManager.formattingInstructions {
+            contextRules.append(instructions)
+        }
+        if let instructions = contextRulesManager.instructions(for: capturedAppBundleId, windowTitle: capturedWindowTitle) {
+            contextRules.append(instructions)
+        }
+
+        // Execute the command (with or without target text)
+        guard let resultText = await CommandModeManager.shared.executeInstruction(
+            instruction,
+            selectedText: targetText,
+            screenContext: screenContext,
+            contextRules: contextRules
+        ) else {
+            DebugLog.error("Command mode: execution failed", context: "AppState")
+            await resetCommandModeState()
+            return
+        }
+
+        DebugLog.info("Command mode: \(hasTargetText ? "transformation" : "generation") complete", context: "AppState")
+
+        // Paste result
+        await MainActor.run {
+            self.recordingState = .pasting
+        }
+
+        // Only replace selected text if source was selectedText (not clipboard)
+        if targetSource == .selectedText && selectedTextLength > 0 {
+            // For selected text: move forward to end of selection, delete backwards, then paste
+            DebugLog.info("Command mode: replacing \(selectedTextLength) chars of selected text", context: "AppState")
+            ClipboardManager.moveForwardAndDelete(characterCount: selectedTextLength) {
+                ClipboardManager.replaceSelectionAndPaste(resultText)
+            }
+        } else {
+            // Clipboard source or no selection - just paste at cursor
+            DebugLog.info("Command mode: pasting at cursor (source: \(targetSource))", context: "AppState")
+            ClipboardManager.replaceSelectionAndPaste(resultText)
+        }
+
+        // Update state
+        await MainActor.run {
+            self.lastOutputText = resultText
+            self.recordingState = .idle
+        }
+
+        // Reset command mode
+        await resetCommandModeState()
+    }
+
+    /// Reset command mode state and hide overlay
+    private func resetCommandModeState() async {
+        await MainActor.run {
+            self.overlayManager.transition(to: .hidden)
+            CommandModeManager.shared.reset()
+        }
     }
 }

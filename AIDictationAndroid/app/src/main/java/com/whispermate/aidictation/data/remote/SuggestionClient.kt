@@ -23,21 +23,13 @@ object SuggestionClient {
             .build()
     }
 
-    private val completionPrompt = """You are a keyboard autocomplete assistant. The user is typing a word. Complete it.
+    private val systemPrompt = """You are a keyboard autocomplete assistant. The user is typing a word. Complete it.
 
-Rules:
-- Return exactly 3 complete words that START with the partial word being typed
-- Each suggestion must be exactly ONE word (no phrases, no spaces)
-- Keep suggestions relevant and common
-- No explanations, no punctuation, just 3 single words on separate lines"""
+Return exactly 3 likely next words
 
-    private val nextWordPrompt = """You are a keyboard autocomplete assistant. Suggest the next word the user might type.
-
-Rules:
-- Return exactly 3 likely next words based on context
-- Each suggestion must be exactly ONE word (no phrases, no spaces)
-- Keep suggestions relevant and common
-- No explanations, no punctuation, just 3 single words on separate lines"""
+Example:
+Input: Hello, how are y
+Output: you, your, ya"""
 
     suspend fun getSuggestions(text: String, isCompletingWord: Boolean): Result<List<String>> = withContext(Dispatchers.IO) {
         try {
@@ -50,28 +42,21 @@ Rules:
                 return@withContext Result.success(emptyList())
             }
 
-            val prompt = if (isCompletingWord) completionPrompt else nextWordPrompt
-            val userMessage = if (isCompletingWord) {
-                val partialWord = text.trimEnd().split(" ").lastOrNull() ?: ""
-                "Context: \"$text\"\nComplete the word: \"$partialWord\""
-            } else {
-                "Context: \"$text\"\nSuggest the next word."
-            }
-
             val requestJson = JSONObject().apply {
                 put("model", BuildConfig.GROQ_MODEL)
                 put("messages", JSONArray().apply {
                     put(JSONObject().apply {
                         put("role", "system")
-                        put("content", prompt)
+                        put("content", systemPrompt)
                     })
                     put(JSONObject().apply {
                         put("role", "user")
-                        put("content", userMessage)
+                        put("content", text)
                     })
                 })
-                put("max_tokens", 50)
+                put("max_tokens", 1000)
                 put("temperature", 0.3)
+                put("include_reasoning", false)
                 put("reasoning_effort", "low")
             }
 
@@ -98,15 +83,16 @@ Rules:
                 .getJSONObject(0)
                 .getJSONObject("message")
 
-            // gpt-oss models put output in "reasoning" field, not "content"
+            // Some models use "reasoning" field instead of "content"
             val content = if (message.has("reasoning") && message.optString("content").isEmpty()) {
                 message.getString("reasoning").trim()
             } else {
                 message.getString("content").trim()
             }
 
+            // Parse comma-separated or newline-separated suggestions
             val suggestions = content
-                .split("\n")
+                .split(",", "\n")
                 .map { it.trim() }
                 .filter { it.isNotBlank() }
                 .take(3)

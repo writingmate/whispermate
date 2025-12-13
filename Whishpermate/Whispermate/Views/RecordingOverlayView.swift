@@ -41,6 +41,9 @@ struct RecordingOverlayView: View {
     }
 
     private var backgroundColor: Color {
+        if manager.isCommandMode {
+            return Color.blue // System blue for command mode
+        }
         if manager.isRecording { return Color.dsPrimary }
         if manager.isProcessing { return Color.dsPrimary }
         return Color.dsMuted.opacity(0.85)
@@ -217,6 +220,7 @@ struct RecordingOverlayView: View {
         .frame(width: expandButtonSize, height: expandButtonSize)
         .transition(.scale.combined(with: .opacity))
     }
+
 }
 
 #Preview {

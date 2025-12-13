@@ -46,6 +46,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 import android.view.WindowInsetsController;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodSubtype;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -67,6 +68,7 @@ import rkr.simplekeyboard.inputmethod.latin.inputlogic.InputLogic;
 import rkr.simplekeyboard.inputmethod.latin.settings.Settings;
 import rkr.simplekeyboard.inputmethod.latin.settings.SettingsActivity;
 import rkr.simplekeyboard.inputmethod.latin.settings.SettingsValues;
+import rkr.simplekeyboard.inputmethod.latin.common.LocaleUtils;
 import rkr.simplekeyboard.inputmethod.latin.utils.ApplicationUtils;
 import rkr.simplekeyboard.inputmethod.latin.utils.LeakGuardHandlerWrapper;
 import rkr.simplekeyboard.inputmethod.latin.utils.ResourceUtils;
@@ -365,6 +367,24 @@ public class LatinIME extends InputMethodService implements KeyboardActionListen
         loadKeyboard();
         // Notify OS about subtype change so spell checker uses correct language
         mRichImm.notifySubtypeToSystem(this);
+    }
+
+    /**
+     * Called by the Android system when the subtype is changed via system UI (e.g., system globe button).
+     * This syncs the internal virtual subtype with the system-selected subtype.
+     */
+    @Override
+    public void onCurrentInputMethodSubtypeChanged(InputMethodSubtype subtype) {
+        Log.d(TAG, "onCurrentInputMethodSubtypeChanged: locale=" + subtype.getLocale());
+        // Sync our internal subtype to match what the system selected
+        final String locale = subtype.getLocale();
+        if (locale != null && !locale.isEmpty()) {
+            final Locale localeObj = LocaleUtils.constructLocaleFromString(locale);
+            if (mRichImm.setCurrentSubtype(localeObj)) {
+                // Trigger internal subtype change handling
+                onCurrentSubtypeChanged();
+            }
+        }
     }
 
     void onStartInputInternal(final EditorInfo editorInfo, final boolean restarting) {

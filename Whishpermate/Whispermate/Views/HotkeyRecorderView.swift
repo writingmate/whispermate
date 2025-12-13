@@ -1,10 +1,18 @@
 import AppKit
 import SwiftUI
 
+// MARK: - Hotkey Type
+
+enum HotkeyType {
+    case dictation
+    case command
+}
+
 // MARK: - Predefined Hotkey Options
 
 enum HotkeyOption: String, CaseIterable, Identifiable {
     case fn = "fn"
+    case leftControl = "left_ctrl"
     case rightCommand = "right_cmd"
     case rightOption = "right_opt"
     case rightShift = "right_shift"
@@ -26,6 +34,7 @@ enum HotkeyOption: String, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .fn: return "Fn"
+        case .leftControl: return "Left ⌃"
         case .rightCommand: return "Right ⌘"
         case .rightOption: return "Right ⌥"
         case .rightShift: return "Right ⇧"
@@ -47,6 +56,9 @@ enum HotkeyOption: String, CaseIterable, Identifiable {
         switch self {
         case .fn:
             return Hotkey(keyCode: 63, modifiers: .function)
+        case .leftControl:
+            // Left Control key code is 59
+            return Hotkey(keyCode: 59, modifiers: .control)
         case .rightCommand:
             // Right Command key code is 54
             return Hotkey(keyCode: 54, modifiers: .command)
@@ -105,6 +117,11 @@ enum HotkeyOption: String, CaseIterable, Identifiable {
             return .fn
         }
 
+        // Check for left Control (keyCode 59)
+        if hotkey.keyCode == 59 && hotkey.modifiers.contains(.control) {
+            return .leftControl
+        }
+
         // Check for right-side modifier keys
         if hotkey.keyCode == 54 && hotkey.modifiers.contains(.command) {
             return .rightCommand
@@ -154,7 +171,22 @@ enum HotkeyOption: String, CaseIterable, Identifiable {
 
 struct HotkeyRecorderView: View {
     @ObservedObject var hotkeyManager: HotkeyManager
+    var hotkeyType: HotkeyType = .dictation
     @State private var selectedOption: HotkeyOption = .fn
+
+    private var currentHotkey: Hotkey? {
+        switch hotkeyType {
+        case .dictation: return hotkeyManager.currentHotkey
+        case .command: return hotkeyManager.commandHotkey
+        }
+    }
+
+    private var defaultOption: HotkeyOption {
+        switch hotkeyType {
+        case .dictation: return .fn
+        case .command: return .leftControl
+        }
+    }
 
     var body: some View {
         Picker("", selection: $selectedOption) {
@@ -166,12 +198,19 @@ struct HotkeyRecorderView: View {
         .fixedSize()
         .onAppear {
             // Load current selection
-            if let option = HotkeyOption.from(hotkey: hotkeyManager.currentHotkey) {
+            if let option = HotkeyOption.from(hotkey: currentHotkey) {
                 selectedOption = option
+            } else {
+                selectedOption = defaultOption
             }
         }
         .onChange(of: selectedOption) { newValue in
-            hotkeyManager.setHotkey(newValue.hotkey)
+            switch hotkeyType {
+            case .dictation:
+                hotkeyManager.setHotkey(newValue.hotkey)
+            case .command:
+                hotkeyManager.setCommandHotkey(newValue.hotkey)
+            }
         }
     }
 }

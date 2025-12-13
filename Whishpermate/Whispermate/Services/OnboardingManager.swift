@@ -63,6 +63,7 @@ class OnboardingManager: ObservableObject {
     }
     @Published var accessibilityGranted: Bool = false
     @Published var microphoneGranted: Bool = false
+    @Published var microphoneDenied: Bool = false
 
     // MARK: - Private Properties
 
@@ -211,15 +212,39 @@ class OnboardingManager: ObservableObject {
     }
 
     func requestMicrophonePermission() {
-        AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
-            DispatchQueue.main.async {
-                DebugLog.info("Microphone permission: \(granted)", context: "OnboardingManager")
-                if granted {
-                    // Initialize audio observers now that permission is granted
-                    OverlayWindowManager.shared.initializeAudioObservers()
-                    self?.moveToNextStep()
+        let currentStatus = AVCaptureDevice.authorizationStatus(for: .audio)
+
+        switch currentStatus {
+        case .notDetermined:
+            // First time - show system dialog
+            AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
+                DispatchQueue.main.async {
+                    DebugLog.info("Microphone permission: \(granted)", context: "OnboardingManager")
+                    if granted {
+                        OverlayWindowManager.shared.initializeAudioObservers()
+                        self?.moveToNextStep()
+                    } else {
+                        self?.microphoneDenied = true
+                    }
                 }
             }
+        case .denied, .restricted:
+            // Already denied - open System Settings
+            DebugLog.info("Microphone already denied, opening System Settings", context: "OnboardingManager")
+            microphoneDenied = true
+            openMicrophoneSettings()
+        case .authorized:
+            // Already granted
+            OverlayWindowManager.shared.initializeAudioObservers()
+            moveToNextStep()
+        @unknown default:
+            break
+        }
+    }
+
+    func openMicrophoneSettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") {
+            NSWorkspace.shared.open(url)
         }
     }
 

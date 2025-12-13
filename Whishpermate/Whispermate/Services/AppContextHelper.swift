@@ -30,12 +30,13 @@ class AppContextHelper {
 
         // Get the bundle identifier
         let bundleId = activeApp.bundleIdentifier
+        let pid = activeApp.processIdentifier
 
-        // Try to get the window title using Accessibility API
-        let windowTitle = getActiveWindowTitle()
+        // Try to get the window title using Accessibility API with the specific app's PID
+        let windowTitle = getWindowTitle(forPID: pid)
 
         // Try to extract URL from window title or accessibility API
-        let url = extractURL(from: windowTitle, bundleId: bundleId)
+        let url = extractURL(from: windowTitle, bundleId: bundleId, pid: pid)
 
         DebugLog.info("App context: \(appName) (\(bundleId ?? "unknown")), Window: \(windowTitle ?? "none"), URL: \(url ?? "none")", context: "AppContextHelper")
 
@@ -43,7 +44,7 @@ class AppContextHelper {
     }
 
     /// Extract URL from window title or try to get it from accessibility API
-    private static func extractURL(from windowTitle: String?, bundleId: String?) -> String? {
+    private static func extractURL(from windowTitle: String?, bundleId: String?, pid: pid_t? = nil) -> String? {
         // Known browser bundle IDs
         let browserBundleIds = [
             "com.apple.Safari",
@@ -112,7 +113,7 @@ class AppContextHelper {
 
         // Try to get URL from accessibility API
         DebugLog.info("Trying to get URL from Accessibility API", context: "AppContextHelper")
-        if let urlFromAX = getActiveWindowURL() {
+        if let pid = pid, let urlFromAX = getWindowURL(forPID: pid) {
             DebugLog.info("Got URL from Accessibility API: \(urlFromAX)", context: "AppContextHelper")
             return urlFromAX
         }
@@ -121,27 +122,15 @@ class AppContextHelper {
         return nil
     }
 
-    /// Try to get the URL from the active window using Accessibility API
-    private static func getActiveWindowURL() -> String? {
+    /// Try to get the URL from a window using Accessibility API for a specific PID
+    private static func getWindowURL(forPID pid: pid_t) -> String? {
         // Check if we have accessibility permissions
         guard AXIsProcessTrusted() else {
             return nil
         }
 
-        // Get the system-wide accessibility element
-        let systemWideElement = AXUIElementCreateSystemWide()
-
-        // Get the focused application
-        var focusedApp: AnyObject?
-        let appResult = AXUIElementCopyAttributeValue(
-            systemWideElement,
-            kAXFocusedApplicationAttribute as CFString,
-            &focusedApp
-        )
-
-        guard appResult == .success, let appElement = focusedApp as! AXUIElement? else {
-            return nil
-        }
+        // Create AXUIElement for the specific application
+        let appElement = AXUIElementCreateApplication(pid)
 
         // Try to get the focused UI element (address bar, etc.)
         var focusedElement: AnyObject?
@@ -170,31 +159,20 @@ class AppContextHelper {
         return nil
     }
 
-    /// Get the title of the active window using Accessibility API
-    private static func getActiveWindowTitle() -> String? {
+    /// Get the title of a window using Accessibility API for a specific PID
+    private static func getWindowTitle(forPID pid: pid_t) -> String? {
         // Check if we have accessibility permissions
         guard AXIsProcessTrusted() else {
             DebugLog.info("No accessibility permissions - cannot get window title", context: "AppContextHelper")
             return nil
         }
 
-        // Get the system-wide accessibility element
-        let systemWideElement = AXUIElementCreateSystemWide()
+        DebugLog.info("Getting window title for PID: \(pid)", context: "AppContextHelper")
 
-        // Get the focused application
-        var focusedApp: AnyObject?
-        let appResult = AXUIElementCopyAttributeValue(
-            systemWideElement,
-            kAXFocusedApplicationAttribute as CFString,
-            &focusedApp
-        )
+        // Create AXUIElement for the specific application using its PID
+        let appElement = AXUIElementCreateApplication(pid)
 
-        guard appResult == .success, let appElement = focusedApp as! AXUIElement? else {
-            DebugLog.info("Could not get focused application element", context: "AppContextHelper")
-            return nil
-        }
-
-        // Get the focused window
+        // Try method 1: Get the focused window's title
         var focusedWindow: AnyObject?
         let windowResult = AXUIElementCopyAttributeValue(
             appElement,
@@ -202,24 +180,99 @@ class AppContextHelper {
             &focusedWindow
         )
 
-        guard windowResult == .success, let windowElement = focusedWindow as! AXUIElement? else {
-            DebugLog.info("Could not get focused window element", context: "AppContextHelper")
-            return nil
+        DebugLog.info("Method 1 (focused window): result=\(windowResult.rawValue)", context: "AppContextHelper")
+
+        if windowResult == .success, let windowElement = focusedWindow as! AXUIElement? {
+            var title: AnyObject?
+            let titleResult = AXUIElementCopyAttributeValue(
+                windowElement,
+                kAXTitleAttribute as CFString,
+                &title
+            )
+
+            DebugLog.info("Method 1 title result: \(titleResult.rawValue), title='\(title as? String ?? "nil")'", context: "AppContextHelper")
+
+            if titleResult == .success, let windowTitle = title as? String, !windowTitle.isEmpty {
+                DebugLog.info("Got window title from focused window: \(windowTitle)", context: "AppContextHelper")
+                return windowTitle
+            }
         }
 
-        // Get the window title
-        var title: AnyObject?
-        let titleResult = AXUIElementCopyAttributeValue(
-            windowElement,
-            kAXTitleAttribute as CFString,
-            &title
+        // Try method 2: Get the main window's title (fallback for some apps like Chrome)
+        var mainWindow: AnyObject?
+        let mainWindowResult = AXUIElementCopyAttributeValue(
+            appElement,
+            kAXMainWindowAttribute as CFString,
+            &mainWindow
         )
 
-        guard titleResult == .success, let windowTitle = title as? String else {
-            DebugLog.info("Could not get window title", context: "AppContextHelper")
-            return nil
+        DebugLog.info("Method 2 (main window): result=\(mainWindowResult.rawValue)", context: "AppContextHelper")
+
+        if mainWindowResult == .success, let mainWindowElement = mainWindow as! AXUIElement? {
+            var title: AnyObject?
+            let titleResult = AXUIElementCopyAttributeValue(
+                mainWindowElement,
+                kAXTitleAttribute as CFString,
+                &title
+            )
+
+            DebugLog.info("Method 2 title result: \(titleResult.rawValue), title='\(title as? String ?? "nil")'", context: "AppContextHelper")
+
+            if titleResult == .success, let windowTitle = title as? String, !windowTitle.isEmpty {
+                DebugLog.info("Got window title from main window: \(windowTitle)", context: "AppContextHelper")
+                return windowTitle
+            }
         }
 
-        return windowTitle
+        // Try method 3: Enumerate all windows and get the first standard window with a title
+        var windowList: AnyObject?
+        let windowsResult = AXUIElementCopyAttributeValue(
+            appElement,
+            kAXWindowsAttribute as CFString,
+            &windowList
+        )
+
+        if windowsResult == .success, let windows = windowList as? [AXUIElement] {
+            DebugLog.info("Found \(windows.count) windows, checking for titles", context: "AppContextHelper")
+            for (index, window) in windows.enumerated() {
+                // Check subrole - prefer standard windows over popups/dialogs
+                var subrole: AnyObject?
+                AXUIElementCopyAttributeValue(window, kAXSubroleAttribute as CFString, &subrole)
+                let subroleStr = subrole as? String
+
+                var title: AnyObject?
+                let titleResult = AXUIElementCopyAttributeValue(
+                    window,
+                    kAXTitleAttribute as CFString,
+                    &title
+                )
+
+                if titleResult == .success, let windowTitle = title as? String, !windowTitle.isEmpty {
+                    // Prefer standard windows
+                    if subroleStr == "AXStandardWindow" {
+                        DebugLog.info("Got window title from standard window[\(index)]: \(windowTitle)", context: "AppContextHelper")
+                        return windowTitle
+                    }
+                }
+            }
+
+            // Fallback: return any window with a title
+            for (index, window) in windows.enumerated() {
+                var title: AnyObject?
+                let titleResult = AXUIElementCopyAttributeValue(
+                    window,
+                    kAXTitleAttribute as CFString,
+                    &title
+                )
+
+                if titleResult == .success, let windowTitle = title as? String, !windowTitle.isEmpty {
+                    DebugLog.info("Got window title from window[\(index)]: \(windowTitle)", context: "AppContextHelper")
+                    return windowTitle
+                }
+            }
+        }
+
+        DebugLog.info("Could not get window title from any method", context: "AppContextHelper")
+        return nil
     }
 }

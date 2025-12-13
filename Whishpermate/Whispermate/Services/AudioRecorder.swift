@@ -83,7 +83,8 @@ class AudioRecorder: NSObject, ObservableObject {
 
             // Install tap for both recording and frequency analysis
             // The tap runs continuously, but only writes to file when isRecording is true
-            inputNode.installTap(onBus: bus, bufferSize: 2048, format: inputFormat) { [weak self] buffer, _ in
+            // Use nil format to let system choose - avoids format mismatch errors
+            inputNode.installTap(onBus: bus, bufferSize: 2048, format: nil) { [weak self] buffer, _ in
                 guard let self = self else { return }
 
                 // Only analyze and update visualization when actually recording
@@ -101,11 +102,16 @@ class AudioRecorder: NSObject, ObservableObject {
                 guard self.isRecording, let audioFile = self.audioFile else { return }
 
                 do {
+                    // Use buffer's actual format for conversion (since we use nil tap format)
+                    let bufferFormat = buffer.format
+
                     // Convert to output format if needed
-                    if let converter = AVAudioConverter(from: inputFormat, to: outputFormat) {
+                    if bufferFormat.sampleRate != outputFormat.sampleRate || bufferFormat.channelCount != outputFormat.channelCount,
+                       let converter = AVAudioConverter(from: bufferFormat, to: outputFormat) {
+                        let ratio = outputFormat.sampleRate / bufferFormat.sampleRate
                         let convertedBuffer = AVAudioPCMBuffer(
                             pcmFormat: outputFormat,
-                            frameCapacity: AVAudioFrameCount(outputFormat.sampleRate) * buffer.frameLength / AVAudioFrameCount(inputFormat.sampleRate)
+                            frameCapacity: AVAudioFrameCount(Double(buffer.frameLength) * ratio)
                         )!
 
                         var error: NSError?

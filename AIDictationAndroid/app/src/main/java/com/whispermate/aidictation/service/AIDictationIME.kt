@@ -36,7 +36,8 @@ import com.whispermate.aidictation.data.remote.CommandClient
 import com.whispermate.aidictation.data.remote.SuggestionClient
 import com.whispermate.aidictation.data.remote.TranscriptionClient
 import com.whispermate.aidictation.domain.model.Command
-import com.whispermate.aidictation.ui.views.CircularMicButtonView
+import android.content.res.ColorStateList
+import android.graphics.Color
 import com.whispermate.aidictation.util.AudioRecorder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +47,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import rkr.simplekeyboard.inputmethod.latin.LatinIME
 import rkr.simplekeyboard.inputmethod.latin.common.Constants
@@ -64,12 +66,11 @@ class AIDictationIME : LatinIME() {
     private lateinit var appPreferences: AppPreferences
     private var audioRecorder: AudioRecorder? = null
     private var vadJob: Job? = null
-    private var audioLevelJob: Job? = null
     private var suggestionJob: Job? = null
     private var settingsButton: ImageButton? = null
-    private var micButton: CircularMicButtonView? = null
-    private var commandButton: ImageButton? = null
-    private var commandMicButton: ImageButton? = null
+    private var micButton: ImageButton? = null
+    private var commandButton: TextView? = null
+    private var commandMicButton: TextView? = null
     private var toolbarView: View? = null
     private var commandActionBar: View? = null
     private var commandRollbackButton: ImageButton? = null
@@ -80,6 +81,10 @@ class AIDictationIME : LatinIME() {
     private var suggestion3: TextView? = null
     private var divider1: View? = null
     private var divider2: View? = null
+    private var suggestionsContainer: View? = null
+    private var waveformView: com.whispermate.aidictation.ui.components.WaveformView? = null
+    private var waveformJob: Job? = null
+    private var processingAnimationJob: Job? = null
     private var lastText: String = ""
 
     // Command state
@@ -88,6 +93,7 @@ class AIDictationIME : LatinIME() {
     private var transformedText: String = ""
     private var isInCommandReview: Boolean = false
     private var currentCommand: Command? = null
+    private var showingActionButtons = false  // Track if action buttons are visible
 
     private val _recordingState = MutableStateFlow(RecordingState.Idle)
     private var recordingMode: RecordingMode = RecordingMode.Dictation
@@ -109,6 +115,14 @@ class AIDictationIME : LatinIME() {
         appPreferences = AppPreferences(this, Moshi.Builder().build())
     }
 
+    override fun onStartInput(attribute: android.view.inputmethod.EditorInfo?, restarting: Boolean) {
+        super.onStartInput(attribute, restarting)
+        // Reset to clean state when starting input on a new field
+        clearSuggestions()
+        hideCommandButton()
+        lastText = ""
+    }
+
     override fun onCreateInputView(): View {
         Log.d(TAG, "onCreateInputView called")
 
@@ -128,17 +142,17 @@ class AIDictationIME : LatinIME() {
         }
 
         // Set up mic button
-        micButton = container.findViewById<CircularMicButtonView>(R.id.mic_button)?.apply {
-            setOnClickCallback { toggleVoiceInput() }
+        micButton = container.findViewById<ImageButton>(R.id.mic_button)?.apply {
+            setOnClickListener { toggleVoiceInput() }
         }
 
         // Set up command mic button (for voice instructions)
-        commandMicButton = container.findViewById<ImageButton>(R.id.command_mic_button)?.apply {
+        commandMicButton = container.findViewById<TextView>(R.id.command_mic_button)?.apply {
             setOnClickListener { startCommandRecording() }
         }
 
         // Set up command button (cleanup by default)
-        commandButton = container.findViewById<ImageButton>(R.id.cleanup_button)?.apply {
+        commandButton = container.findViewById<TextView>(R.id.cleanup_button)?.apply {
             setOnClickListener { executeDefaultCommand() }
         }
 
@@ -164,6 +178,8 @@ class AIDictationIME : LatinIME() {
         }
         divider1 = container.findViewById(R.id.divider_1)
         divider2 = container.findViewById(R.id.divider_2)
+        suggestionsContainer = container.findViewById(R.id.suggestions_container)
+        waveformView = container.findViewById(R.id.waveform_view)
 
         // Store reference to toolbar for insets calculation
         toolbarView = container.findViewById<LinearLayout>(R.id.keyboard_toolbar)
@@ -242,13 +258,79 @@ class AIDictationIME : LatinIME() {
     }
 
     private fun updateMicButtonState() {
-        micButton?.setState(
-            when (_recordingState.value) {
-                RecordingState.Idle -> CircularMicButtonView.State.Idle
-                RecordingState.Recording -> CircularMicButtonView.State.Recording
-                RecordingState.Processing -> CircularMicButtonView.State.Processing
+        val isRecording = _recordingState.value == RecordingState.Recording
+        val isProcessing = _recordingState.value == RecordingState.Processing
+
+        val color = when (_recordingState.value) {
+            RecordingState.Idle -> ContextCompat.getColor(this, rkr.simplekeyboard.inputmethod.R.color.key_text_color_lxx_system)
+            RecordingState.Recording, RecordingState.Processing -> Color.parseColor("#FFFF9500")
+        }
+        micButton?.imageTintList = ColorStateList.valueOf(color)
+
+        // Show/hide waveform and suggestions container
+        if (isRecording || isProcessing) {
+            settingsButton?.visibility = View.GONE
+            suggestionsContainer?.visibility = View.GONE
+            commandButton?.visibility = View.GONE
+            commandMicButton?.visibility = View.GONE
+            waveformView?.visibility = View.VISIBLE
+            if (isRecording) {
+                waveformView?.reset()
+                startWaveformUpdates()
+            } else {
+                // Processing state - animate idle pulsing
+                stopWaveformUpdates()
+                startProcessingAnimation()
             }
-        )
+        } else {
+            settingsButton?.visibility = View.VISIBLE
+            suggestionsContainer?.visibility = View.VISIBLE
+            waveformView?.visibility = View.GONE
+            stopWaveformUpdates()
+            stopProcessingAnimation()
+        }
+    }
+
+    private fun startWaveformUpdates() {
+        waveformJob?.cancel()
+        waveformJob = scope.launch {
+            while (isActive) {
+                val level = audioRecorder?.audioLevel?.value ?: 0f
+                waveformView?.setAudioLevel(level)
+                delay(50)
+            }
+        }
+    }
+
+    private fun stopWaveformUpdates() {
+        waveformJob?.cancel()
+        waveformJob = null
+    }
+
+    private fun startProcessingAnimation() {
+        processingAnimationJob?.cancel()
+        processingAnimationJob = scope.launch {
+            var position = 0f
+            var direction = 1f
+            while (isActive) {
+                // Wave bounces back and forth
+                waveformView?.setWavePosition(position)
+                position += 0.02f * direction
+                if (position >= 1f) {
+                    position = 1f
+                    direction = -1f
+                } else if (position <= 0f) {
+                    position = 0f
+                    direction = 1f
+                }
+                delay(16) // ~60fps for smooth animation
+            }
+        }
+    }
+
+    private fun stopProcessingAnimation() {
+        processingAnimationJob?.cancel()
+        processingAnimationJob = null
     }
 
     override fun onCodeInput(primaryCode: Int, x: Int, y: Int, isKeyRepeat: Boolean) {
@@ -274,8 +356,15 @@ class AIDictationIME : LatinIME() {
     }
 
     private fun requestSuggestions() {
-        val ic = currentInputConnection ?: return
-        val extracted = ic.getExtractedText(ExtractedTextRequest(), 0) ?: return
+        Log.d(TAG, "requestSuggestions called")
+        val ic = currentInputConnection ?: run {
+            Log.d(TAG, "No input connection")
+            return
+        }
+        val extracted = ic.getExtractedText(ExtractedTextRequest(), 0) ?: run {
+            Log.d(TAG, "No extracted text")
+            return
+        }
         val text = extracted.text?.toString() ?: ""
         val cursorPos = extracted.selectionStart
 
@@ -286,23 +375,31 @@ class AIDictationIME : LatinIME() {
             text
         }
 
+        Log.d(TAG, "Text before cursor: '$textBeforeCursor', lastText: '$lastText'")
+
         // Skip if text hasn't changed
-        if (textBeforeCursor == lastText) return
+        if (textBeforeCursor == lastText) {
+            Log.d(TAG, "Text unchanged, skipping")
+            return
+        }
         lastText = textBeforeCursor
 
         // Skip if empty
         if (textBeforeCursor.isEmpty()) {
+            Log.d(TAG, "Text empty, clearing suggestions")
             clearSuggestions()
             return
         }
 
         // Determine mode: completing current word or suggesting next word
         val isCompletingWord = textBeforeCursor.isNotEmpty() && !textBeforeCursor.endsWith(" ")
+        Log.d(TAG, "Requesting suggestions, isCompletingWord: $isCompletingWord")
 
         scope.launch {
             try {
                 val result = SuggestionClient.getSuggestions(textBeforeCursor, isCompletingWord)
                 result.onSuccess { suggestions ->
+                    Log.d(TAG, "Got suggestions: $suggestions")
                     updateSuggestions(suggestions)
                 }.onFailure {
                     Log.e(TAG, "Failed to get suggestions", it)
@@ -317,6 +414,12 @@ class AIDictationIME : LatinIME() {
 
     private fun updateSuggestions(suggestions: List<String>) {
         val hasSuggestions = suggestions.isNotEmpty()
+
+        // If we have suggestions, hide action buttons (mutually exclusive)
+        if (hasSuggestions) {
+            hideCommandButton()
+        }
+
         // Extract just the first word from each suggestion
         val s1 = suggestions.getOrNull(0)?.split(" ")?.firstOrNull() ?: ""
         val s2 = suggestions.getOrNull(1)?.split(" ")?.firstOrNull() ?: ""
@@ -389,31 +492,19 @@ class AIDictationIME : LatinIME() {
             }
         }
 
-        // Listen for audio levels and frequency bands to animate the mic button
-        audioLevelJob = scope.launch {
-            launch {
-                recorder.audioLevel.collectLatest { level ->
-                    micButton?.setAudioLevel(level)
-                }
-            }
-            launch {
-                recorder.frequencyBands.collectLatest { bands ->
-                    micButton?.setFrequencyBands(bands)
-                }
-            }
-        }
     }
 
     private fun stopRecording() {
         Log.d(TAG, "Stopping voice recording, mode: $recordingMode")
         vadJob?.cancel()
         vadJob = null
-        audioLevelJob?.cancel()
-        audioLevelJob = null
 
         val recorder = audioRecorder ?: return
         _recordingState.value = RecordingState.Processing
         updateMicButtonState()
+
+        // Check if VAD detected any speech before stopping
+        val speechDetected = recorder.hasSpeechBeenDetected()
 
         val result = recorder.stop()
         val audioFile = result?.first
@@ -432,6 +523,16 @@ class AIDictationIME : LatinIME() {
         // Skip very short recordings (less than 500ms)
         if (duration < 500) {
             Log.d(TAG, "Recording too short: ${duration}ms")
+            audioFile.delete()
+            _recordingState.value = RecordingState.Idle
+            updateMicButtonState()
+            recordingMode = RecordingMode.Dictation
+            return
+        }
+
+        // Skip if no speech was detected by VAD
+        if (!speechDetected) {
+            Log.d(TAG, "No speech detected by VAD, skipping transcription")
             audioFile.delete()
             _recordingState.value = RecordingState.Idle
             updateMicButtonState()
@@ -638,7 +739,12 @@ class AIDictationIME : LatinIME() {
                 val text = transcriptionResult.text
                 if (text.isNotBlank()) {
                     Log.d(TAG, "Transcription: $text")
-                    currentInputConnection?.commitText(text, 1)
+                    // Add space before if there's existing text without trailing space
+                    val ic = currentInputConnection
+                    val textBefore = ic?.getTextBeforeCursor(1, 0) ?: ""
+                    val needsSpace = textBefore.isNotEmpty() && !textBefore.last().isWhitespace()
+                    val prefix = if (needsSpace) " " else ""
+                    ic?.commitText("$prefix$text", 1)
                     // Store dictated text and show command button
                     lastDictatedText = text
                     showCommandButton()
@@ -651,11 +757,16 @@ class AIDictationIME : LatinIME() {
     }
 
     private fun showCommandButton() {
-        // Only show command buttons if there's text to transform
-        if (lastDictatedText.isBlank()) return
+        // Check if input is empty - never show on empty input
+        val ic = currentInputConnection ?: return
+        val text = ic.getExtractedText(ExtractedTextRequest(), 0)?.text ?: ""
+        if (text.isBlank()) return
 
+        showingActionButtons = true
         commandButton?.visibility = View.VISIBLE
         commandMicButton?.visibility = View.VISIBLE
+        // Hide suggestions when showing action buttons (mutually exclusive)
+        clearSuggestions()
     }
 
     /**
@@ -665,21 +776,24 @@ class AIDictationIME : LatinIME() {
         val ic = currentInputConnection ?: return
         val extracted = ic.getExtractedText(ExtractedTextRequest(), 0) ?: return
 
+        // Never show on empty input
+        if (extracted.text.isNullOrBlank()) {
+            hideCommandButton()
+            return
+        }
+
         val selStart = extracted.selectionStart
         val selEnd = extracted.selectionEnd
 
         if (selStart != selEnd && selStart >= 0 && selEnd >= 0) {
-            // Text is selected - show command buttons
-            commandButton?.visibility = View.VISIBLE
-            commandMicButton?.visibility = View.VISIBLE
-        } else if (lastDictatedText.isBlank()) {
-            // No selection and no last dictation - hide buttons
-            commandButton?.visibility = View.GONE
-            commandMicButton?.visibility = View.GONE
+            // Text is selected - show command buttons (will hide suggestions)
+            showCommandButton()
         }
+        // Don't auto-hide here - let suggestions trigger the hide via updateSuggestions()
     }
 
     private fun hideCommandButton() {
+        showingActionButtons = false
         commandButton?.visibility = View.GONE
         commandMicButton?.visibility = View.GONE
         lastDictatedText = ""

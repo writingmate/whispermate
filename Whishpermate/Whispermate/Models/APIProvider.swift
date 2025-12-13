@@ -4,6 +4,7 @@ internal import Combine
 // MARK: - Transcription Provider
 
 enum TranscriptionProvider: String, CaseIterable, Identifiable {
+    case parakeet  // On-device (first for prominence)
     case groq
     case openai
     case custom
@@ -12,14 +13,16 @@ enum TranscriptionProvider: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .groq: return "Groq"
-        case .openai: return "OpenAI"
-        case .custom: return "Custom"
+        case .parakeet: return "Offline (Parakeet)"
+        case .groq: return "Cloud (Groq)"
+        case .openai: return "Cloud (OpenAI)"
+        case .custom: return "Cloud (AIDictation)"
         }
     }
 
     var description: String {
         switch self {
+        case .parakeet: return "Private, offline, fast"
         case .groq: return "Whisper Large V3"
         case .openai: return "Whisper API"
         case .custom: return "Enhanced Whisper + LLM"
@@ -28,6 +31,7 @@ enum TranscriptionProvider: String, CaseIterable, Identifiable {
 
     var defaultEndpoint: String {
         switch self {
+        case .parakeet: return ""  // On-device, no endpoint
         case .groq: return "https://api.groq.com/openai/v1/audio/transcriptions"
         case .openai: return "https://api.openai.com/v1/audio/transcriptions"
         case .custom: return "https://new-git-fix-workspace-image-handling-and-api-28a97e-writingmate.vercel.app/api/openai/v1/audio/transcriptions"
@@ -36,6 +40,7 @@ enum TranscriptionProvider: String, CaseIterable, Identifiable {
 
     var defaultModel: String {
         switch self {
+        case .parakeet: return "parakeet-tdt-0.6b-v3"  // Multilingual
         case .groq: return "whisper-large-v3-turbo"
         case .openai: return "whisper-1"
         case .custom: return "gpt-4o-transcribe"
@@ -45,16 +50,31 @@ enum TranscriptionProvider: String, CaseIterable, Identifiable {
     var apiKeyName: String {
         return "\(rawValue)_transcription_api_key"
     }
+
+    var isOnDevice: Bool {
+        return self == .parakeet
+    }
+
+    var requiresAPIKey: Bool {
+        return self != .parakeet
+    }
+
+    /// Returns all available providers
+    static var availableProviders: [TranscriptionProvider] {
+        return allCases
+    }
 }
 
 class TranscriptionProviderManager: ObservableObject {
     @Published var selectedProvider: TranscriptionProvider = .custom
     @Published var customEndpoint: String = ""
     @Published var customModel: String = ""
+    @Published var enableLLMPostProcessing: Bool = false
 
     private let providerKey = "selected_transcription_provider"
     private let endpointKey = "transcription_custom_endpoint"
     private let modelKey = "transcription_custom_model"
+    private let llmPostProcessingKey = "enable_llm_post_processing"
 
     init() {
         loadSettings()
@@ -71,13 +91,20 @@ class TranscriptionProviderManager: ObservableObject {
         }
         customEndpoint = UserDefaults.standard.string(forKey: endpointKey) ?? ""
         customModel = UserDefaults.standard.string(forKey: modelKey) ?? ""
-        DebugLog.info("Loaded: \(selectedProvider.displayName)", context: "TranscriptionProviderManager")
+        enableLLMPostProcessing = UserDefaults.standard.bool(forKey: llmPostProcessingKey)
+        DebugLog.info("Loaded: \(selectedProvider.displayName), LLM post-processing: \(enableLLMPostProcessing)", context: "TranscriptionProviderManager")
     }
 
     func setProvider(_ provider: TranscriptionProvider) {
         selectedProvider = provider
         UserDefaults.standard.set(provider.rawValue, forKey: providerKey)
         DebugLog.info("Set provider: \(provider.displayName)", context: "TranscriptionProviderManager")
+    }
+
+    func setLLMPostProcessing(_ enabled: Bool) {
+        enableLLMPostProcessing = enabled
+        UserDefaults.standard.set(enabled, forKey: llmPostProcessingKey)
+        DebugLog.info("LLM post-processing: \(enabled)", context: "TranscriptionProviderManager")
     }
 
     func saveCustomSettings(endpoint: String, model: String) {

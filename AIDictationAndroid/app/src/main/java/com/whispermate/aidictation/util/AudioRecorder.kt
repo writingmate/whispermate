@@ -99,11 +99,11 @@ class AudioRecorder(
                     try {
                         val maxAmplitude = mediaRecorder?.maxAmplitude ?: 0
                         // Use logarithmic scale for better visual response
-                        // Balanced sensitivity - not too sensitive, not too quiet
-                        val normalizedLevel = if (maxAmplitude > 100) {
+                        // Noise gate at 500 to filter background noise
+                        val normalizedLevel = if (maxAmplitude > 500) {
                             // Log scale with threshold to filter noise
                             val logLevel = kotlin.math.log10(maxAmplitude.toFloat()) / 4.5f
-                            (logLevel - 0.4f).coerceIn(0f, 1f)
+                            (logLevel - 0.55f).coerceIn(0f, 1f)
                         } else {
                             0f
                         }
