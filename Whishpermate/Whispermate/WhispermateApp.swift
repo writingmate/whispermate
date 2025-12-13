@@ -114,18 +114,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // Set delegate to customize traffic light button behavior
         window.delegate = self
 
-        // Hide overlay when main window becomes visible (but keep showing if recording)
-        NotificationCenter.default.addObserver(
-            forName: NSWindow.didBecomeKeyNotification,
-            object: window,
-            queue: .main
-        ) { [weak self] _ in
-            let overlayManager = OverlayWindowManager.shared
-            if window.isVisible, !overlayManager.isRecording, !overlayManager.isProcessing {
-                DebugLog.info("Main window became key - hiding overlay", context: "AppDelegate")
-                overlayManager.hide()
-            }
-        }
 
         // Hide traffic lights completely
         window.standardWindowButton(.closeButton)?.isHidden = true
