@@ -141,7 +141,8 @@ class StatusBarManager {
 
     @objc private func showSettings() {
         NSApplication.shared.activate(ignoringOtherApps: true)
-        NotificationCenter.default.post(name: .showSettings, object: nil)
+        let window = appWindow ?? NSApplication.shared.windows.first(where: { $0.identifier == WindowIdentifiers.main })
+        window?.makeKeyAndOrderFront(nil)
     }
 
     @objc private func showOnboarding() {

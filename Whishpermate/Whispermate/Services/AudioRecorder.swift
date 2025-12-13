@@ -172,6 +172,7 @@ class AudioRecorder: NSObject, ObservableObject {
 
         // Lower system volume to duck other audio (if enabled in settings)
         let shouldMuteAudio = UserDefaults.standard.object(forKey: "muteAudioWhenRecording") as? Bool ?? true
+        DebugLog.info("Mute audio setting: \(shouldMuteAudio)", context: "AudioRecorder")
         if shouldMuteAudio {
             volumeManager.lowerVolume()
         }
