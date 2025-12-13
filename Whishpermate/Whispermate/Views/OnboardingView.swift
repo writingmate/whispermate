@@ -255,9 +255,6 @@ struct OnboardingView: View {
                 GridItem(.flexible()),
                 GridItem(.flexible()),
             ], spacing: 10) {
-                // Auto-detect option first
-                languageButton(flag: "🌐", name: "Auto-detect", isSelected: false)
-
                 ForEach(Language.allCases) { language in
                     languageButton(
                         flag: language.flag,
