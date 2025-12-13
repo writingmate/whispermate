@@ -739,7 +739,7 @@ class AppState: ObservableObject {
             ClipboardManager.copyAndPaste(transcription)
             await MainActor.run {
                 self.recordingState = .idle
-                self.overlayManager.transition(to: .hidden)
+                self.overlayManager.transition(to: self.overlayManager.hideIdleState ? .hidden : .idle)
             }
         } else if overlayManager.isOverlayMode {
             // Not auto-pasting, just reset overlay state

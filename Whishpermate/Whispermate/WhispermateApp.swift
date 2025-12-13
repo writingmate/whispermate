@@ -33,6 +33,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         // Check if onboarding is needed and open window if necessary
         checkAndShowOnboarding()
+
+        // Show overlay on app launch (if not hidden by user preference)
+        if !OverlayWindowManager.shared.hideIdleState {
+            OverlayWindowManager.shared.show()
+        }
     }
 
     func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

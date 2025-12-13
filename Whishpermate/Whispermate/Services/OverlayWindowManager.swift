@@ -179,13 +179,17 @@ class OverlayWindowManager: ObservableObject {
             isRecording = false
             isProcessing = false
             isCommandMode = false
-            if hideIdleState {
-                overlayWindow?.orderOut(nil)
-            } else {
-                ensureWindowExists()
-                overlayWindow?.orderFrontRegardless()
+            ensureWindowExists()
+            overlayWindow?.orderFrontRegardless()
+            // If coming from active state, keep window large for collapse animation
+            // View will call onCollapseAnimationComplete() when done
+            let comingFromActive = previousState == .recording(isCommandMode: true) ||
+                previousState == .recording(isCommandMode: false) ||
+                previousState == .processing(isCommandMode: true) ||
+                previousState == .processing(isCommandMode: false)
+            if !comingFromActive {
+                updateWindowSizeForState(newState, animated: false)
             }
-            updateWindowSizeForState(newState, animated: previousState != .hidden)
 
         case let .recording(commandMode):
             isRecording = true
@@ -275,6 +279,16 @@ class OverlayWindowManager: ObservableObject {
             window.orderOut(nil)
         }
         NSApp.hide(nil)
+    }
+
+    /// Called by the view when collapse animation completes
+    func onCollapseAnimationComplete() {
+        guard overlayState == .idle else { return }
+        DebugLog.info("onCollapseAnimationComplete", context: "OverlayWindowManager")
+        updateWindowSizeForState(.idle, animated: false)
+        if hideIdleState {
+            overlayWindow?.orderOut(nil)
+        }
     }
 
     // MARK: - Private Methods

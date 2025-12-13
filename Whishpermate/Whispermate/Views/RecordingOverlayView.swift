@@ -53,11 +53,15 @@ struct RecordingOverlayView: View {
         isHovering && !manager.isRecording && !manager.isProcessing
     }
 
+    // MARK: - Animation Constants
+
+    private let expandDuration: TimeInterval = 0.25
+    private let collapseDuration: TimeInterval = 0.15
+
     // MARK: - Body
 
     var body: some View {
         GeometryReader { geometry in
-            // Position content absolutely to prevent Spacer from compressing
             ZStack(alignment: manager.position == .top ? .top : .bottom) {
                 overlayContent(geometry: geometry)
             }
@@ -65,8 +69,8 @@ struct RecordingOverlayView: View {
             .background(Color.clear)
         }
         .onAppear {
-            // Handle case where view appears while already recording
-            if manager.isRecording && !shouldShowExpandedPill {
+            // Handle view appearing while already active
+            if manager.isRecording || manager.isProcessing {
                 shouldShowExpandedPill = true
                 shouldShowContent = true
             }
@@ -107,8 +111,11 @@ struct RecordingOverlayView: View {
 
                 // Hide content immediately, then collapse
                 shouldShowContent = false
-                withAnimation(.easeOut(duration: 0.15)) {
+                withAnimation(.easeOut(duration: collapseDuration)) {
                     shouldShowExpandedPill = false
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + collapseDuration) {
+                    manager.onCollapseAnimationComplete()
                 }
             }
         }
@@ -150,9 +157,13 @@ struct RecordingOverlayView: View {
                 expansionWorkItem = nil
                 contentWorkItem = nil
 
+                // Hide content immediately, then collapse
                 shouldShowContent = false
-                withAnimation(.easeOut(duration: 0.15)) {
+                withAnimation(.easeOut(duration: collapseDuration)) {
                     shouldShowExpandedPill = false
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + collapseDuration) {
+                    manager.onCollapseAnimationComplete()
                 }
             }
         }
@@ -196,10 +207,10 @@ struct RecordingOverlayView: View {
             Color.clear
                 .frame(width: targetWidth, height: targetHeight)
 
-            // Overlay the actual content only after expansion is complete
+            // Overlay the actual content only when expanded and showing
             if manager.isRecording && shouldShowContent {
                 AudioVisualizationView(audioLevel: manager.audioLevel, color: .white, frequencyBands: manager.frequencyBands)
-                    .frame(maxHeight: activeStateHeight) // Constrain to container height
+                    .frame(maxHeight: activeStateHeight)
             } else if manager.isProcessing && shouldShowContent {
                 ProcessingWaveView(color: .white)
                     .frame(maxHeight: activeStateHeight)
