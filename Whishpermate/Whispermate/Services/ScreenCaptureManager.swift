@@ -16,23 +16,14 @@ class ScreenCaptureManager: ObservableObject {
     @Published var lastCapturedText: String?
 
     /// Whether to include screen context in LLM prompts
-    @Published var includeScreenContext: Bool {
-        didSet {
-            AppDefaults.shared.set(includeScreenContext, forKey: Keys.includeScreenContext)
-        }
-    }
-
-    // MARK: - Private Properties
-
-    private enum Keys {
-        static let includeScreenContext = "includeScreenContext"
+    /// This is now tied directly to screen recording permission
+    var includeScreenContext: Bool {
+        hasScreenRecordingPermission
     }
 
     // MARK: - Initialization
 
-    private init() {
-        includeScreenContext = AppDefaults.shared.bool(forKey: Keys.includeScreenContext)
-    }
+    private init() {}
 
     // MARK: - Public API
 
@@ -41,9 +32,21 @@ class ScreenCaptureManager: ObservableObject {
         CGPreflightScreenCaptureAccess()
     }
 
-    /// Request screen recording permission (will show system prompt if not granted)
+    /// Request screen recording permission - opens System Settings
     func requestScreenRecordingPermission() {
-        CGRequestScreenCaptureAccess()
+        // CGRequestScreenCaptureAccess() only works once per app install
+        // After that, we need to direct users to System Settings
+        if !CGPreflightScreenCaptureAccess() {
+            // First attempt - try the API
+            let _ = CGRequestScreenCaptureAccess()
+
+            // Also open System Settings since the API prompt may not show
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+        }
     }
 
     /// Capture the active window and extract text via OCR

@@ -29,7 +29,11 @@
       "Bash(adb:*)",
       "Bash(timeout 20 adb:*)",
       "Bash(git checkout:*)",
-      "Bash(swift -e:*)"
+      "Bash(swift -e:*)",
+      "Bash(defaults domains:*)",
+      "Bash(defaults delete:*)",
+      "Bash(pkill:*)",
+      "Bash(plutil:*)"
     ],
     "deny": [],
     "ask": []

@@ -549,7 +549,7 @@ struct SettingsView: View {
                 }
             }
 
-            // Startup & Screen Context Group
+            // Startup Group
             SettingsCard {
                 VStack(spacing: 0) {
                     // Launch at Login
@@ -566,35 +566,6 @@ struct SettingsView: View {
                         Toggle("", isOn: Binding(
                             get: { launchAtLoginManager.isEnabled },
                             set: { _ in launchAtLoginManager.toggle() }
-                        ))
-                        .toggleStyle(.switch)
-                        .controlSize(.mini)
-                        .labelsHidden()
-                    }
-                    .padding(.vertical, 2)
-
-                    Divider()
-                        .padding(.vertical, 6)
-
-                    // Screen Context
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Include Screen Context")
-                                .dsFont(.body)
-                                .foregroundStyle(Color.dsForeground)
-                            Text("Use screen content to improve transcription")
-                                .dsFont(.label)
-                                .foregroundStyle(Color.dsMutedForeground)
-                        }
-                        Spacer()
-                        Toggle("", isOn: Binding(
-                            get: { screenCaptureManager.includeScreenContext },
-                            set: { newValue in
-                                if newValue, !screenCaptureManager.hasScreenRecordingPermission {
-                                    screenCaptureManager.requestScreenRecordingPermission()
-                                }
-                                screenCaptureManager.includeScreenContext = newValue
-                            }
                         ))
                         .toggleStyle(.switch)
                         .controlSize(.mini)
