@@ -20,6 +20,8 @@ extension NSNotification.Name {
     static let recordingStarted = NSNotification.Name("RecordingStarted")
     static let recordingCompleted = NSNotification.Name("RecordingCompleted")
     static let recordingReadyForTranscription = NSNotification.Name("RecordingReadyForTranscription")
+    static let openHistoryWindow = NSNotification.Name("OpenHistoryWindow")
+    static let openAccountSettings = NSNotification.Name("OpenAccountSettings")
 }
 
 // MARK: - StatusBarManager
@@ -133,16 +135,11 @@ class StatusBarManager {
     }
 
     @objc private func showHistory() {
-        NSApplication.shared.activate(ignoringOtherApps: true)
-        let window = appWindow ?? NSApplication.shared.windows.first(where: { $0.level == .normal })
-        window?.makeKeyAndOrderFront(nil)
-        NotificationCenter.default.post(name: .showHistory, object: nil)
+        showHistoryWindow()
     }
 
     @objc private func showSettings() {
-        NSApplication.shared.activate(ignoringOtherApps: true)
-        let window = appWindow ?? NSApplication.shared.windows.first(where: { $0.identifier == WindowIdentifiers.main })
-        window?.makeKeyAndOrderFront(nil)
+        showMainSettingsWindow()
     }
 
     @objc private func showOnboarding() {

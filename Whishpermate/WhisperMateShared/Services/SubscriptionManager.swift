@@ -14,11 +14,40 @@ import Foundation
 public class SubscriptionManager: ObservableObject {
     public static let shared = SubscriptionManager()
 
+    // MARK: - Constants
+
+    private enum Keys {
+        static let localWordCount = "localWordCount"
+        static let localWordCountResetAt = "localWordCountResetAt"
+    }
+
+    // MARK: - Published Properties
+
     @Published public var showUpgradeModal: Bool = false
+    @Published public var showSignupModal: Bool = false
+
+    // MARK: - Private Properties
 
     private let authManager = AuthManager.shared
 
-    private init() {}
+    // MARK: - Local Word Tracking (for anonymous users)
+
+    public var localWordCount: Int {
+        get { UserDefaults.standard.integer(forKey: Keys.localWordCount) }
+        set { UserDefaults.standard.set(newValue, forKey: Keys.localWordCount) }
+    }
+
+    public var localWordCountResetAt: Date? {
+        get { UserDefaults.standard.object(forKey: Keys.localWordCountResetAt) as? Date }
+        set { UserDefaults.standard.set(newValue, forKey: Keys.localWordCountResetAt) }
+    }
+
+    // MARK: - Initialization
+
+    private init() {
+        // Check and reset local count if needed on init
+        checkAndResetLocalIfNeeded()
+    }
 
     // MARK: - Subscription
 
@@ -62,16 +91,20 @@ public class SubscriptionManager: ObservableObject {
     // MARK: - Usage Helpers
 
     public func getUsageStatus() -> (used: Int, limit: Int, percentage: Double, isPro: Bool) {
-        guard let user = authManager.currentUser else {
-            return (0, 2000, 0.0, false)
+        if let user = authManager.currentUser {
+            let isPro = user.subscriptionTier == .pro
+            let limit = user.subscriptionTier.wordLimit
+            let used = user.totalWordsUsed
+            let percentage = isPro ? 0.0 : user.usagePercentage
+            return (used, limit, percentage, isPro)
+        } else {
+            // Anonymous user - use local tracking
+            checkAndResetLocalIfNeeded()
+            let limit = UsageLimits.freeMonthlyWordLimit
+            let used = localWordCount
+            let percentage = Double(used) / Double(limit)
+            return (used, limit, percentage, false)
         }
-
-        let isPro = user.subscriptionTier == .pro
-        let limit = user.subscriptionTier.wordLimit
-        let used = user.totalWordsUsed
-        let percentage = isPro ? 0.0 : user.usagePercentage
-
-        return (used, limit, percentage, isPro)
     }
 
     public func shouldShowUpgradePrompt(for wordCount: Int) -> Bool {
@@ -95,11 +128,74 @@ public class SubscriptionManager: ObservableObject {
     public func getUpgradeMessage(for user: User) -> String {
         let remaining = user.wordsRemaining
         if remaining <= 0 {
-            return "You've used all 2,000 free words. Upgrade to Pro for unlimited transcriptions!"
+            return "You've used all \(UsageLimits.freeMonthlyWordLimit.formatted()) free words. Upgrade to Pro for unlimited transcriptions!"
         } else if remaining < 200 {
             return "Only \(remaining) words left in your free trial. Upgrade now for unlimited access!"
         } else {
             return "Upgrade to Pro for unlimited transcriptions and included API access."
         }
+    }
+
+    // MARK: - Unified Transcription Check
+
+    /// Check if user can transcribe (works for both authenticated and anonymous users)
+    public func checkCanTranscribe() -> (canTranscribe: Bool, reason: String?) {
+        DebugLog.info("checkCanTranscribe: isAuthenticated=\(authManager.isAuthenticated)", context: "SubscriptionManager")
+        if authManager.isAuthenticated {
+            // Use server-side tracking for authenticated users
+            let result = authManager.checkCanTranscribe()
+            DebugLog.info("checkCanTranscribe (auth): canTranscribe=\(result.canTranscribe), reason=\(result.reason ?? "nil")", context: "SubscriptionManager")
+            return result
+        } else {
+            // Use local tracking for anonymous users
+            let result = checkLocalWordLimit()
+            DebugLog.info("checkCanTranscribe (local): canTranscribe=\(result.canTranscribe), localWordCount=\(localWordCount), limit=\(UsageLimits.freeMonthlyWordLimit)", context: "SubscriptionManager")
+            return result
+        }
+    }
+
+    /// Record words after transcription (works for both authenticated and anonymous users)
+    public func recordWords(_ count: Int) async {
+        if authManager.isAuthenticated {
+            _ = try? await authManager.updateWordCount(wordsToAdd: count)
+        } else {
+            addLocalWords(count)
+        }
+    }
+
+    // MARK: - Local Word Limit Methods
+
+    private func checkLocalWordLimit() -> (canTranscribe: Bool, reason: String?) {
+        // Check if reset needed (monthly)
+        checkAndResetLocalIfNeeded()
+
+        if localWordCount >= UsageLimits.freeMonthlyWordLimit {
+            return (false, "You've reached your free limit. Create an account to continue.")
+        }
+        return (true, nil)
+    }
+
+    public func addLocalWords(_ count: Int) {
+        if localWordCountResetAt == nil {
+            localWordCountResetAt = nextMonthStart()
+        }
+        localWordCount += count
+        DebugLog.info("Local word count updated: \(localWordCount)/\(UsageLimits.freeMonthlyWordLimit)", context: "SubscriptionManager")
+    }
+
+    private func checkAndResetLocalIfNeeded() {
+        if let resetAt = localWordCountResetAt, Date() >= resetAt {
+            DebugLog.info("Resetting local word count (was \(localWordCount))", context: "SubscriptionManager")
+            localWordCount = 0
+            localWordCountResetAt = nextMonthStart()
+        }
+    }
+
+    private func nextMonthStart() -> Date {
+        let calendar = Calendar.current
+        let now = Date()
+        let components = calendar.dateComponents([.year, .month], from: now)
+        let startOfMonth = calendar.date(from: components)!
+        return calendar.date(byAdding: .month, value: 1, to: startOfMonth)!
     }
 }

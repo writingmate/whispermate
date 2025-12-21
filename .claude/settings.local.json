@@ -27,7 +27,9 @@
       "Bash(gh release create:*)",
       "Bash(./gradlew assembleDebug:*)",
       "Bash(adb:*)",
-      "Bash(timeout 20 adb:*)"
+      "Bash(timeout 20 adb:*)",
+      "Bash(git checkout:*)",
+      "Bash(swift -e:*)"
     ],
     "deny": [],
     "ask": []

@@ -59,7 +59,7 @@ struct OnboardingView: View {
         HStack(spacing: 0) {
             leftContentArea
                 .frame(width: 620)
-                .background(Color.white)
+                .background(.background)
 
             rightGradientArea
                 .frame(width: 456)
@@ -481,7 +481,7 @@ struct OnboardingView: View {
                 .frame(maxWidth: 400)
                 .background(
                     RoundedRectangle(cornerRadius: 20)
-                        .fill(.white)
+                        .fill(.background)
                         .shadow(color: .black.opacity(0.15), radius: 30, x: 0, y: 15)
                 )
                 .scaleEffect(completeAnimationPhase >= 2 ? 1 : 0.8)

@@ -277,27 +277,24 @@ class AppState: ObservableObject {
 
         Task {
             do {
-                // Check word limit for authenticated users
-                if AuthManager.shared.isAuthenticated {
-                    let (canTranscribe, reason) = AuthManager.shared.checkCanTranscribe()
-                    if !canTranscribe {
-                        DebugLog.info("⚠️ Word limit reached", context: "AppState")
-                        await MainActor.run {
-                            self.recordingState = .idle
-                            self.isProcessing = false
-                            self.errorMessage = reason ?? "Word limit reached"
-                        }
-                        try? FileManager.default.removeItem(at: audioURL)
-                        if overlayManager.isOverlayMode {
-                            overlayManager.transition(to: .hidden)
-                        }
-
-                        // Show upgrade modal
-                        await MainActor.run {
-                            SubscriptionManager.shared.showUpgradeModal = true
-                        }
-                        return
+                // Check word limit for ALL users (authenticated and anonymous)
+                let (canTranscribe, reason) = SubscriptionManager.shared.checkCanTranscribe()
+                if !canTranscribe {
+                    DebugLog.info("⚠️ Word limit reached: \(reason ?? "unknown")", context: "AppState")
+                    await MainActor.run {
+                        self.recordingState = .idle
+                        self.isProcessing = false
                     }
+                    try? FileManager.default.removeItem(at: audioURL)
+                    if overlayManager.isOverlayMode {
+                        overlayManager.transition(to: .idle)
+                    }
+
+                    // Open Settings to Account section
+                    await MainActor.run {
+                        NotificationCenter.default.post(name: .openAccountSettings, object: nil)
+                    }
+                    return
                 }
 
                 // VAD check first
@@ -598,16 +595,9 @@ class AppState: ObservableObject {
                 // Count words in transcription
                 let wordCount = result.split(separator: " ").count
 
-                // Update user's word count if authenticated
-                if AuthManager.shared.isAuthenticated {
-                    do {
-                        _ = try await AuthManager.shared.updateWordCount(wordsToAdd: wordCount)
-                        print("✅ Updated word count: +\(wordCount) words")
-                    } catch {
-                        print("❌ Failed to update word count: \(error.localizedDescription)")
-                        // Don't fail transcription if word count update fails
-                    }
-                }
+                // Update word count (works for both authenticated and anonymous users)
+                await SubscriptionManager.shared.recordWords(wordCount)
+                DebugLog.info("✅ Updated word count: +\(wordCount) words", context: "AppState")
 
                 var recording = Recording(
                     audioFileURL: persistentURL,

@@ -17,6 +17,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private let appState = AppState.shared
     private let hotkeyManager = HotkeyManager.shared
     private let onboardingManager = OnboardingManager.shared
+    private let authManager = AuthManager.shared
+    private let subscriptionManager = SubscriptionManager.shared
+
+    // Track last processed auth URL to prevent duplicates
+    private var lastProcessedAuthURL: String?
+    private var lastProcessedAuthTime: Date?
 
     func applicationDidFinishLaunching(_: Notification) {
         statusBarManager.setupMenuBar()
@@ -40,13 +46,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
 
-    func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        // Only show main window on reopen, not settings/history
-        if !flag {
-            if let window = mainWindow {
-                window.makeKeyAndOrderFront(nil)
-            }
-        }
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        showMainSettingsWindow()
         return true
     }
 
@@ -72,9 +73,56 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         return dockMenu
     }
 
+    // MARK: - URL Handling
+
+    func application(_: NSApplication, open urls: [URL]) {
+        for url in urls {
+            handleURL(url)
+        }
+    }
+
+    private func handleURL(_ url: URL) {
+        DebugLog.info("AppDelegate received URL: \(url.absoluteString)", context: "AppDelegate")
+
+        // Handle authentication callback (aidictation://auth-callback)
+        if url.scheme == "aidictation", url.host == "auth-callback" || url.host == "auth" {
+            // Prevent duplicate processing of the same URL within 5 seconds
+            let urlString = url.absoluteString
+            let now = Date()
+            if let lastURL = lastProcessedAuthURL,
+               let lastTime = lastProcessedAuthTime,
+               lastURL == urlString,
+               now.timeIntervalSince(lastTime) < 5.0
+            {
+                DebugLog.info("Ignoring duplicate auth callback", context: "AppDelegate")
+                return
+            }
+            lastProcessedAuthURL = urlString
+            lastProcessedAuthTime = now
+
+            // Bring app to foreground and show main window
+            NSApplication.shared.activate(ignoringOtherApps: true)
+            showMainSettingsWindow()
+
+            DebugLog.info("Processing auth callback...", context: "AppDelegate")
+            Task {
+                await authManager.handleAuthCallback(url: url)
+            }
+        }
+        // Handle payment success callback
+        else if url.scheme == "aidictation", url.host == "payment", url.path == "/success" {
+            Task {
+                await subscriptionManager.handlePaymentSuccess()
+            }
+        }
+        // Handle payment cancel callback
+        else if url.scheme == "aidictation", url.host == "payment", url.path == "/cancel" {
+            subscriptionManager.handlePaymentCancel()
+        }
+    }
+
     @objc private func openSettings() {
-        NSApplication.shared.activate(ignoringOtherApps: true)
-        NotificationCenter.default.post(name: .showSettings, object: nil)
+        showMainSettingsWindow()
     }
 
     private func configureMainWindow() {
@@ -261,6 +309,40 @@ extension View {
     }
 }
 
+/// Global function to show main window - can be called from anywhere
+func showMainSettingsWindow() {
+    NSApplication.shared.activate(ignoringOtherApps: true)
+    // Find the main window and show it
+    for window in NSApplication.shared.windows {
+        if window.identifier == WindowIdentifiers.main ||
+           window.title == "AIDictation" ||
+           (window.contentView != nil && window.level == .normal) {
+            window.setIsVisible(true)
+            window.makeKeyAndOrderFront(nil)
+            window.orderFrontRegardless()
+            return
+        }
+    }
+}
+
+/// Global function to show history window - can be called from anywhere
+func showHistoryWindow() {
+    NSApplication.shared.activate(ignoringOtherApps: true)
+
+    // First try to find existing history window
+    for window in NSApplication.shared.windows {
+        if window.identifier == WindowIdentifiers.history || window.title == "History" {
+            window.setIsVisible(true)
+            window.makeKeyAndOrderFront(nil)
+            window.orderFrontRegardless()
+            return
+        }
+    }
+
+    // Window doesn't exist yet - post notification for SwiftUI to open it
+    NotificationCenter.default.post(name: .openHistoryWindow, object: nil)
+}
+
 @main
 struct WhishpermateApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -296,8 +378,9 @@ struct WhishpermateApp: App {
         Window("AIDictation", id: "main") {
             SettingsWindowView()
                 .windowIdentifier(WindowIdentifiers.main)
-                .onOpenURL { url in
-                    handleURL(url)
+                // URL handling is done in AppDelegate.application(_:open:) for menu bar apps
+                .onReceive(NotificationCenter.default.publisher(for: .openHistoryWindow)) { _ in
+                    openWindow(id: "history")
                 }
         }
         .windowResizability(.contentSize)

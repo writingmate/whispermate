@@ -53,5 +53,10 @@ struct SettingsWindowView: View {
                 openWindow(id: "onboarding")
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .openAccountSettings)) { _ in
+            // Navigate to Account section and show window
+            selectedSection = .account
+            showMainSettingsWindow()
+        }
     }
 }

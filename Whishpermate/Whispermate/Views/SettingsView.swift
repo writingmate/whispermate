@@ -3,6 +3,14 @@ import AVFoundation
 import SwiftUI
 import WhisperMateShared
 
+// MARK: - Billing Period
+
+enum BillingPeriod {
+    case monthly
+    case annual
+    case lifetime
+}
+
 // MARK: - Settings Card Component
 
 struct SettingsCard<Content: View>: View {
@@ -35,6 +43,11 @@ enum SettingsSection: String, CaseIterable, Identifiable {
     case history = "History"
 
     var id: String { rawValue }
+
+    /// Sections visible in the sidebar list (Account is accessed via bottom status view)
+    static var sidebarCases: [SettingsSection] {
+        allCases.filter { $0 != .account }
+    }
 
     var icon: String {
         switch self {
@@ -95,27 +108,39 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationSplitView {
-            List(SettingsSection.allCases, selection: $selectedSection) { section in
-                if section == .history {
-                    Button(action: {
-                        openWindow(id: "history")
-                    }) {
-                        HStack {
-                            Label(section.rawValue, systemImage: section.icon)
-                            Spacer()
-                            Image(systemName: "arrow.up.forward.square")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+            VStack(spacing: 0) {
+                List(SettingsSection.sidebarCases, selection: $selectedSection) { section in
+                    if section == .history {
+                        Button(action: {
+                            openWindow(id: "history")
+                        }) {
+                            HStack {
+                                Label(section.rawValue, systemImage: section.icon)
+                                Spacer()
+                                Image(systemName: "arrow.up.forward.square")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
+                    } else {
+                        Label(section.rawValue, systemImage: section.icon)
+                            .tag(section)
                     }
-                    .buttonStyle(.plain)
-                } else {
-                    Label(section.rawValue, systemImage: section.icon)
-                        .tag(section)
                 }
+                .listStyle(.sidebar)
+
+                Divider()
+
+                // Account status at bottom of sidebar
+                SidebarAccountStatusView(onTap: {
+                    selectedSection = .account
+                })
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
             }
             .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 220)
-            .listStyle(.sidebar)
         } detail: {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
@@ -163,6 +188,8 @@ struct SettingsView: View {
 
     // MARK: - Account Section
 
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
+
     private var accountSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Account Status Card
@@ -202,23 +229,6 @@ struct SettingsView: View {
                             }
                             Spacer()
                         }
-
-                        // Word Usage (only for Free tier)
-                        if user.subscriptionTier == .free {
-                            Divider()
-
-                            HStack(spacing: 12) {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Word Usage")
-                                        .dsFont(.body)
-                                        .foregroundStyle(Color.dsForeground)
-                                    Text("\(user.monthlyWordCount) of 2,000 words this month")
-                                        .dsFont(.label)
-                                        .foregroundStyle(Color.dsMutedForeground)
-                                }
-                                Spacer()
-                            }
-                        }
                     } else {
                         // Not signed in
                         HStack(spacing: 12) {
@@ -226,13 +236,13 @@ struct SettingsView: View {
                                 Text("Account")
                                     .dsFont(.body)
                                     .foregroundStyle(Color.dsForeground)
-                                Text("Sign in to track usage and unlock Pro features")
+                                Text("Sign up to upgrade to unlimited")
                                     .dsFont(.label)
                                     .foregroundStyle(Color.dsMutedForeground)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                             Spacer()
-                            Button("Sign In") {
+                            Button("Upgrade") {
                                 authManager.openSignUp()
                             }
                             .controlSize(.small)
@@ -241,8 +251,59 @@ struct SettingsView: View {
                 }
             }
 
-            // Upgrade Card (only for Free tier or not signed in)
-            if !authManager.isAuthenticated || authManager.currentUser?.subscriptionTier == .free {
+            // Word Usage Card (for all free users - authenticated or not)
+            if !isPro {
+                SettingsCard {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Word Usage")
+                                    .dsFont(.body)
+                                    .foregroundStyle(Color.dsForeground)
+
+                                let (used, limit, _, _) = subscriptionManager.getUsageStatus()
+                                let remaining = max(0, limit - used)
+
+                                if remaining == 0 {
+                                    Text("You've used all \(limit) free words this month")
+                                        .dsFont(.label)
+                                        .foregroundStyle(Color.orange)
+                                } else {
+                                    Text("\(used) of \(limit) words used this month")
+                                        .dsFont(.label)
+                                        .foregroundStyle(Color.dsMutedForeground)
+                                }
+                            }
+                            Spacer()
+                        }
+
+                        // Progress bar
+                        let (used, limit, percentage, _) = subscriptionManager.getUsageStatus()
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(Color.secondary.opacity(0.2))
+                                    .frame(height: 8)
+
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(percentage >= 1.0 ? Color.orange : Color.accentColor)
+                                    .frame(width: geo.size.width * min(percentage, 1.0), height: 8)
+                            }
+                        }
+                        .frame(height: 8)
+
+                        // Reset date
+                        if let resetDate = getResetDate() {
+                            Text("Resets \(resetDate)")
+                                .dsFont(.label)
+                                .foregroundStyle(Color.dsMutedForeground)
+                        }
+                    }
+                }
+            }
+
+            // Upgrade Card (only for authenticated Free tier users)
+            if authManager.isAuthenticated && !isPro {
                 SettingsCard {
                     HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
@@ -273,25 +334,27 @@ struct SettingsView: View {
                 }
             }
 
-            // Reset Application
-            SettingsCard {
-                HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Reset Application")
-                            .dsFont(.body)
-                            .foregroundStyle(Color.dsForeground)
-                        Text("Clear all data and restart onboarding")
-                            .dsFont(.label)
-                            .foregroundStyle(Color.dsMutedForeground)
-                    }
-                    Spacer()
-                    Button("Reset") {
-                        resetApplication()
-                    }
-                    .controlSize(.small)
-                }
+        }
+    }
+
+    private var isPro: Bool {
+        authManager.isAuthenticated && authManager.currentUser?.subscriptionTier == .pro
+    }
+
+    private func getResetDate() -> String? {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+
+        if authManager.isAuthenticated, let user = authManager.currentUser {
+            if let resetAt = user.wordCountResetAt {
+                return formatter.string(from: resetAt)
+            }
+        } else {
+            if let resetAt = subscriptionManager.localWordCountResetAt {
+                return formatter.string(from: resetAt)
             }
         }
+        return nil
     }
 
     private func openPaymentLink() {
@@ -369,38 +432,6 @@ struct SettingsView: View {
 
     private func stopPaymentConfirmationCheck() {
         isCheckingPayment = false
-    }
-
-    private func resetApplication() {
-        DebugLog.info("🔄 Resetting application state", context: "SettingsView")
-
-        Task {
-            // 1. Sign out user
-            if authManager.isAuthenticated {
-                await authManager.logout()
-            }
-
-            await MainActor.run {
-                // 2. Clear all UserDefaults
-                if let bundleID = Bundle.main.bundleIdentifier {
-                    UserDefaults.standard.removePersistentDomain(forName: bundleID)
-                    UserDefaults.standard.synchronize()
-                }
-
-                // 3. Clear Keychain (API keys)
-                KeychainHelper.delete(key: "GroqTranscriptionKey")
-                KeychainHelper.delete(key: "GroqLLMKey")
-                KeychainHelper.delete(key: "CustomTranscriptionKey")
-
-                // 4. Reset onboarding
-                OnboardingManager.shared.resetOnboarding()
-
-                // 5. Close settings window
-                dismiss()
-
-                DebugLog.info("✅ Application reset complete", context: "SettingsView")
-            }
-        }
     }
 
     // MARK: - General Section
@@ -1210,6 +1241,62 @@ struct RuleRow: View {
                 isHovering = hovering
             }
         }
+    }
+}
+
+// MARK: - Sidebar Account Status View
+
+struct SidebarAccountStatusView: View {
+    @ObservedObject private var authManager = AuthManager.shared
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
+
+    var onTap: () -> Void
+
+    var body: some View {
+        let (used, limit, percentage, isPro) = subscriptionManager.getUsageStatus()
+
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: 6) {
+                // Plan badge
+                HStack(spacing: 4) {
+                    Image(systemName: isPro ? "star.fill" : "person.fill")
+                        .font(.caption2)
+                    Text(isPro ? "Pro" : "Free")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                }
+                .foregroundStyle(isPro ? .orange : .secondary)
+
+                if isPro {
+                    Text("Unlimited transcriptions")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                } else {
+                    // Usage bar
+                    VStack(alignment: .leading, spacing: 4) {
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(Color.secondary.opacity(0.2))
+                                    .frame(height: 4)
+
+                                RoundedRectangle(cornerRadius: 2)
+                                    .fill(percentage >= 0.9 ? Color.orange : Color.accentColor)
+                                    .frame(width: geo.size.width * min(percentage, 1.0), height: 4)
+                            }
+                        }
+                        .frame(height: 4)
+
+                        Text("\(limit - used) words left")
+                            .font(.caption2)
+                            .foregroundStyle(percentage >= 0.9 ? .orange : .secondary)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 

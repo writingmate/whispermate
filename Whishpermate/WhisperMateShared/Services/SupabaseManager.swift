@@ -91,6 +91,48 @@ public class SupabaseManager {
         return updatedUser
     }
 
+    /// Reset monthly word count and set new reset date (for monthly limit reset)
+    public func resetMonthlyWordCount() async throws -> User {
+        let currentUser = try await fetchUser()
+
+        // Calculate next month start
+        let calendar = Calendar.current
+        let now = Date()
+        let components = calendar.dateComponents([.year, .month], from: now)
+        let startOfMonth = calendar.date(from: components)!
+        let nextMonthStart = calendar.date(byAdding: .month, value: 1, to: startOfMonth)!
+
+        struct ResetPayload: Encodable {
+            let monthly_word_count: Int
+            let word_count_reset_at: String
+            let updated_at: String
+        }
+
+        let formatter = ISO8601DateFormatter()
+        let resetPayload = ResetPayload(
+            monthly_word_count: 0,
+            word_count_reset_at: formatter.string(from: nextMonthStart),
+            updated_at: formatter.string(from: Date())
+        )
+
+        let response: [User] = try await client
+            .from("profiles")
+            .update(resetPayload)
+            .eq("user_id", value: currentUser.userId.uuidString)
+            .select()
+            .execute()
+            .value
+
+        guard let updatedUser = response.first else {
+            throw NSError(domain: "SupabaseManager", code: 500, userInfo: [
+                NSLocalizedDescriptionKey: "Failed to reset word count",
+            ])
+        }
+
+        DebugLog.info("Monthly word count reset for user \(updatedUser.email)", context: "SupabaseManager")
+        return updatedUser
+    }
+
     // MARK: - Transcription
 
     public func transcribe(audioData: Data, language: String = "en") async throws -> (transcription: String, wordCount: Int, updatedUser: User) {

@@ -30,7 +30,7 @@ public enum TranscriptionProvider: String, CaseIterable, Identifiable {
         switch self {
         case .groq: return "https://api.groq.com/openai/v1/audio/transcriptions"
         case .openai: return "https://api.openai.com/v1/audio/transcriptions"
-        case .custom: return "https://new-git-fix-workspace-image-handling-and-api-28a97e-writingmate.vercel.app/api/openai/v1/audio/transcriptions"
+        case .custom: return "https://writingmate.ai/api/openai/v1/audio/transcriptions"
         }
     }
 
