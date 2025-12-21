@@ -8,6 +8,8 @@
 	<string>AIDictation</string>
 	<key>CFBundleName</key>
 	<string>AIDictation</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>AIDictation needs access to your microphone to record your voice for transcription.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
