@@ -5,8 +5,30 @@
 //  Created by WhisperMate on 2025-01-24.
 //
 
+import Auth
 import Foundation
 import Supabase
+
+// MARK: - UserDefaults-based Auth Storage
+
+/// Custom storage that uses UserDefaults instead of Keychain to avoid password prompts
+/// Uses AppDefaults.shared to separate Debug and Release build storage
+final class UserDefaultsAuthLocalStorage: AuthLocalStorage, @unchecked Sendable {
+    private let defaults = AppDefaults.shared
+    private let keyPrefix = "supabase.auth."
+
+    func store(key: String, value: Data) throws {
+        defaults.set(value, forKey: keyPrefix + key)
+    }
+
+    func retrieve(key: String) throws -> Data? {
+        defaults.data(forKey: keyPrefix + key)
+    }
+
+    func remove(key: String) throws {
+        defaults.removeObject(forKey: keyPrefix + key)
+    }
+}
 
 public class SupabaseManager {
     public static let shared = SupabaseManager()
@@ -22,13 +44,14 @@ public class SupabaseManager {
         }
 
         // Configure client with implicit flow for web-based auth
+        // Use UserDefaults storage to avoid keychain password prompts
         client = SupabaseClient(
             supabaseURL: url,
             supabaseKey: supabaseKey,
             options: SupabaseClientOptions(
                 auth: .init(
-                    flowType: .implicit,
-                    emitLocalSessionAsInitialSession: true
+                    storage: UserDefaultsAuthLocalStorage(),
+                    flowType: .implicit
                 )
             )
         )

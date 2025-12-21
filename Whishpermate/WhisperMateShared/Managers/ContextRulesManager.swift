@@ -24,7 +24,7 @@ public class ContextRulesManager: ObservableObject {
     // MARK: - Public API
 
     public func loadRules() {
-        if let data = UserDefaults.standard.data(forKey: Keys.contextRules),
+        if let data = AppDefaults.shared.data(forKey: Keys.contextRules),
            let decoded = try? JSONDecoder().decode([ContextRule].self, from: data)
         {
             rules = decoded
@@ -70,7 +70,7 @@ public class ContextRulesManager: ObservableObject {
 
     public func saveRules() {
         if let encoded = try? JSONEncoder().encode(rules) {
-            UserDefaults.standard.set(encoded, forKey: Keys.contextRules)
+            AppDefaults.shared.set(encoded, forKey: Keys.contextRules)
             DebugLog.info("Saved \(rules.count) context rules", context: "ContextRulesManager")
         }
     }

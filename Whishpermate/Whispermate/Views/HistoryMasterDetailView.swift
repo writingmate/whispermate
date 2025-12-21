@@ -406,7 +406,7 @@ struct RecordingDetailView: View {
         var urlTemplate = app.urlTemplate
         if app == .custom {
             // Load custom URL from UserDefaults
-            urlTemplate = UserDefaults.standard.string(forKey: "aiPromptURL") ?? "https://chatgpt.com/?q={prompt}"
+            urlTemplate = AppDefaults.shared.string(forKey: "aiPromptURL") ?? "https://chatgpt.com/?q={prompt}"
         }
 
         // URL encode the transcription

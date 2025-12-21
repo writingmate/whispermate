@@ -28,7 +28,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         statusBarManager.setupMenuBar()
 
         // Disable automatic window restoration for all windows except main
-        UserDefaults.standard.set(false, forKey: "NSQuitAlwaysKeepsWindows")
+        AppDefaults.shared.set(false, forKey: "NSQuitAlwaysKeepsWindows")
 
         // Configure window immediately - no async delay
         configureMainWindow()

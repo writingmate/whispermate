@@ -1,4 +1,5 @@
 import Foundation
+import WhisperMateShared
 internal import Combine
 
 struct PromptRule: Identifiable, Codable {
@@ -25,7 +26,7 @@ class PromptRulesManager: ObservableObject {
     }
 
     func loadRules() {
-        if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
+        if let data = AppDefaults.shared.data(forKey: userDefaultsKey),
            let decoded = try? JSONDecoder().decode([PromptRule].self, from: data)
         {
             rules = decoded
@@ -43,7 +44,7 @@ class PromptRulesManager: ObservableObject {
 
     func saveRules() {
         if let encoded = try? JSONEncoder().encode(rules) {
-            UserDefaults.standard.set(encoded, forKey: userDefaultsKey)
+            AppDefaults.shared.set(encoded, forKey: userDefaultsKey)
             DebugLog.info("Saved \(rules.count) prompt rules", context: "PromptRulesManager LOG")
         }
     }

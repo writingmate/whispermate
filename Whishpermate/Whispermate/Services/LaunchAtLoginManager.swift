@@ -1,6 +1,7 @@
 import AppKit
 import Foundation
 import ServiceManagement
+import WhisperMateShared
 internal import Combine
 
 /// Manages the launch at login functionality for WhisperMate
@@ -13,7 +14,7 @@ class LaunchAtLoginManager: ObservableObject {
 
     private init() {
         // Load initial state from UserDefaults
-        isEnabled = UserDefaults.standard.bool(forKey: launchAtLoginKey)
+        isEnabled = AppDefaults.shared.bool(forKey: launchAtLoginKey)
 
         // Sync with actual system state if available
         if #available(macOS 13.0, *) {
@@ -110,7 +111,7 @@ class LaunchAtLoginManager: ObservableObject {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.isEnabled = enabled
-            UserDefaults.standard.set(enabled, forKey: self.launchAtLoginKey)
+            AppDefaults.shared.set(enabled, forKey: self.launchAtLoginKey)
             DebugLog.info("Launch at login state updated: \(enabled)", context: "LaunchAtLoginManager")
         }
     }

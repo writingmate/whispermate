@@ -1,4 +1,5 @@
 import Foundation
+import WhisperMateShared
 internal import Combine
 
 enum Language: String, CaseIterable, Identifiable {
@@ -99,7 +100,7 @@ class LanguageManager: ObservableObject {
     // MARK: - Public API
 
     func loadLanguages() {
-        if let savedLanguages = UserDefaults.standard.array(forKey: Keys.selectedLanguages) as? [String] {
+        if let savedLanguages = AppDefaults.shared.array(forKey: Keys.selectedLanguages) as? [String] {
             selectedLanguages = Set(savedLanguages.compactMap { Language(rawValue: $0) })
             DebugLog.info("Loaded languages: \(selectedLanguages.map { $0.displayName })", context: "LanguageManager")
         } else {
@@ -111,7 +112,7 @@ class LanguageManager: ObservableObject {
 
     func saveLanguages() {
         let languageCodes = Array(selectedLanguages.map { $0.rawValue })
-        UserDefaults.standard.set(languageCodes, forKey: Keys.selectedLanguages)
+        AppDefaults.shared.set(languageCodes, forKey: Keys.selectedLanguages)
         DebugLog.info("Saved languages: \(selectedLanguages.map { $0.displayName })", context: "LanguageManager")
     }
 

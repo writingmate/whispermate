@@ -1,6 +1,7 @@
 import AppKit
 import ApplicationServices
 import Foundation
+import WhisperMateShared
 
 class SendToAIManager {
     static let shared = SendToAIManager()
@@ -26,7 +27,7 @@ class SendToAIManager {
         DebugLog.info("Got selected text: \(selectedText.prefix(50))...", context: "SendToAIManager")
 
         // Get configured URL template
-        let urlTemplate = UserDefaults.standard.string(forKey: "aiPromptURL") ?? "https://chatgpt.com/?q={prompt}"
+        let urlTemplate = AppDefaults.shared.string(forKey: "aiPromptURL") ?? "https://chatgpt.com/?q={prompt}"
 
         // URL encode the selected text
         guard let encodedPrompt = selectedText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {

@@ -1042,8 +1042,8 @@ struct SettingsView: View {
                         }
                         Spacer()
                         Toggle("", isOn: Binding(
-                            get: { UserDefaults.standard.object(forKey: "muteAudioWhenRecording") as? Bool ?? true },
-                            set: { UserDefaults.standard.set($0, forKey: "muteAudioWhenRecording") }
+                            get: { AppDefaults.shared.object(forKey: "muteAudioWhenRecording") as? Bool ?? true },
+                            set: { AppDefaults.shared.set($0, forKey: "muteAudioWhenRecording") }
                         ))
                         .toggleStyle(.switch)
                         .controlSize(.mini)
@@ -1146,7 +1146,7 @@ struct SettingsView: View {
 
         // Select saved device or default
         if selectedAudioDevice == nil {
-            if let savedDeviceID = UserDefaults.standard.string(forKey: "selectedAudioDeviceID"),
+            if let savedDeviceID = AppDefaults.shared.string(forKey: "selectedAudioDeviceID"),
                let savedDevice = audioDevices.first(where: { $0.uniqueID == savedDeviceID })
             {
                 selectedAudioDevice = savedDevice
@@ -1158,7 +1158,7 @@ struct SettingsView: View {
 
     private func saveSelectedAudioDevice(_ device: AudioDeviceManager.AudioDevice?) {
         if let device = device {
-            UserDefaults.standard.set(device.uniqueID, forKey: "selectedAudioDeviceID")
+            AppDefaults.shared.set(device.uniqueID, forKey: "selectedAudioDeviceID")
             DebugLog.info("Setting audio device: \(device.localizedName)", context: "SettingsView")
 
             // Set as system default so AVAudioEngine will use it

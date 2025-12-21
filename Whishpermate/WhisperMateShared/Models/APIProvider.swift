@@ -61,7 +61,7 @@ public class TranscriptionProviderManager: ObservableObject {
     }
 
     public func loadSettings() {
-        if let savedProvider = UserDefaults.standard.string(forKey: providerKey),
+        if let savedProvider = AppDefaults.shared.string(forKey: providerKey),
            let provider = TranscriptionProvider(rawValue: savedProvider)
         {
             selectedProvider = provider
@@ -69,22 +69,22 @@ public class TranscriptionProviderManager: ObservableObject {
             // Default to custom provider if no saved preference
             selectedProvider = .custom
         }
-        customEndpoint = UserDefaults.standard.string(forKey: endpointKey) ?? ""
-        customModel = UserDefaults.standard.string(forKey: modelKey) ?? ""
+        customEndpoint = AppDefaults.shared.string(forKey: endpointKey) ?? ""
+        customModel = AppDefaults.shared.string(forKey: modelKey) ?? ""
         DebugLog.info("Loaded: \(selectedProvider.displayName)", context: "TranscriptionProviderManager")
     }
 
     public func setProvider(_ provider: TranscriptionProvider) {
         selectedProvider = provider
-        UserDefaults.standard.set(provider.rawValue, forKey: providerKey)
+        AppDefaults.shared.set(provider.rawValue, forKey: providerKey)
         DebugLog.info("Set provider: \(provider.displayName)", context: "TranscriptionProviderManager")
     }
 
     public func saveCustomSettings(endpoint: String, model: String) {
         customEndpoint = endpoint
         customModel = model
-        UserDefaults.standard.set(endpoint, forKey: endpointKey)
-        UserDefaults.standard.set(model, forKey: modelKey)
+        AppDefaults.shared.set(endpoint, forKey: endpointKey)
+        AppDefaults.shared.set(model, forKey: modelKey)
     }
 
     public var effectiveEndpoint: String {
@@ -181,27 +181,27 @@ public class LLMProviderManager: ObservableObject {
     }
 
     public func loadSettings() {
-        if let savedProvider = UserDefaults.standard.string(forKey: providerKey),
+        if let savedProvider = AppDefaults.shared.string(forKey: providerKey),
            let provider = LLMProvider(rawValue: savedProvider)
         {
             selectedProvider = provider
         }
-        customEndpoint = UserDefaults.standard.string(forKey: endpointKey) ?? ""
-        customModel = UserDefaults.standard.string(forKey: modelKey) ?? ""
+        customEndpoint = AppDefaults.shared.string(forKey: endpointKey) ?? ""
+        customModel = AppDefaults.shared.string(forKey: modelKey) ?? ""
         DebugLog.info("Loaded: \(selectedProvider.displayName)", context: "LLMProviderManager")
     }
 
     public func setProvider(_ provider: LLMProvider) {
         selectedProvider = provider
-        UserDefaults.standard.set(provider.rawValue, forKey: providerKey)
+        AppDefaults.shared.set(provider.rawValue, forKey: providerKey)
         DebugLog.info("Set provider: \(provider.displayName)", context: "LLMProviderManager")
     }
 
     public func saveCustomSettings(endpoint: String, model: String) {
         customEndpoint = endpoint
         customModel = model
-        UserDefaults.standard.set(endpoint, forKey: endpointKey)
-        UserDefaults.standard.set(model, forKey: modelKey)
+        AppDefaults.shared.set(endpoint, forKey: endpointKey)
+        AppDefaults.shared.set(model, forKey: modelKey)
     }
 
     public var effectiveEndpoint: String {

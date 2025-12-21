@@ -33,13 +33,13 @@ public class SubscriptionManager: ObservableObject {
     // MARK: - Local Word Tracking (for anonymous users)
 
     public var localWordCount: Int {
-        get { UserDefaults.standard.integer(forKey: Keys.localWordCount) }
-        set { UserDefaults.standard.set(newValue, forKey: Keys.localWordCount) }
+        get { AppDefaults.shared.integer(forKey: Keys.localWordCount) }
+        set { AppDefaults.shared.set(newValue, forKey: Keys.localWordCount) }
     }
 
     public var localWordCountResetAt: Date? {
-        get { UserDefaults.standard.object(forKey: Keys.localWordCountResetAt) as? Date }
-        set { UserDefaults.standard.set(newValue, forKey: Keys.localWordCountResetAt) }
+        get { AppDefaults.shared.object(forKey: Keys.localWordCountResetAt) as? Date }
+        set { AppDefaults.shared.set(newValue, forKey: Keys.localWordCountResetAt) }
     }
 
     // MARK: - Initialization

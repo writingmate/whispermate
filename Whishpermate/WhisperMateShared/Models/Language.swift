@@ -86,7 +86,7 @@ public class LanguageManager: ObservableObject {
     }
 
     public func loadLanguages() {
-        if let savedLanguages = UserDefaults.standard.array(forKey: userDefaultsKey) as? [String] {
+        if let savedLanguages = AppDefaults.shared.array(forKey: userDefaultsKey) as? [String] {
             selectedLanguages = Set(savedLanguages.compactMap { Language(rawValue: $0) })
             DebugLog.info("Loaded languages: \(selectedLanguages.map { $0.displayName })", context: "LanguageManager LOG")
         } else {
@@ -98,7 +98,7 @@ public class LanguageManager: ObservableObject {
 
     public func saveLanguages() {
         let languageCodes = Array(selectedLanguages.map { $0.rawValue })
-        UserDefaults.standard.set(languageCodes, forKey: userDefaultsKey)
+        AppDefaults.shared.set(languageCodes, forKey: userDefaultsKey)
         DebugLog.info("Saved languages: \(selectedLanguages.map { $0.displayName })", context: "LanguageManager LOG")
     }
 

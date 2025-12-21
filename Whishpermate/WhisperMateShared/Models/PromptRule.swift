@@ -25,7 +25,7 @@ public class PromptRulesManager: ObservableObject {
     }
 
     public func loadRules() {
-        if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
+        if let data = AppDefaults.shared.data(forKey: userDefaultsKey),
            let decoded = try? JSONDecoder().decode([PromptRule].self, from: data)
         {
             rules = decoded
@@ -43,7 +43,7 @@ public class PromptRulesManager: ObservableObject {
 
     public func saveRules() {
         if let encoded = try? JSONEncoder().encode(rules) {
-            UserDefaults.standard.set(encoded, forKey: userDefaultsKey)
+            AppDefaults.shared.set(encoded, forKey: userDefaultsKey)
             DebugLog.info("Saved \(rules.count) prompt rules", context: "PromptRulesManager LOG")
         }
     }

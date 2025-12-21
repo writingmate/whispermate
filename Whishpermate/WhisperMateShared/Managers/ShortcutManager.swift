@@ -13,7 +13,7 @@ public class ShortcutManager: ObservableObject {
     }
 
     public func loadShortcuts() {
-        if let data = UserDefaults.standard.data(forKey: userDefaultsKey),
+        if let data = AppDefaults.shared.data(forKey: userDefaultsKey),
            let decoded = try? JSONDecoder().decode([Shortcut].self, from: data)
         {
             shortcuts = decoded
@@ -49,7 +49,7 @@ public class ShortcutManager: ObservableObject {
 
     public func saveShortcuts() {
         if let encoded = try? JSONEncoder().encode(shortcuts) {
-            UserDefaults.standard.set(encoded, forKey: userDefaultsKey)
+            AppDefaults.shared.set(encoded, forKey: userDefaultsKey)
             DebugLog.info("Saved \(shortcuts.count) shortcuts", context: "ShortcutManager")
         }
     }

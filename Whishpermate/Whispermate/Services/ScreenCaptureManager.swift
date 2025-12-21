@@ -2,6 +2,7 @@ import AppKit
 import Foundation
 import ScreenCaptureKit
 import Vision
+import WhisperMateShared
 internal import Combine
 
 /// Manages screen capture and OCR text extraction for providing visual context to LLM
@@ -17,7 +18,7 @@ class ScreenCaptureManager: ObservableObject {
     /// Whether to include screen context in LLM prompts
     @Published var includeScreenContext: Bool {
         didSet {
-            UserDefaults.standard.set(includeScreenContext, forKey: Keys.includeScreenContext)
+            AppDefaults.shared.set(includeScreenContext, forKey: Keys.includeScreenContext)
         }
     }
 
@@ -30,7 +31,7 @@ class ScreenCaptureManager: ObservableObject {
     // MARK: - Initialization
 
     private init() {
-        includeScreenContext = UserDefaults.standard.bool(forKey: Keys.includeScreenContext)
+        includeScreenContext = AppDefaults.shared.bool(forKey: Keys.includeScreenContext)
     }
 
     // MARK: - Public API

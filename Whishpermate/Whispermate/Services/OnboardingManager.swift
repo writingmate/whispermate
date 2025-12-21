@@ -58,7 +58,7 @@ class OnboardingManager: ObservableObject {
     @Published var currentStep: OnboardingStep = .microphone {
         didSet {
             // Persist the current step so we can resume after app restart
-            UserDefaults.standard.set(currentStep.rawValue, forKey: Keys.currentOnboardingStep)
+            AppDefaults.shared.set(currentStep.rawValue, forKey: Keys.currentOnboardingStep)
         }
     }
 
@@ -96,7 +96,7 @@ class OnboardingManager: ObservableObject {
         DebugLog.info("Checking onboarding status", context: "OnboardingManager")
 
         // Check if user has completed onboarding before
-        let hasCompleted = UserDefaults.standard.bool(forKey: Keys.onboardingCompleted)
+        let hasCompleted = AppDefaults.shared.bool(forKey: Keys.onboardingCompleted)
 
         if !hasCompleted {
             // Onboarding not completed - show it
@@ -104,7 +104,7 @@ class OnboardingManager: ObservableObject {
             showOnboarding = true
 
             // Restore the saved step, or find the first incomplete step
-            if let savedStepRaw = UserDefaults.standard.value(forKey: Keys.currentOnboardingStep) as? Int,
+            if let savedStepRaw = AppDefaults.shared.value(forKey: Keys.currentOnboardingStep) as? Int,
                let savedStep = OnboardingStep(rawValue: savedStepRaw)
             {
                 // Resume from saved step, but verify previous steps are still complete
@@ -157,8 +157,8 @@ class OnboardingManager: ObservableObject {
 
     func isHotkeyConfigured() -> Bool {
         // Check the same keys that HotkeyManager uses
-        return UserDefaults.standard.value(forKey: Keys.hotkeyKeycode) != nil &&
-            UserDefaults.standard.value(forKey: Keys.hotkeyModifiers) != nil
+        return AppDefaults.shared.value(forKey: Keys.hotkeyKeycode) != nil &&
+            AppDefaults.shared.value(forKey: Keys.hotkeyModifiers) != nil
     }
 
     func isStepComplete(_ step: OnboardingStep) -> Bool {
@@ -204,8 +204,8 @@ class OnboardingManager: ObservableObject {
         }
 
         DebugLog.info("✅ Onboarding complete!", context: "OnboardingManager")
-        UserDefaults.standard.set(true, forKey: Keys.onboardingCompleted)
-        UserDefaults.standard.removeObject(forKey: Keys.currentOnboardingStep)
+        AppDefaults.shared.set(true, forKey: Keys.onboardingCompleted)
+        AppDefaults.shared.removeObject(forKey: Keys.currentOnboardingStep)
         showOnboarding = false
 
         // Post notification to close onboarding window and show main window
@@ -264,7 +264,7 @@ class OnboardingManager: ObservableObject {
 
     func resetOnboarding() {
         DebugLog.info("Resetting onboarding status", context: "OnboardingManager")
-        UserDefaults.standard.removeObject(forKey: Keys.onboardingCompleted)
+        AppDefaults.shared.removeObject(forKey: Keys.onboardingCompleted)
         currentStep = .microphone
         showOnboarding = true
     }

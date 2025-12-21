@@ -1,4 +1,5 @@
 import AppKit
+import WhisperMateShared
 internal import Combine
 
 /// Manages global hotkey registration and event handling
@@ -11,7 +12,7 @@ class HotkeyManager: ObservableObject {
     @Published var commandHotkey: Hotkey?
     @Published var isPushToTalk: Bool {
         didSet {
-            UserDefaults.standard.set(isPushToTalk, forKey: Keys.pushToTalk)
+            AppDefaults.shared.set(isPushToTalk, forKey: Keys.pushToTalk)
         }
     }
 
@@ -63,7 +64,7 @@ class HotkeyManager: ObservableObject {
 
     private init() {
         // Load push-to-talk setting (default true)
-        isPushToTalk = UserDefaults.standard.object(forKey: Keys.pushToTalk) as? Bool ?? true
+        isPushToTalk = AppDefaults.shared.object(forKey: Keys.pushToTalk) as? Bool ?? true
         DebugLog.info("HotkeyManager init - loading hotkeys", context: "HotkeyManager LOG")
         loadHotkey()
         loadCommandHotkey()
@@ -94,9 +95,9 @@ class HotkeyManager: ObservableObject {
 
     func clearHotkey() {
         currentHotkey = nil
-        UserDefaults.standard.removeObject(forKey: Keys.hotkeyKeycode)
-        UserDefaults.standard.removeObject(forKey: Keys.hotkeyModifiers)
-        UserDefaults.standard.removeObject(forKey: Keys.hotkeyMouseButton)
+        AppDefaults.shared.removeObject(forKey: Keys.hotkeyKeycode)
+        AppDefaults.shared.removeObject(forKey: Keys.hotkeyModifiers)
+        AppDefaults.shared.removeObject(forKey: Keys.hotkeyMouseButton)
         unregisterHotkey()
     }
 
@@ -121,9 +122,9 @@ class HotkeyManager: ObservableObject {
 
     func clearCommandHotkey() {
         commandHotkey = nil
-        UserDefaults.standard.removeObject(forKey: Keys.commandHotkeyKeycode)
-        UserDefaults.standard.removeObject(forKey: Keys.commandHotkeyModifiers)
-        UserDefaults.standard.removeObject(forKey: Keys.commandHotkeyMouseButton)
+        AppDefaults.shared.removeObject(forKey: Keys.commandHotkeyKeycode)
+        AppDefaults.shared.removeObject(forKey: Keys.commandHotkeyModifiers)
+        AppDefaults.shared.removeObject(forKey: Keys.commandHotkeyMouseButton)
         // Re-register to update event tap
         if !deferRegistration {
             registerHotkey()
@@ -134,15 +135,15 @@ class HotkeyManager: ObservableObject {
 
     private func loadHotkey() {
         // Check for mouse button hotkey first
-        if let mouseButton = UserDefaults.standard.value(forKey: Keys.hotkeyMouseButton) as? Int32 {
+        if let mouseButton = AppDefaults.shared.value(forKey: Keys.hotkeyMouseButton) as? Int32 {
             currentHotkey = Hotkey(keyCode: 0, modifiers: [], mouseButton: mouseButton)
             registerHotkey()
             return
         }
 
         // Load keyboard hotkey
-        guard let keyCode = UserDefaults.standard.value(forKey: Keys.hotkeyKeycode) as? UInt16,
-              let modifiers = UserDefaults.standard.value(forKey: Keys.hotkeyModifiers) as? UInt
+        guard let keyCode = AppDefaults.shared.value(forKey: Keys.hotkeyKeycode) as? UInt16,
+              let modifiers = AppDefaults.shared.value(forKey: Keys.hotkeyModifiers) as? UInt
         else {
             return
         }
@@ -156,14 +157,14 @@ class HotkeyManager: ObservableObject {
 
         if let mouseButton = hotkey.mouseButton {
             // Save mouse button hotkey
-            UserDefaults.standard.set(mouseButton, forKey: Keys.hotkeyMouseButton)
-            UserDefaults.standard.removeObject(forKey: Keys.hotkeyKeycode)
-            UserDefaults.standard.removeObject(forKey: Keys.hotkeyModifiers)
+            AppDefaults.shared.set(mouseButton, forKey: Keys.hotkeyMouseButton)
+            AppDefaults.shared.removeObject(forKey: Keys.hotkeyKeycode)
+            AppDefaults.shared.removeObject(forKey: Keys.hotkeyModifiers)
         } else {
             // Save keyboard hotkey
-            UserDefaults.standard.set(hotkey.keyCode, forKey: Keys.hotkeyKeycode)
-            UserDefaults.standard.set(hotkey.modifiers.rawValue, forKey: Keys.hotkeyModifiers)
-            UserDefaults.standard.removeObject(forKey: Keys.hotkeyMouseButton)
+            AppDefaults.shared.set(hotkey.keyCode, forKey: Keys.hotkeyKeycode)
+            AppDefaults.shared.set(hotkey.modifiers.rawValue, forKey: Keys.hotkeyModifiers)
+            AppDefaults.shared.removeObject(forKey: Keys.hotkeyMouseButton)
         }
     }
 
@@ -171,15 +172,15 @@ class HotkeyManager: ObservableObject {
         DebugLog.info("loadCommandHotkey: Loading command hotkey from UserDefaults", context: "HotkeyManager LOG")
 
         // Check for mouse button hotkey first
-        if let mouseButton = UserDefaults.standard.value(forKey: Keys.commandHotkeyMouseButton) as? Int32 {
+        if let mouseButton = AppDefaults.shared.value(forKey: Keys.commandHotkeyMouseButton) as? Int32 {
             commandHotkey = Hotkey(keyCode: 0, modifiers: [], mouseButton: mouseButton)
             DebugLog.info("loadCommandHotkey: Loaded mouse button \(mouseButton)", context: "HotkeyManager LOG")
             return
         }
 
         // Load keyboard hotkey
-        if let keyCode = UserDefaults.standard.value(forKey: Keys.commandHotkeyKeycode) as? UInt16,
-           let modifiers = UserDefaults.standard.value(forKey: Keys.commandHotkeyModifiers) as? UInt
+        if let keyCode = AppDefaults.shared.value(forKey: Keys.commandHotkeyKeycode) as? UInt16,
+           let modifiers = AppDefaults.shared.value(forKey: Keys.commandHotkeyModifiers) as? UInt
         {
             commandHotkey = Hotkey(keyCode: keyCode, modifiers: NSEvent.ModifierFlags(rawValue: modifiers))
             DebugLog.info("loadCommandHotkey: Loaded keyCode=\(keyCode), modifiers=\(modifiers)", context: "HotkeyManager LOG")
@@ -196,14 +197,14 @@ class HotkeyManager: ObservableObject {
 
         if let mouseButton = hotkey.mouseButton {
             // Save mouse button hotkey
-            UserDefaults.standard.set(mouseButton, forKey: Keys.commandHotkeyMouseButton)
-            UserDefaults.standard.removeObject(forKey: Keys.commandHotkeyKeycode)
-            UserDefaults.standard.removeObject(forKey: Keys.commandHotkeyModifiers)
+            AppDefaults.shared.set(mouseButton, forKey: Keys.commandHotkeyMouseButton)
+            AppDefaults.shared.removeObject(forKey: Keys.commandHotkeyKeycode)
+            AppDefaults.shared.removeObject(forKey: Keys.commandHotkeyModifiers)
         } else {
             // Save keyboard hotkey
-            UserDefaults.standard.set(hotkey.keyCode, forKey: Keys.commandHotkeyKeycode)
-            UserDefaults.standard.set(hotkey.modifiers.rawValue, forKey: Keys.commandHotkeyModifiers)
-            UserDefaults.standard.removeObject(forKey: Keys.commandHotkeyMouseButton)
+            AppDefaults.shared.set(hotkey.keyCode, forKey: Keys.commandHotkeyKeycode)
+            AppDefaults.shared.set(hotkey.modifiers.rawValue, forKey: Keys.commandHotkeyModifiers)
+            AppDefaults.shared.removeObject(forKey: Keys.commandHotkeyMouseButton)
         }
     }
 

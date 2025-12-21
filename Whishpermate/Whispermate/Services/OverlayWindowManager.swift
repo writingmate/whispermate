@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import WhisperMateShared
 internal import Combine
 import AVFoundation
 
@@ -66,7 +67,7 @@ class OverlayWindowManager: ObservableObject {
     }
 
     @Published var position: OverlayPosition = {
-        if let savedRawValue = UserDefaults.standard.string(forKey: Keys.overlayPosition),
+        if let savedRawValue = AppDefaults.shared.string(forKey: Keys.overlayPosition),
            let savedPosition = OverlayPosition(rawValue: savedRawValue)
         {
             return savedPosition
@@ -74,7 +75,7 @@ class OverlayWindowManager: ObservableObject {
         return .bottom
     }() {
         didSet {
-            UserDefaults.standard.set(position.rawValue, forKey: Keys.overlayPosition)
+            AppDefaults.shared.set(position.rawValue, forKey: Keys.overlayPosition)
 
             DispatchQueue.main.async { [weak self] in
                 self?.repositionWindow()
@@ -89,9 +90,9 @@ class OverlayWindowManager: ObservableObject {
         }
     }
 
-    @Published var hideIdleState: Bool = UserDefaults.standard.bool(forKey: Keys.hideIdleState) {
+    @Published var hideIdleState: Bool = AppDefaults.shared.bool(forKey: Keys.hideIdleState) {
         didSet {
-            UserDefaults.standard.set(hideIdleState, forKey: Keys.hideIdleState)
+            AppDefaults.shared.set(hideIdleState, forKey: Keys.hideIdleState)
 
             // When hideIdleState changes and we're in idle state, update visibility
             if overlayState == .idle {

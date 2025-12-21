@@ -1,5 +1,6 @@
 import AVFoundation
 import Foundation
+import WhisperMateShared
 internal import Combine
 
 class AudioRecorder: NSObject, ObservableObject {
@@ -171,7 +172,7 @@ class AudioRecorder: NSObject, ObservableObject {
         }
 
         // Lower system volume to duck other audio (if enabled in settings)
-        let shouldMuteAudio = UserDefaults.standard.object(forKey: "muteAudioWhenRecording") as? Bool ?? true
+        let shouldMuteAudio = AppDefaults.shared.object(forKey: "muteAudioWhenRecording") as? Bool ?? true
         DebugLog.info("Mute audio setting: \(shouldMuteAudio)", context: "AudioRecorder")
         if shouldMuteAudio {
             volumeManager.lowerVolume()
@@ -260,7 +261,7 @@ class AudioRecorder: NSObject, ObservableObject {
         }
 
         // Restore system volume
-        let shouldMuteAudio = UserDefaults.standard.object(forKey: "muteAudioWhenRecording") as? Bool ?? true
+        let shouldMuteAudio = AppDefaults.shared.object(forKey: "muteAudioWhenRecording") as? Bool ?? true
         if shouldMuteAudio {
             volumeManager.restoreVolume()
         }

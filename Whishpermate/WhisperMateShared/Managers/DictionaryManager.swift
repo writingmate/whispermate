@@ -24,7 +24,7 @@ public class DictionaryManager: ObservableObject {
     // MARK: - Public API
 
     public func loadEntries() {
-        if let data = UserDefaults.standard.data(forKey: Keys.dictionaryEntries),
+        if let data = AppDefaults.shared.data(forKey: Keys.dictionaryEntries),
            let decoded = try? JSONDecoder().decode([DictionaryEntry].self, from: data)
         {
             entries = decoded
@@ -53,7 +53,7 @@ public class DictionaryManager: ObservableObject {
 
     public func saveEntries() {
         if let encoded = try? JSONEncoder().encode(entries) {
-            UserDefaults.standard.set(encoded, forKey: Keys.dictionaryEntries)
+            AppDefaults.shared.set(encoded, forKey: Keys.dictionaryEntries)
             DebugLog.info("Saved \(entries.count) dictionary entries", context: "DictionaryManager")
         }
     }
