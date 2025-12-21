@@ -52,6 +52,9 @@ struct OnboardingView: View {
             fnKeyEverDetected = false
             showChangeHotkey = false
             hotkeyManager.setDeferRegistration(true)
+            // Immediately refresh permission status before starting periodic checks
+            onboardingManager.updateMicrophoneStatus()
+            onboardingManager.updateAccessibilityStatus()
             startPermissionChecks()
         }
         .onDisappear {
