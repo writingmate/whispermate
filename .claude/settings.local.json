@@ -33,7 +33,8 @@
       "Bash(defaults domains:*)",
       "Bash(defaults delete:*)",
       "Bash(pkill:*)",
-      "Bash(plutil:*)"
+      "Bash(plutil:*)",
+      "Bash(agvtool new-marketing-version:*)"
     ],
     "deny": [],
     "ask": []
