@@ -226,7 +226,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     // MARK: - Onboarding
 
     private func checkAndShowOnboarding() {
-        // Delay slightly to ensure views are loaded and onChange handlers are registered
+        // Delay slightly to ensure views are loaded
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
             guard let self = self else { return }
 
@@ -235,7 +235,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
             DebugLog.info("Onboarding check complete. showOnboarding = \(self.onboardingManager.showOnboarding)", context: "AppDelegate")
 
-            // The onChange handler in HistoryMasterDetailView will open the window automatically
+            // If onboarding is needed, open it directly
+            if self.onboardingManager.showOnboarding {
+                NotificationCenter.default.post(name: .openOnboardingWindow, object: nil)
+            }
         }
     }
 
@@ -310,8 +313,20 @@ extension View {
 }
 
 /// Global function to show main window - can be called from anywhere
+/// If onboarding is not complete, shows onboarding window instead
 func showMainSettingsWindow() {
     NSApplication.shared.activate(ignoringOtherApps: true)
+
+    // Check if onboarding is needed - if so, show onboarding instead of settings
+    let onboardingManager = OnboardingManager.shared
+    onboardingManager.checkOnboardingStatus()
+
+    if onboardingManager.showOnboarding {
+        // Open onboarding window instead
+        NotificationCenter.default.post(name: .openOnboardingWindow, object: nil)
+        return
+    }
+
     // Find the main window and show it
     for window in NSApplication.shared.windows {
         if window.identifier == WindowIdentifiers.main ||
@@ -381,6 +396,9 @@ struct WhishpermateApp: App {
                 // URL handling is done in AppDelegate.application(_:open:) for menu bar apps
                 .onReceive(NotificationCenter.default.publisher(for: .openHistoryWindow)) { _ in
                     openWindow(id: "history")
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .openOnboardingWindow)) { _ in
+                    openWindow(id: "onboarding")
                 }
         }
         .windowResizability(.contentSize)

@@ -16,6 +16,7 @@ struct OnboardingView: View {
     @State private var fnKeyEverDetected = false
     @State private var currentUIStep: OnboardingUIStep = .permissions
     @State private var firstRecordingText = ""
+    @FocusState private var isTestFieldFocused: Bool
 
     enum OnboardingUIStep: Int, CaseIterable {
         case permissions = 0
@@ -44,6 +45,12 @@ struct OnboardingView: View {
         .frame(width: 1100, height: 724)
         .clipShape(RoundedRectangle(cornerRadius: 20))
         .onAppear {
+            // Reset to first step when onboarding is shown fresh
+            currentUIStep = .permissions
+            firstRecordingText = ""
+            fnKeyDetected = false
+            fnKeyEverDetected = false
+            showChangeHotkey = false
             hotkeyManager.setDeferRegistration(true)
             startPermissionChecks()
         }
@@ -376,7 +383,7 @@ struct OnboardingView: View {
     private var firstRecordingContent: some View {
         VStack(alignment: .leading, spacing: 20) {
             // Text field for testing - first so user focuses here
-            TextField("Click here, then press \(hotkeyManager.currentHotkey?.displayString ?? "hotkey") and speak...", text: $firstRecordingText, axis: .vertical)
+            TextField("Press \(hotkeyManager.currentHotkey?.displayString ?? "hotkey") and speak...", text: $firstRecordingText, axis: .vertical)
                 .textFieldStyle(.plain)
                 .font(.body)
                 .padding(12)
@@ -389,6 +396,7 @@ struct OnboardingView: View {
                     RoundedRectangle(cornerRadius: 8)
                         .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
                 )
+                .focused($isTestFieldFocused)
 
             // Instructions below
             VStack(alignment: .leading, spacing: 12) {
@@ -416,6 +424,10 @@ struct OnboardingView: View {
             // Enable hotkey registration for testing
             DebugLog.info("FirstRecording onAppear - enabling hotkey registration, currentHotkey=\(hotkeyManager.currentHotkey?.displayString ?? "nil")", context: "OnboardingView")
             hotkeyManager.setDeferRegistration(false)
+            // Auto-focus the text field
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                isTestFieldFocused = true
+            }
         }
         .onDisappear {
             // Re-defer if going back

@@ -12,7 +12,6 @@ struct SettingsWindowView: View {
     @ObservedObject private var onboardingManager = OnboardingManager.shared
     @State private var selectedSection: SettingsSection = .general
     @Environment(\.dismiss) var dismiss
-    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         SettingsView(
@@ -27,7 +26,13 @@ struct SettingsWindowView: View {
         )
         .navigationTitle(selectedSection.rawValue)
         .onReceive(NotificationCenter.default.publisher(for: .showOnboarding)) { _ in
-            onboardingManager.reopenOnboarding()
+            // Close existing onboarding window if open
+            if let window = NSApplication.shared.windows.first(where: { $0.identifier == WindowIdentifiers.onboarding }) {
+                window.close()
+            }
+            // Reset onboarding state and open fresh onboarding window
+            onboardingManager.resetOnboarding()
+            NotificationCenter.default.post(name: .openOnboardingWindow, object: nil)
         }
         .onReceive(NotificationCenter.default.publisher(for: .onboardingComplete)) { _ in
             // Close onboarding window
@@ -40,17 +45,6 @@ struct SettingsWindowView: View {
                 mainWindow.center()
                 mainWindow.setIsVisible(true)
                 mainWindow.makeKeyAndOrderFront(nil)
-            }
-        }
-        .onChange(of: onboardingManager.showOnboarding) { newValue in
-            if newValue {
-                // Hide main window before opening onboarding
-                if let mainWindow = NSApplication.shared.windows.first(where: { $0.identifier == WindowIdentifiers.main }) {
-                    mainWindow.setIsVisible(false)
-                }
-
-                // Open onboarding window
-                openWindow(id: "onboarding")
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .openAccountSettings)) { _ in

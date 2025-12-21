@@ -21,6 +21,7 @@ extension NSNotification.Name {
     static let recordingCompleted = NSNotification.Name("RecordingCompleted")
     static let recordingReadyForTranscription = NSNotification.Name("RecordingReadyForTranscription")
     static let openHistoryWindow = NSNotification.Name("OpenHistoryWindow")
+    static let openOnboardingWindow = NSNotification.Name("OpenOnboardingWindow")
     static let openAccountSettings = NSNotification.Name("OpenAccountSettings")
 }
 

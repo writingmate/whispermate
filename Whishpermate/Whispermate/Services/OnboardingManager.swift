@@ -197,12 +197,6 @@ class OnboardingManager: ObservableObject {
     }
 
     func completeOnboarding() {
-        // Guard against multiple calls
-        guard showOnboarding else {
-            DebugLog.info("Onboarding already completed, ignoring duplicate call", context: "OnboardingManager")
-            return
-        }
-
         DebugLog.info("✅ Onboarding complete!", context: "OnboardingManager")
         AppDefaults.shared.set(true, forKey: Keys.onboardingCompleted)
         AppDefaults.shared.removeObject(forKey: Keys.currentOnboardingStep)
@@ -265,6 +259,7 @@ class OnboardingManager: ObservableObject {
     func resetOnboarding() {
         DebugLog.info("Resetting onboarding status", context: "OnboardingManager")
         AppDefaults.shared.removeObject(forKey: Keys.onboardingCompleted)
+        AppDefaults.shared.removeObject(forKey: Keys.currentOnboardingStep)
         currentStep = .microphone
         showOnboarding = true
     }
