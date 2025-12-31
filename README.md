@@ -1,33 +1,39 @@
-# WhisperMate
+# AIDictation - Voice to Text for macOS
 
-A native macOS voice-to-text app powered by Groq's Whisper API.
+A native macOS **AI dictation** and **voice to text** app powered by Groq's Whisper API. Convert speech to text instantly with the fastest AI-powered dictation tool for Mac.
 
-![WhisperMate Screenshot](screenshot.png)
+🌐 **Website**: [aidictation.com](https://aidictation.com)
+
+![AIDictation Screenshot](screenshot.png)
+
+## Why AIDictation?
+
+AIDictation is a lightweight, privacy-focused **voice to text** solution that brings AI dictation to your Mac. Unlike built-in macOS dictation, AIDictation uses state-of-the-art AI speech recognition for superior accuracy and supports LLM-powered text transformations.
 
 ## Key Features
 
-### Security & Privacy
-- Open source - read the code to see exactly how data is handled
-- Audio is transcribed and immediately discarded, nothing is stored
-- Data only sent to Groq API, no third-party servers
-- API keys stored in macOS Keychain
-
-### Performance
-- 400-800ms response times using Groq's inference
-- Native Swift/SwiftUI implementation
+### Fast AI Dictation
+- **400-800ms voice to text** conversion using Groq's lightning-fast inference
+- Native Swift/SwiftUI implementation for seamless macOS integration
 - 1.35 MB app size (vs 200+ MB for Electron-based alternatives)
 - Minimal CPU and memory usage
 
-### LLM Post-Processing
-- Optional transformations using Groq's LLM models
-- Translate between languages (e.g. speak Russian, get English text)
-- Adjust tone or formality
-- Custom glossaries for domain-specific terms
+### Security & Privacy
+- Open source - read the code to see exactly how your voice data is handled
+- Audio is transcribed and immediately discarded, nothing is stored
+- Voice data only sent to Groq API, no third-party servers
+- API keys stored in macOS Keychain
 
-### Usage
-- Press and hold a hotkey (like Fn) to record
-- Double-tap for continuous recording mode
-- Auto-paste transcriptions into active application
+### AI-Powered Text Processing
+- Optional LLM transformations using Groq's AI models
+- Translate between languages (e.g. speak Russian, get English text)
+- Adjust tone or formality of your dictation
+- Custom glossaries for domain-specific terminology
+
+### Intuitive Voice to Text Controls
+- Press and hold a hotkey (like Fn) to dictate
+- Double-tap for continuous dictation mode
+- Auto-paste transcribed text into any application
 - Minimal overlay indicator or full window mode
 
 ### Pricing
@@ -37,7 +43,7 @@ Free during beta. You only pay for Groq API usage.
 
 ### Option 1: Download Release (Recommended)
 
-1. Download the latest `WhisperMate-v0.0.4.dmg` from the [Releases page](https://github.com/writingmate/whispermate/releases/latest)
+1. Download the latest DMG from the [Releases page](https://github.com/writingmate/whispermate/releases/latest)
 2. Open the DMG file
 3. Drag Whispermate to your Applications folder
 4. Launch Whispermate from Applications
@@ -78,46 +84,46 @@ Free during beta. You only pay for Groq API usage.
    - Enable accessibility permissions (needed for auto-paste)
    - Set your recording hotkey (Fn key recommended)
 
-2. **Recording**:
-   - **Hold-to-Record**: Press and hold your hotkey, release to transcribe
-   - **Continuous Recording**: Double-tap your hotkey to start, tap once to stop
+2. **Voice to Text**:
+   - **Hold-to-Dictate**: Press and hold your hotkey, release to transcribe
+   - **Continuous Dictation**: Double-tap your hotkey to start, tap once to stop
 
 3. **Modes**:
    - **Overlay Mode**: Minimal indicator in bottom-right corner
    - **Full Mode**: Expanded window with settings and transcription history
 
 4. **Settings**:
-   - Configure your Groq API key
-   - Choose between OpenAI Whisper or Groq transcription
-   - Customize hotkey
+   - Configure your Groq API key for voice to text
+   - Choose between OpenAI Whisper or Groq for AI dictation
+   - Customize dictation hotkey
    - Toggle auto-paste functionality
 
-## Security
+## Security & Privacy
 
 - API keys are stored securely in macOS Keychain (never in plain text)
-- Audio files are temporary and not persisted
-- No data is sent anywhere except to Groq's API
+- Voice recordings are temporary and not persisted
+- Your voice data is only sent to Groq's API for speech to text conversion
 
 ## Architecture
 
 ```
-WhisperMate/
+AIDictation/
 ├── WhisperMateApp.swift          # App entry point
 ├── Views/
 │   └── ContentView.swift          # Main UI
 ├── Services/
-│   ├── AudioRecorder.swift        # Audio recording with AVFoundation
-│   ├── GroqAPIClient.swift        # Groq API integration
+│   ├── AudioRecorder.swift        # Voice recording with AVFoundation
+│   ├── GroqAPIClient.swift        # Groq API integration (voice to text)
 │   └── KeychainHelper.swift       # Secure key storage
 └── Info.plist                     # App permissions
 ```
 
-## Groq API
+## Groq API - Powering Voice to Text
 
-This app uses Groq's Whisper Large V3 model for transcription:
-- Fast inference times (typically < 1 second)
-- High accuracy
-- Cost-effective
+AIDictation uses Groq's Whisper Large V3 model for AI speech recognition:
+- Fast voice to text inference (typically < 1 second)
+- High accuracy speech recognition
+- Cost-effective AI dictation
 
 Get your API key: https://console.groq.com
 
