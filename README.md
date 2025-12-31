@@ -1,4 +1,4 @@
-<img width="824" height="824" alt="app icon" src="https://github.com/user-attachments/assets/e4e380ae-043f-4fe3-9968-56a03851e1c2" />
+<img width="256" height="256" alt="app icon" src="https://github.com/user-attachments/assets/e4e380ae-043f-4fe3-9968-56a03851e1c2" />
 
 
 # AIDictation - Voice to Text for macOS
