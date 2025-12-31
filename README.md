@@ -4,8 +4,9 @@ A native macOS **AI dictation** and **voice to text** app powered by Groq's Whis
 
 🌐 **Website**: [aidictation.com](https://aidictation.com)
 
-<img width="812" height="612" alt="Screenshot 2025-12-31 at 1 11 06 AM" src="https://github.com/user-attachments/assets/334c3d93-d1e5-4bba-9402-d451f917457a" />
+📺 **Video Overview**: [Watch on YouTube](https://www.youtube.com/watch?v=FQkePjWlDqY)
 
+<img width="812" height="612" alt="AIDictation Screenshot" src="https://github.com/user-attachments/assets/334c3d93-d1e5-4bba-9402-d451f917457a" />
 
 ## Why AIDictation?
 

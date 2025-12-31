@@ -35,7 +35,10 @@
       "Bash(pkill:*)",
       "Bash(plutil:*)",
       "Bash(agvtool new-marketing-version:*)",
-      "Bash(xargs basename:*)"
+      "Bash(xargs basename:*)",
+      "Bash(cat:*)",
+      "Bash(git rebase:*)",
+      "Bash(GIT_EDITOR=true git rebase:*)"
     ],
     "deny": [],
     "ask": []
