@@ -1,0 +1,68 @@
+<Application x:Class="AIDictation.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:tb="clr-namespace:H.NotifyIcon;assembly=H.NotifyIcon.Wpf"
+             xmlns:converters="clr-namespace:AIDictation.Converters"
+             ShutdownMode="OnExplicitShutdown">
+    <Application.Resources>
+        <ResourceDictionary>
+            <!-- Converters -->
+            <converters:EqualityConverter x:Key="EqualityConverter"/>
+            <converters:EqualityToVisibilityConverter x:Key="EqualityToVisibilityConverter"/>
+            <converters:BoolToBrushConverter x:Key="BoolToBrushConverter"/>
+            <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+            <!-- Dark Theme Colors -->
+            <Color x:Key="PrimaryColor">#7C3AED</Color>
+            <Color x:Key="PrimaryHoverColor">#8B5CF6</Color>
+            <Color x:Key="BackgroundColor">#1E1E1E</Color>
+            <Color x:Key="SurfaceColor">#2D2D2D</Color>
+            <Color x:Key="SurfaceHoverColor">#3D3D3D</Color>
+            <Color x:Key="BorderColor">#404040</Color>
+            <Color x:Key="TextPrimaryColor">#FFFFFF</Color>
+            <Color x:Key="TextSecondaryColor">#A0A0A0</Color>
+            <Color x:Key="TextMutedColor">#6B6B6B</Color>
+            <Color x:Key="ErrorColor">#EF4444</Color>
+            <Color x:Key="SuccessColor">#22C55E</Color>
+            <Color x:Key="WarningColor">#F59E0B</Color>
+            
+            <!-- Solid Color Brushes -->
+            <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}"/>
+            <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}"/>
+            <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
+            <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}"/>
+            <SolidColorBrush x:Key="SurfaceHoverBrush" Color="{StaticResource SurfaceHoverColor}"/>
+            <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}"/>
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}"/>
+            <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}"/>
+            <SolidColorBrush x:Key="ErrorBrush" Color="{StaticResource ErrorColor}"/>
+            <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}"/>
+            <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}"/>
+            
+            <!-- Font Sizes -->
+            <sys:Double x:Key="FontSizeSmall" xmlns:sys="clr-namespace:System;assembly=mscorlib">12</sys:Double>
+            <sys:Double x:Key="FontSizeNormal" xmlns:sys="clr-namespace:System;assembly=mscorlib">14</sys:Double>
+            <sys:Double x:Key="FontSizeMedium" xmlns:sys="clr-namespace:System;assembly=mscorlib">16</sys:Double>
+            <sys:Double x:Key="FontSizeLarge" xmlns:sys="clr-namespace:System;assembly=mscorlib">20</sys:Double>
+            <sys:Double x:Key="FontSizeTitle" xmlns:sys="clr-namespace:System;assembly=mscorlib">24</sys:Double>
+            
+            <!-- Corner Radius -->
+            <CornerRadius x:Key="SmallCornerRadius">4</CornerRadius>
+            <CornerRadius x:Key="MediumCornerRadius">8</CornerRadius>
+            <CornerRadius x:Key="LargeCornerRadius">12</CornerRadius>
+            
+            <!-- System Tray Icon -->
+            <tb:TaskbarIcon x:Key="TrayIcon"
+                            IconSource="/Resources/Icons/app.ico"
+                            ToolTipText="AIDictation">
+                <tb:TaskbarIcon.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Open Settings" Click="TraySettings_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Exit" Click="TrayExit_Click"/>
+                    </ContextMenu>
+                </tb:TaskbarIcon.ContextMenu>
+            </tb:TaskbarIcon>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

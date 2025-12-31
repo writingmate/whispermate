@@ -1,0 +1,567 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using AIDictation.Models;
+using AIDictation.Services;
+using NAudio.Wave;
+
+namespace AIDictation.ViewModels;
+
+/// <summary>
+/// ViewModel for the Settings window that manages audio, text rules, and hotkey configuration.
+/// </summary>
+public partial class SettingsViewModel : ObservableObject
+{
+    // MARK: - Constants
+
+    private static class Constants
+    {
+        public const Key DefaultDictationHotkey = Key.F8;
+        public const Key DefaultCommandHotkey = Key.F9;
+        public const ModifierKeys DefaultDictationModifiers = ModifierKeys.None;
+        public const ModifierKeys DefaultCommandModifiers = ModifierKeys.Control;
+    }
+
+    // MARK: - Published Properties
+
+    [ObservableProperty]
+    private int _selectedSection;
+
+    // Audio
+    [ObservableProperty]
+    private ObservableCollection<AudioDeviceItem> _audioDevices = new();
+
+    [ObservableProperty]
+    private AudioDeviceItem? _selectedAudioDevice;
+
+    [ObservableProperty]
+    private Language _selectedLanguage = Language.Auto;
+
+    public ObservableCollection<LanguageItem> Languages { get; } = new();
+
+    // Text Rules
+    public ObservableCollection<DictionaryEntryItem> DictionaryEntries { get; } = new();
+    public ObservableCollection<ShortcutItem> Shortcuts { get; } = new();
+    public ObservableCollection<ContextRuleItem> ContextRules { get; } = new();
+
+    [ObservableProperty]
+    private string _newDictionaryTrigger = string.Empty;
+
+    [ObservableProperty]
+    private string _newDictionaryReplacement = string.Empty;
+
+    [ObservableProperty]
+    private string _newShortcutTrigger = string.Empty;
+
+    [ObservableProperty]
+    private string _newShortcutExpansion = string.Empty;
+
+    [ObservableProperty]
+    private string _newContextRuleName = string.Empty;
+
+    [ObservableProperty]
+    private string _newContextRuleInstructions = string.Empty;
+
+    // Hotkeys
+    [ObservableProperty]
+    private Key _dictationHotkey = Constants.DefaultDictationHotkey;
+
+    [ObservableProperty]
+    private ModifierKeys _dictationModifiers = Constants.DefaultDictationModifiers;
+
+    [ObservableProperty]
+    private Key _commandHotkey = Constants.DefaultCommandHotkey;
+
+    [ObservableProperty]
+    private ModifierKeys _commandModifiers = Constants.DefaultCommandModifiers;
+
+    [ObservableProperty]
+    private bool _isRecordingDictationHotkey;
+
+    [ObservableProperty]
+    private bool _isRecordingCommandHotkey;
+
+    public string DictationHotkeyText => FormatHotkey(DictationModifiers, DictationHotkey);
+    public string CommandHotkeyText => FormatHotkey(CommandModifiers, CommandHotkey);
+
+    // MARK: - Events
+
+    public event EventHandler? CloseRequested;
+    public event EventHandler? HotkeyChanged;
+
+    // MARK: - Initialization
+
+    public SettingsViewModel()
+    {
+        LoadAudioDevices();
+        LoadLanguages();
+        LoadSettings();
+        LoadTextRules();
+    }
+
+    // MARK: - Commands
+
+    [RelayCommand]
+    private void SelectSection(int section)
+    {
+        SelectedSection = section;
+    }
+
+    [RelayCommand]
+    private void SelectLanguage(LanguageItem? item)
+    {
+        if (item == null) return;
+
+        foreach (var lang in Languages)
+        {
+            lang.IsSelected = lang.Language == item.Language;
+        }
+        SelectedLanguage = item.Language;
+        SaveLanguageSelection();
+    }
+
+    [RelayCommand]
+    private void AddDictionaryEntry()
+    {
+        if (string.IsNullOrWhiteSpace(NewDictionaryTrigger)) return;
+
+        var entry = new DictionaryEntry
+        {
+            Trigger = NewDictionaryTrigger.Trim(),
+            Replacement = string.IsNullOrWhiteSpace(NewDictionaryReplacement) ? null : NewDictionaryReplacement.Trim(),
+            IsEnabled = true
+        };
+
+        SettingsService.Instance.AddDictionaryEntry(entry);
+        DictionaryEntries.Add(new DictionaryEntryItem(entry));
+
+        NewDictionaryTrigger = string.Empty;
+        NewDictionaryReplacement = string.Empty;
+    }
+
+    [RelayCommand]
+    private void RemoveDictionaryEntry(DictionaryEntryItem? item)
+    {
+        if (item == null) return;
+
+        SettingsService.Instance.RemoveDictionaryEntry(item.Id);
+        DictionaryEntries.Remove(item);
+    }
+
+    [RelayCommand]
+    private void AddShortcut()
+    {
+        if (string.IsNullOrWhiteSpace(NewShortcutTrigger) || string.IsNullOrWhiteSpace(NewShortcutExpansion)) return;
+
+        var shortcut = new Shortcut
+        {
+            VoiceTrigger = NewShortcutTrigger.Trim(),
+            Expansion = NewShortcutExpansion.Trim(),
+            IsEnabled = true
+        };
+
+        SettingsService.Instance.AddShortcut(shortcut);
+        Shortcuts.Add(new ShortcutItem(shortcut));
+
+        NewShortcutTrigger = string.Empty;
+        NewShortcutExpansion = string.Empty;
+    }
+
+    [RelayCommand]
+    private void RemoveShortcut(ShortcutItem? item)
+    {
+        if (item == null) return;
+
+        SettingsService.Instance.RemoveShortcut(item.Id);
+        Shortcuts.Remove(item);
+    }
+
+    [RelayCommand]
+    private void AddContextRule()
+    {
+        if (string.IsNullOrWhiteSpace(NewContextRuleName)) return;
+
+        var rule = new ContextRule
+        {
+            Name = NewContextRuleName.Trim(),
+            Instructions = NewContextRuleInstructions.Trim(),
+            IsEnabled = true
+        };
+
+        SettingsService.Instance.AddContextRule(rule);
+        ContextRules.Add(new ContextRuleItem(rule));
+
+        NewContextRuleName = string.Empty;
+        NewContextRuleInstructions = string.Empty;
+    }
+
+    [RelayCommand]
+    private void RemoveContextRule(ContextRuleItem? item)
+    {
+        if (item == null) return;
+
+        SettingsService.Instance.RemoveContextRule(item.Id);
+        ContextRules.Remove(item);
+    }
+
+    [RelayCommand]
+    private void StartRecordingDictationHotkey()
+    {
+        IsRecordingDictationHotkey = true;
+        IsRecordingCommandHotkey = false;
+    }
+
+    [RelayCommand]
+    private void StartRecordingCommandHotkey()
+    {
+        IsRecordingCommandHotkey = true;
+        IsRecordingDictationHotkey = false;
+    }
+
+    [RelayCommand]
+    private void ClearDictationHotkey()
+    {
+        DictationHotkey = Constants.DefaultDictationHotkey;
+        DictationModifiers = Constants.DefaultDictationModifiers;
+        OnPropertyChanged(nameof(DictationHotkeyText));
+        SaveHotkeys();
+    }
+
+    [RelayCommand]
+    private void ClearCommandHotkey()
+    {
+        CommandHotkey = Constants.DefaultCommandHotkey;
+        CommandModifiers = Constants.DefaultCommandModifiers;
+        OnPropertyChanged(nameof(CommandHotkeyText));
+        SaveHotkeys();
+    }
+
+    [RelayCommand]
+    private void Close()
+    {
+        CloseRequested?.Invoke(this, EventArgs.Empty);
+    }
+
+    // MARK: - Public API
+
+    public void RecordHotkey(Key key, ModifierKeys modifiers)
+    {
+        // Ignore modifier-only presses
+        if (key == Key.LeftCtrl || key == Key.RightCtrl ||
+            key == Key.LeftShift || key == Key.RightShift ||
+            key == Key.LeftAlt || key == Key.RightAlt ||
+            key == Key.LWin || key == Key.RWin ||
+            key == Key.System)
+        {
+            return;
+        }
+
+        if (IsRecordingDictationHotkey)
+        {
+            DictationHotkey = key;
+            DictationModifiers = modifiers;
+            IsRecordingDictationHotkey = false;
+            OnPropertyChanged(nameof(DictationHotkeyText));
+            SaveHotkeys();
+        }
+        else if (IsRecordingCommandHotkey)
+        {
+            CommandHotkey = key;
+            CommandModifiers = modifiers;
+            IsRecordingCommandHotkey = false;
+            OnPropertyChanged(nameof(CommandHotkeyText));
+            SaveHotkeys();
+        }
+    }
+
+    public void CancelHotkeyRecording()
+    {
+        IsRecordingDictationHotkey = false;
+        IsRecordingCommandHotkey = false;
+    }
+
+    // MARK: - Private Methods
+
+    partial void OnSelectedAudioDeviceChanged(AudioDeviceItem? value)
+    {
+        if (value != null)
+        {
+            var settings = SettingsService.Instance;
+            settings.Settings.SelectedAudioDeviceId = value.DeviceId;
+            settings.SaveSettings();
+        }
+    }
+
+    private void LoadAudioDevices()
+    {
+        AudioDevices.Clear();
+
+        // Add default device
+        AudioDevices.Add(new AudioDeviceItem
+        {
+            DeviceId = null,
+            DisplayName = "Default Input Device"
+        });
+
+        try
+        {
+            for (int i = 0; i < WaveIn.DeviceCount; i++)
+            {
+                var capabilities = WaveIn.GetCapabilities(i);
+                AudioDevices.Add(new AudioDeviceItem
+                {
+                    DeviceId = i.ToString(),
+                    DisplayName = capabilities.ProductName
+                });
+            }
+        }
+        catch
+        {
+            // Silently fail if audio devices can't be enumerated
+        }
+    }
+
+    private void LoadLanguages()
+    {
+        Languages.Clear();
+        foreach (var language in LanguageExtensions.GetAll())
+        {
+            Languages.Add(new LanguageItem
+            {
+                Language = language,
+                DisplayName = language.GetDisplayName(),
+                Flag = language.GetFlag(),
+                IsSelected = language == Language.Auto
+            });
+        }
+    }
+
+    private void LoadSettings()
+    {
+        var settings = SettingsService.Instance;
+        settings.Load();
+
+        // Load selected audio device
+        var deviceId = settings.Settings.SelectedAudioDeviceId;
+        if (deviceId != null)
+        {
+            foreach (var device in AudioDevices)
+            {
+                if (device.DeviceId == deviceId)
+                {
+                    SelectedAudioDevice = device;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            SelectedAudioDevice = AudioDevices.Count > 0 ? AudioDevices[0] : null;
+        }
+
+        // Load selected language
+        if (settings.Settings.SelectedLanguages.Count > 0)
+        {
+            var langCode = settings.Settings.SelectedLanguages[0];
+            var lang = LanguageExtensions.FromCode(langCode);
+            if (lang.HasValue)
+            {
+                SelectedLanguage = lang.Value;
+                foreach (var item in Languages)
+                {
+                    item.IsSelected = item.Language == SelectedLanguage;
+                }
+            }
+        }
+
+        // Load hotkeys
+        if (settings.Settings.Hotkey != null)
+        {
+            DictationHotkey = settings.Settings.Hotkey.Key;
+            DictationModifiers = settings.Settings.Hotkey.Modifiers;
+        }
+
+        if (settings.Settings.CommandHotkey != null)
+        {
+            CommandHotkey = settings.Settings.CommandHotkey.Key;
+            CommandModifiers = settings.Settings.CommandHotkey.Modifiers;
+        }
+
+        OnPropertyChanged(nameof(DictationHotkeyText));
+        OnPropertyChanged(nameof(CommandHotkeyText));
+    }
+
+    private void LoadTextRules()
+    {
+        var settings = SettingsService.Instance;
+
+        DictionaryEntries.Clear();
+        foreach (var entry in settings.DictionaryEntries)
+        {
+            DictionaryEntries.Add(new DictionaryEntryItem(entry));
+        }
+
+        Shortcuts.Clear();
+        foreach (var shortcut in settings.Shortcuts)
+        {
+            Shortcuts.Add(new ShortcutItem(shortcut));
+        }
+
+        ContextRules.Clear();
+        foreach (var rule in settings.ContextRules)
+        {
+            ContextRules.Add(new ContextRuleItem(rule));
+        }
+    }
+
+    private void SaveLanguageSelection()
+    {
+        var settings = SettingsService.Instance;
+        settings.Settings.SelectedLanguages = new List<string> { SelectedLanguage.GetCode() };
+        settings.SaveSettings();
+    }
+
+    private void SaveHotkeys()
+    {
+        var settings = SettingsService.Instance;
+        settings.Settings.Hotkey = new Hotkey(DictationHotkey, DictationModifiers);
+        settings.Settings.CommandHotkey = new Hotkey(CommandHotkey, CommandModifiers);
+        settings.SaveSettings();
+        HotkeyChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private static string FormatHotkey(ModifierKeys modifiers, Key key)
+    {
+        var parts = new List<string>();
+
+        if (modifiers.HasFlag(ModifierKeys.Control))
+            parts.Add("Ctrl");
+        if (modifiers.HasFlag(ModifierKeys.Alt))
+            parts.Add("Alt");
+        if (modifiers.HasFlag(ModifierKeys.Shift))
+            parts.Add("Shift");
+        if (modifiers.HasFlag(ModifierKeys.Windows))
+            parts.Add("Win");
+
+        parts.Add(FormatKey(key));
+
+        return string.Join(" + ", parts);
+    }
+
+    private static string FormatKey(Key key)
+    {
+        return key switch
+        {
+            Key.OemPlus => "+",
+            Key.OemMinus => "-",
+            Key.OemQuestion => "?",
+            Key.OemPeriod => ".",
+            Key.OemComma => ",",
+            Key.OemTilde => "~",
+            Key.OemOpenBrackets => "[",
+            Key.OemCloseBrackets => "]",
+            Key.OemPipe => "|",
+            Key.OemSemicolon => ";",
+            Key.OemQuotes => "'",
+            _ => key.ToString()
+        };
+    }
+}
+
+// MARK: - Supporting Types
+
+public class AudioDeviceItem
+{
+    public string? DeviceId { get; set; }
+    public string DisplayName { get; set; } = string.Empty;
+}
+
+public partial class DictionaryEntryItem : ObservableObject
+{
+    public string Id { get; }
+    public string Trigger { get; }
+    public string? Replacement { get; }
+
+    [ObservableProperty]
+    private bool _isEnabled;
+
+    public DictionaryEntryItem(DictionaryEntry entry)
+    {
+        Id = entry.Id;
+        Trigger = entry.Trigger;
+        Replacement = entry.Replacement;
+        IsEnabled = entry.IsEnabled;
+    }
+
+    partial void OnIsEnabledChanged(bool value)
+    {
+        var entries = SettingsService.Instance.DictionaryEntries;
+        var entry = entries.Find(e => e.Id == Id);
+        if (entry != null)
+        {
+            entry.IsEnabled = value;
+            SettingsService.Instance.SaveDictionary();
+        }
+    }
+}
+
+public partial class ShortcutItem : ObservableObject
+{
+    public string Id { get; }
+    public string VoiceTrigger { get; }
+    public string Expansion { get; }
+
+    [ObservableProperty]
+    private bool _isEnabled;
+
+    public ShortcutItem(Shortcut shortcut)
+    {
+        Id = shortcut.Id;
+        VoiceTrigger = shortcut.VoiceTrigger;
+        Expansion = shortcut.Expansion;
+        IsEnabled = shortcut.IsEnabled;
+    }
+
+    partial void OnIsEnabledChanged(bool value)
+    {
+        var shortcuts = SettingsService.Instance.Shortcuts;
+        var shortcut = shortcuts.Find(s => s.Id == Id);
+        if (shortcut != null)
+        {
+            shortcut.IsEnabled = value;
+            SettingsService.Instance.SaveShortcuts();
+        }
+    }
+}
+
+public partial class ContextRuleItem : ObservableObject
+{
+    public string Id { get; }
+    public string Name { get; }
+    public string Instructions { get; }
+
+    [ObservableProperty]
+    private bool _isEnabled;
+
+    public ContextRuleItem(ContextRule rule)
+    {
+        Id = rule.Id;
+        Name = rule.Name;
+        Instructions = rule.Instructions;
+        IsEnabled = rule.IsEnabled;
+    }
+
+    partial void OnIsEnabledChanged(bool value)
+    {
+        var rules = SettingsService.Instance.ContextRules;
+        var rule = rules.Find(r => r.Id == Id);
+        if (rule != null)
+        {
+            rule.IsEnabled = value;
+            SettingsService.Instance.SaveContextRules();
+        }
+    }
+}

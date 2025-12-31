@@ -1,0 +1,35 @@
+name: Build Windows App
+
+on:
+  push:
+    paths:
+      - 'AIDictation.Windows/**'
+  pull_request:
+    paths:
+      - 'AIDictation.Windows/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore AIDictation.Windows/AIDictation/AIDictation.csproj
+    
+    - name: Build
+      run: dotnet build AIDictation.Windows/AIDictation/AIDictation.csproj --configuration Release --no-restore
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: AIDictation-Windows
+        path: AIDictation.Windows/AIDictation/bin/Release/net8.0-windows/
+        retention-days: 7

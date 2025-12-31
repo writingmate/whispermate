@@ -1,0 +1,228 @@
+<Window x:Class="AIDictation.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="AIDictation"
+        Width="400" Height="320"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="True"
+        WindowStartupLocation="CenterScreen"
+        MouseLeftButtonDown="Window_MouseLeftButtonDown">
+    
+    <Window.Resources>
+        <!-- Colors -->
+        <SolidColorBrush x:Key="BackgroundBrush" Color="#333333"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#0078D4"/>
+        <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="TextSecondaryBrush" Color="#B0B0B0"/>
+        <SolidColorBrush x:Key="TextTertiaryBrush" Color="#808080"/>
+        <SolidColorBrush x:Key="ButtonHoverBrush" Color="#444444"/>
+        
+        <!-- Button Style -->
+        <Style x:Key="ToolbarButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource ButtonHoverBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Spinner Animation -->
+        <Storyboard x:Key="SpinnerAnimation" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="SpinnerTransform"
+                           Storyboard.TargetProperty="Angle"
+                           From="0" To="360" Duration="0:0:1"/>
+        </Storyboard>
+        
+        <!-- Pulsing Animation for Recording Text -->
+        <Storyboard x:Key="PulsingAnimation" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="RecordingText"
+                           Storyboard.TargetProperty="Opacity"
+                           From="1" To="0.5" Duration="0:0:0.8"
+                           AutoReverse="True"/>
+        </Storyboard>
+    </Window.Resources>
+    
+    <!-- Main Border with rounded corners and shadow -->
+    <Border CornerRadius="8" Background="{StaticResource BackgroundBrush}">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="2" Opacity="0.5" Color="Black"/>
+        </Border.Effect>
+        
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="40"/>
+            </Grid.RowDefinitions>
+            
+            <!-- Top Toolbar -->
+            <Grid Grid.Row="0" Margin="8,8,8,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- Copy Button -->
+                <Button x:Name="CopyButton" 
+                        Grid.Column="0"
+                        Style="{StaticResource ToolbarButtonStyle}"
+                        Click="CopyButton_Click"
+                        Visibility="Collapsed"
+                        ToolTip="Copy to clipboard">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📋" FontSize="14"/>
+                        <TextBlock Text=" Copy" FontSize="12" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                
+                <!-- Minimize Button -->
+                <Button Grid.Column="2"
+                        Style="{StaticResource ToolbarButtonStyle}"
+                        Click="MinimizeButton_Click"
+                        ToolTip="Minimize">
+                    <TextBlock Text="─" FontSize="14" FontWeight="Bold"/>
+                </Button>
+            </Grid>
+            
+            <!-- Content Area -->
+            <Grid Grid.Row="1" Margin="20,0">
+                
+                <!-- Idle State -->
+                <StackPanel x:Name="IdlePanel" 
+                            VerticalAlignment="Center" 
+                            HorizontalAlignment="Center"
+                            Visibility="Visible">
+                    <Border Width="80" Height="80" 
+                            CornerRadius="40" 
+                            Background="#404040"
+                            HorizontalAlignment="Center">
+                        <TextBlock Text="🎤" 
+                                 FontSize="40" 
+                                 HorizontalAlignment="Center" 
+                                 VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="Ready to record" 
+                             FontFamily="Segoe UI" 
+                             FontSize="14" 
+                             Foreground="{StaticResource TextSecondaryBrush}"
+                             HorizontalAlignment="Center"
+                             Margin="0,16,0,0"/>
+                </StackPanel>
+                
+                <!-- Recording State -->
+                <StackPanel x:Name="RecordingPanel" 
+                            VerticalAlignment="Center" 
+                            HorizontalAlignment="Center"
+                            Visibility="Collapsed">
+                    <!-- Waveform Visualization -->
+                    <Canvas x:Name="WaveformCanvas" 
+                            Width="300" Height="100" 
+                            HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="RecordingText"
+                             Text="Recording..." 
+                             FontFamily="Segoe UI" 
+                             FontSize="14" 
+                             Foreground="{StaticResource AccentBrush}"
+                             HorizontalAlignment="Center"
+                             Margin="0,16,0,0"/>
+                </StackPanel>
+                
+                <!-- Processing State -->
+                <StackPanel x:Name="ProcessingPanel" 
+                            VerticalAlignment="Center" 
+                            HorizontalAlignment="Center"
+                            Visibility="Collapsed">
+                    <!-- Spinner -->
+                    <Viewbox Width="48" Height="48">
+                        <Canvas Width="50" Height="50">
+                            <Ellipse Width="48" Height="48" 
+                                   Canvas.Left="1" Canvas.Top="1"
+                                   Stroke="{StaticResource AccentBrush}" 
+                                   StrokeThickness="4"
+                                   StrokeDashArray="3,2"
+                                   RenderTransformOrigin="0.5,0.5">
+                                <Ellipse.RenderTransform>
+                                    <RotateTransform x:Name="SpinnerTransform" Angle="0"/>
+                                </Ellipse.RenderTransform>
+                            </Ellipse>
+                        </Canvas>
+                    </Viewbox>
+                    <TextBlock Text="Transcribing..." 
+                             FontFamily="Segoe UI" 
+                             FontSize="14" 
+                             Foreground="{StaticResource TextSecondaryBrush}"
+                             HorizontalAlignment="Center"
+                             Margin="0,16,0,0"/>
+                </StackPanel>
+                
+                <!-- Result State -->
+                <Grid x:Name="ResultPanel" Visibility="Collapsed">
+                    <TextBox x:Name="ResultTextBox"
+                           FontFamily="Segoe UI"
+                           FontSize="14"
+                           Foreground="{StaticResource TextPrimaryBrush}"
+                           Background="Transparent"
+                           BorderThickness="0"
+                           TextWrapping="Wrap"
+                           AcceptsReturn="True"
+                           VerticalScrollBarVisibility="Auto"
+                           Padding="4"
+                           CaretBrush="{StaticResource TextPrimaryBrush}"/>
+                </Grid>
+                
+                <!-- Error State -->
+                <StackPanel x:Name="ErrorPanel" 
+                            VerticalAlignment="Center" 
+                            HorizontalAlignment="Center"
+                            Visibility="Collapsed">
+                    <TextBlock Text="⚠️" 
+                             FontSize="40" 
+                             HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="ErrorText"
+                             Text="An error occurred" 
+                             FontFamily="Segoe UI" 
+                             FontSize="14" 
+                             Foreground="#FF6B6B"
+                             HorizontalAlignment="Center"
+                             TextWrapping="Wrap"
+                             MaxWidth="300"
+                             Margin="0,16,0,0"/>
+                </StackPanel>
+            </Grid>
+            
+            <!-- Bottom Hotkey Hint -->
+            <TextBlock x:Name="HotkeyHint"
+                     Grid.Row="2"
+                     Text="Press Fn to record"
+                     FontFamily="Segoe UI"
+                     FontSize="11"
+                     Foreground="{StaticResource TextTertiaryBrush}"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"/>
+        </Grid>
+    </Border>
+</Window>
