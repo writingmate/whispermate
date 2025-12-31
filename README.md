@@ -1,3 +1,6 @@
+<img width="824" height="824" alt="app icon" src="https://github.com/user-attachments/assets/e4e380ae-043f-4fe3-9968-56a03851e1c2" />
+
+
 # AIDictation - Voice to Text for macOS
 
 A native macOS **AI dictation** and **voice to text** app powered by Groq's Whisper API. Convert speech to text instantly with the fastest AI-powered dictation tool for Mac.
