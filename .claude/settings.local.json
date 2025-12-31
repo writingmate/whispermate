@@ -34,7 +34,8 @@
       "Bash(defaults delete:*)",
       "Bash(pkill:*)",
       "Bash(plutil:*)",
-      "Bash(agvtool new-marketing-version:*)"
+      "Bash(agvtool new-marketing-version:*)",
+      "Bash(xargs basename:*)"
     ],
     "deny": [],
     "ask": []

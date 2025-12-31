@@ -14,7 +14,7 @@ on:
 
 env:
   DOTNET_VERSION: '8.0.x'
-  PROJECT_PATH: 'AIDictation.Windows/AIDictation.Windows.csproj'
+  PROJECT_PATH: 'AIDictation.Windows/AIDictation/AIDictation.csproj'
 
 jobs:
   build:
