@@ -38,14 +38,25 @@ public class AuthManager: ObservableObject {
     // MARK: - Session Management
 
     private func checkSession() async {
+        await MainActor.run {
+            self.isLoading = true
+        }
+
         do {
             _ = try await supabase.client.auth.session
-            // User is authenticated, fetch user data
             await refreshUser()
         } catch {
-            // No active session
-            await MainActor.run {
-                self.isAuthenticated = false
+            // Try to refresh session if access token expired
+            DebugLog.info("Session check failed, attempting refresh...", context: "AuthManager")
+            do {
+                _ = try await supabase.client.auth.refreshSession()
+                await refreshUser()
+            } catch {
+                DebugLog.info("No valid session: \(error.localizedDescription)", context: "AuthManager")
+                await MainActor.run {
+                    self.isAuthenticated = false
+                    self.isLoading = false
+                }
             }
         }
     }
