@@ -45,12 +45,15 @@ struct TranscriptionOutputFilter {
             withTemplate: ""
         )
         result = result.replacingOccurrences(
-            of: #"\s+([,.;:!?])"#,
+            of: #"[ \t]+([,.;:!?])"#,
             with: "$1",
             options: .regularExpression
         )
+        // Collapse runs of spaces/tabs left by filler deletion. Do not use \s:
+        // Foundation \s includes newlines, which would turn blank lines between
+        // bullets and blocks into a single space after LLM cleanup.
         result = result.replacingOccurrences(
-            of: #"\s{2,}"#,
+            of: #"[ \t]{2,}"#,
             with: " ",
             options: .regularExpression
         )
