@@ -63,8 +63,35 @@ final class TranscriptionOutputFilterTests: XCTestCase {
         XCTAssertEqual(removeFillers("hello\t\tworld"), "hello world")
         XCTAssertEqual(
             removeFillers("hello  \n\n  world"),
-            "hello \n\n world"
+            "hello \n\n  world"
         )
+    }
+
+    func testFillerRemovalPreservesNestedBulletIndentation() {
+        let dictated = """
+        - Parent item
+          - Nested um child
+            - Deeper child
+        """
+        let expected = """
+        - Parent item
+          - Nested child
+            - Deeper child
+        """
+        XCTAssertEqual(removeFillers(dictated), expected)
+        XCTAssertEqual(liveCleanupOutput(dictated), expected)
+    }
+
+    func testFillerRemovalPreservesIndentedBlocks() {
+        let dictated = """
+        1. First step
+
+            indented block line
+
+        2. Second step
+        """
+        XCTAssertEqual(removeFillers(dictated), dictated)
+        XCTAssertEqual(liveCleanupOutput(dictated), dictated)
     }
 
     func testFillerRemovalKeepsBlankLinesAfterDeletingFillers() {
