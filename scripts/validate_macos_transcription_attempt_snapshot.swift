@@ -298,6 +298,45 @@ struct ValidateMacOSTranscriptionAttemptSnapshot {
             cleanupSource.contains("rules: promptComponents"),
             "Two-stage cleanup lost personal vocabulary, phrases, replacements, or rules"
         )
+        guard let liveOutputStart = source.range(of: "    private func cleanupWithRawFallback("),
+              let liveOutputEnd = source.range(
+                of: "    private func applyLLMPass(",
+                range: liveOutputStart.upperBound..<source.endIndex
+              )
+        else {
+            preconditionFailure("Could not isolate live cleanup output path")
+        }
+        let liveOutputSource = String(source[liveOutputStart.lowerBound..<liveOutputEnd.lowerBound])
+        precondition(
+            liveOutputSource.contains("return transcriptWithoutStandaloneFillers(cleaned)"),
+            "Successful LLM cleanup no longer runs the live filler output filter"
+        )
+        precondition(
+            liveOutputSource.contains("return transcriptWithoutStandaloneFillers(rawText)"),
+            "Cleanup fallback no longer runs the live filler output filter"
+        )
+        precondition(
+            liveOutputSource.contains("TranscriptionOutputFilter.removeStandaloneFillers(text)"),
+            "Live cleanup output path lost removeStandaloneFillers"
+        )
+        precondition(
+            !liveOutputSource.contains("TranscriptionOutputFilter.filter"),
+            "Live cleanup output still passes through destructive .filter whitespace collapsing"
+        )
+        let filterPath = "Whishpermate/Whispermate/Services/TranscriptionOutputFilter.swift"
+        let filterSource = try String(contentsOfFile: filterPath, encoding: .utf8)
+        guard let fillerStart = filterSource.range(of: "static func removeStandaloneFillers(") else {
+            preconditionFailure("Could not isolate removeStandaloneFillers")
+        }
+        let fillerSource = String(filterSource[fillerStart.lowerBound...])
+        precondition(
+            !fillerSource.contains(#"\s{2,}"#),
+            "removeStandaloneFillers still collapses Foundation \\s, including newlines between bullets"
+        )
+        precondition(
+            fillerSource.contains(#"[ \t]{2,}"#),
+            "removeStandaloneFillers no longer collapses leftover spaces and tabs after filler deletion"
+        )
         let cleanupFailureChecks = source.components(
             separatedBy: "managedCleanupFailed = !cleanup.completed"
         ).count - 1
